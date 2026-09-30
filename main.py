@@ -2189,13 +2189,13 @@ def html_export_teszt():
         ZoneInfo("Europe/Budapest")
     )
 
-    aktualis_datum = most.strftime(
-        "%Y.%m.%d."
-    )
+   # aktualis_datum = most.strftime(
+    #    "%Y.%m.%d."
+   # )
 
-    aktualis_ido = most.strftime(
-        "%H:%M:%S"
-    )
+    #aktualis_ido = most.strftime(
+    #    "%H:%M:%S"
+   # )
 
 
     # --------------------------------------------------------
