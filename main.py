@@ -2342,7 +2342,7 @@ def html_export_teszt():
                 "kezdés",
                 ""
             )
-        )
+        )[:5]
 
 
         vegzes = str(
@@ -2350,7 +2350,7 @@ def html_export_teszt():
                 "végzés",
                 ""
             )
-        )
+        )[:5]
 
 
         hely = str(
