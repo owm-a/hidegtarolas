@@ -29,7 +29,7 @@
       "hely": "Csepel, Szent Imre tér",
       "helyszín": "csepel_szent_imre",
       "rendszám": "SGY818",
-      "frissítve": "18:44:25"
+      "frissítve": "18:54:35"
     },
     "0710|24": {
       "viszonylat": "0710",
@@ -39,7 +39,7 @@
       "hely": "Csepel, Szent Imre tér",
       "helyszín": "csepel_szent_imre",
       "rendszám": "PDN638",
-      "frissítve": "18:44:25"
+      "frissítve": "18:54:35"
     },
     "0710|23": {
       "viszonylat": "0710",
@@ -79,7 +79,7 @@
       "hely": "Kőbánya-Kispest M (Sibrik tároló)",
       "helyszín": "kobanya_kispest",
       "rendszám": "AOGF651",
-      "frissítve": "18:44:25"
+      "frissítve": "18:54:35"
     },
     "1510|22": {
       "viszonylat": "1510",
@@ -89,7 +89,7 @@
       "hely": "Kőbánya-Kispest M (Sibrik tároló)",
       "helyszín": "kobanya_kispest",
       "rendszám": "AOGF671",
-      "frissítve": "18:44:25"
+      "frissítve": "18:54:35"
     },
     "0310|57": {
       "viszonylat": "0310",
@@ -99,7 +99,7 @@
       "hely": "Örs vezér tere M+H (északi tároló)",
       "helyszín": "ors_vezer_E",
       "rendszám": "AAMH603",
-      "frissítve": "18:05:52"
+      "frissítve": "18:54:35"
     },
     "0310|56": {
       "viszonylat": "0310",
@@ -119,7 +119,7 @@
       "hely": "Csepel, Szent Imre tér",
       "helyszín": "csepel_szent_imre",
       "rendszám": "PDN610",
-      "frissítve": "18:40:08"
+      "frissítve": "18:54:35"
     }
   },
   "pozicio_tortenet": [
@@ -573,6 +573,105 @@
       "rendszám": "PDN610",
       "pozíció": "47.42327117919922, 19.13204574584961",
       "frissítve": "18:44:28"
+    },
+    {
+      "viszonylat": "0960",
+      "forda": "59",
+      "kezdés": "09:02:00",
+      "végzés": "13:23:00",
+      "hely": "Békásmegyer, Újmegyeri tér",
+      "helyszín": "bekasmegyer",
+      "rendszám": "AAHY878",
+      "pozíció": "47.57199478149414, 19.135135650634766",
+      "frissítve": "18:54:38"
+    },
+    {
+      "viszonylat": "1340",
+      "forda": "57",
+      "kezdés": "10:40:00",
+      "végzés": "15:45:00",
+      "hely": "Békásmegyer, Újmegyeri tér",
+      "helyszín": "bekasmegyer",
+      "rendszám": "AAHY812",
+      "pozíció": "47.603153228759766, 19.067333221435547",
+      "frissítve": "18:54:38"
+    },
+    {
+      "viszonylat": "0350",
+      "forda": "21",
+      "kezdés": "08:56:00",
+      "végzés": "13:43:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "rendszám": "SGY818",
+      "pozíció": "47.433067321777344, 19.070554733276367",
+      "frissítve": "18:54:38"
+    },
+    {
+      "viszonylat": "0710",
+      "forda": "24",
+      "kezdés": "09:59:00",
+      "végzés": "15:21:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "rendszám": "PDN638",
+      "pozíció": "47.42573165893555, 19.078203201293945",
+      "frissítve": "18:54:38"
+    },
+    {
+      "viszonylat": "0360",
+      "forda": "21",
+      "kezdés": "11:14:00",
+      "végzés": "14:16:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "rendszám": "AOIM009",
+      "pozíció": "47.45117950439453, 19.10806655883789",
+      "frissítve": "18:54:38"
+    },
+    {
+      "viszonylat": "0660",
+      "forda": "21",
+      "kezdés": "09:58:00",
+      "végzés": "15:14:00",
+      "hely": "Kőbánya-Kispest M (Sibrik tároló)",
+      "helyszín": "kobanya_kispest",
+      "rendszám": "AOGF651",
+      "pozíció": "47.398948669433594, 19.114578247070312",
+      "frissítve": "18:54:38"
+    },
+    {
+      "viszonylat": "1510",
+      "forda": "22",
+      "kezdés": "10:47:00",
+      "végzés": "13:55:00",
+      "hely": "Kőbánya-Kispest M (Sibrik tároló)",
+      "helyszín": "kobanya_kispest",
+      "rendszám": "AOGF671",
+      "pozíció": "47.45083236694336, 19.133586883544922",
+      "frissítve": "18:54:38"
+    },
+    {
+      "viszonylat": "0310",
+      "forda": "57",
+      "kezdés": "09:09:00",
+      "végzés": "13:29:00",
+      "hely": "Örs vezér tere M+H (északi tároló)",
+      "helyszín": "ors_vezer_E",
+      "rendszám": "AAMH603",
+      "pozíció": "47.513999938964844, 19.13734245300293",
+      "frissítve": "18:54:38"
+    },
+    {
+      "viszonylat": "0350",
+      "forda": "22",
+      "kezdés": "12:20:00",
+      "végzés": "15:43:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "rendszám": "PDN610",
+      "pozíció": "47.42717361450195, 19.12631607055664",
+      "frissítve": "18:54:38"
     }
   ]
 }
