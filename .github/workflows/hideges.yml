@@ -1,9 +1,10 @@
 name: ArrivaBus hidegtárolás_2
 
 on:
-schedule:
+  schedule:
   - cron: "2,12,22,32,42,52 * * * *"
     timezone: "Europe/Budapest"
+    
   push:
 
   workflow_dispatch:
