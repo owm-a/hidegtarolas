@@ -1582,7 +1582,7 @@ poziciok = napi_adatok.get(
 
 
 # ============================================================
-# 3. MINDEN MENTETT FORDA ELLENŐRZÉSE
+# 3. MINDEN FORDA ELLENŐRZÉSE
 # ============================================================
 
 ellenorzesek = []
@@ -1597,14 +1597,12 @@ for forda_kulcs, adat in forda_rendszamok.items():
         )
     ).strip()
 
-
     forda = str(
         adat.get(
             "forda",
             ""
         )
     ).strip()
-
 
     rendszam = str(
         adat.get(
@@ -1613,14 +1611,12 @@ for forda_kulcs, adat in forda_rendszamok.items():
         )
     ).strip()
 
-
     hely = str(
         adat.get(
             "hely",
             ""
         )
     ).strip()
-
 
     helyszin_kulcs = str(
         adat.get(
@@ -1629,14 +1625,12 @@ for forda_kulcs, adat in forda_rendszamok.items():
         )
     ).strip()
 
-
     kezdés = str(
         adat.get(
             "kezdés",
             ""
         )
     ).strip()
-
 
     végzés = str(
         adat.get(
@@ -1647,23 +1641,17 @@ for forda_kulcs, adat in forda_rendszamok.items():
 
 
     # ========================================================
-    # 3/a. VAN-E HELYSZÍN-KONFIGURÁCIÓ?
+    # 3/a. HELYSZÍN-KONFIGURÁCIÓ
     # ========================================================
 
     if not helyszin_kulcs:
 
         ellenorzesek.append({
-
             "viszonylat": viszonylat,
-
             "forda": forda,
-
             "rendszám": rendszam,
-
             "hely": hely,
-
             "helyszín": "",
-
             "ellenőrzés": "NINCS HELYSZÍN"
         })
 
@@ -1673,17 +1661,11 @@ for forda_kulcs, adat in forda_rendszamok.items():
     if helyszin_kulcs not in HELYSZINEK:
 
         ellenorzesek.append({
-
             "viszonylat": viszonylat,
-
             "forda": forda,
-
             "rendszám": rendszam,
-
             "hely": hely,
-
             "helyszín": helyszin_kulcs,
-
             "ellenőrzés": "HIBÁS HELYSZÍN"
         })
 
@@ -1709,17 +1691,11 @@ for forda_kulcs, adat in forda_rendszamok.items():
     if not idoben_ott_kell_lennie:
 
         ellenorzesek.append({
-
             "viszonylat": viszonylat,
-
             "forda": forda,
-
             "rendszám": rendszam,
-
             "hely": hely,
-
             "helyszín": helyszin_kulcs,
-
             "ellenőrzés": "NEM AKTUÁLIS"
         })
 
@@ -1727,7 +1703,7 @@ for forda_kulcs, adat in forda_rendszamok.items():
 
 
     # ========================================================
-    # 3/c. AZ ADOTT FORDA LEGUTÓBBI POZÍCIÓJA
+    # 3/c. AZ ADOTT FORDA POZÍCIÓI
     # ========================================================
 
     forda_poziciok = [
@@ -1761,17 +1737,11 @@ for forda_kulcs, adat in forda_rendszamok.items():
     if not forda_poziciok:
 
         ellenorzesek.append({
-
             "viszonylat": viszonylat,
-
             "forda": forda,
-
             "rendszám": rendszam,
-
             "hely": hely,
-
             "helyszín": helyszin_kulcs,
-
             "ellenőrzés": "NINCS POZÍCIÓ"
         })
 
@@ -1785,41 +1755,56 @@ for forda_kulcs, adat in forda_rendszamok.items():
     utolso = forda_poziciok[-1]
 
 
-    # ========================================================
-    # 3/e. GPS KOORDINÁTÁK
-    # ========================================================
-
-    latitude = utolso.get(
-        "latitude"
-    )
-
-    longitude = utolso.get(
-        "longitude"
-    )
+    pozicio_szoveg = str(
+        utolso.get(
+            "pozíció",
+            ""
+        )
+    ).strip()
 
 
-    # A jelenlegi működő verzió "pozíció" mezőben
-    # tárolja a koordinátákat.
-    # Ha abból kellene kiolvasni, később megoldjuk.
-    #
-    # Első körben csak akkor ellenőrzünk GPS-t,
-    # ha a latitude / longitude mezők rendelkezésre állnak.
-
-    if latitude is None or longitude is None:
+    if not pozicio_szoveg:
 
         ellenorzesek.append({
-
             "viszonylat": viszonylat,
-
             "forda": forda,
-
             "rendszám": rendszam,
-
             "hely": hely,
-
             "helyszín": helyszin_kulcs,
+            "ellenőrzés": "NINCS POZÍCIÓ"
+        })
 
-            "ellenőrzés": "NINCS GPS"
+        continue
+
+
+    # ========================================================
+    # 3/e. LATITUDE + LONGITUDE KINYERÉSE
+    # ========================================================
+
+    try:
+
+        latitude_szoveg, longitude_szoveg = (
+            pozicio_szoveg.split(",", 1)
+        )
+
+        latitude = float(
+            latitude_szoveg.strip()
+        )
+
+        longitude = float(
+            longitude_szoveg.strip()
+        )
+
+    except (ValueError, TypeError):
+
+        ellenorzesek.append({
+            "viszonylat": viszonylat,
+            "forda": forda,
+            "rendszám": rendszam,
+            "hely": hely,
+            "helyszín": helyszin_kulcs,
+            "pozíció": pozicio_szoveg,
+            "ellenőrzés": "HIBÁS POZÍCIÓ"
         })
 
         continue
@@ -1831,14 +1816,14 @@ for forda_kulcs, adat in forda_rendszamok.items():
 
     lat_benne = (
         helyszin["lat_min"]
-        <= float(latitude)
+        <= latitude
         <= helyszin["lat_max"]
     )
 
 
     lon_benne = (
         helyszin["lon_min"]
-        <= float(longitude)
+        <= longitude
         <= helyszin["lon_max"]
     )
 
@@ -1859,7 +1844,7 @@ for forda_kulcs, adat in forda_rendszamok.items():
 
 
     # ========================================================
-    # 3/g. EREDMÉNY ELMENTÉSE
+    # 3/g. EREDMÉNY
     # ========================================================
 
     ellenorzesek.append({
@@ -1874,9 +1859,9 @@ for forda_kulcs, adat in forda_rendszamok.items():
 
         "helyszín": helyszin_kulcs,
 
-        "latitude": float(latitude),
+        "latitude": latitude,
 
-        "longitude": float(longitude),
+        "longitude": longitude,
 
         "pozíció_időpont": utolso.get(
             "frissítve",
