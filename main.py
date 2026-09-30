@@ -279,3 +279,415 @@ print(
 # =========================================================
 
 print("GTFS és helyszín-konfiguráció betöltése kész.")
+
+# =========================================================
+# 9. EXCEL → AZNAPI MUNKALAP → FIGYELENDŐ FORDÁK
+# =========================================================
+
+from datetime import time
+import openpyxl
+
+
+# =========================================================
+# 9/a. IDŐ KONVERTÁLÁSA
+# =========================================================
+
+def ido_konvertalasa(ertek):
+
+    if pd.isna(ertek):
+        return None
+
+    # Ha Excel eleve time értéket adott
+    if isinstance(ertek, time):
+        return ertek
+
+    # Ha datetime érték
+    if isinstance(ertek, datetime):
+        return ertek.time()
+
+    # Szöveges idő
+    szoveg = str(ertek).strip()
+
+    if not szoveg:
+        return None
+
+    for fmt in [
+        "%H:%M:%S",
+        "%H:%M"
+    ]:
+        try:
+            return datetime.strptime(
+                szoveg,
+                fmt
+            ).time()
+
+        except ValueError:
+            continue
+
+    raise ValueError(
+        f"Nem értelmezhető időformátum: {ertek}"
+    )
+
+
+# =========================================================
+# 9/b. AKTUÁLIS BUDAPESTI DÁTUM
+# =========================================================
+
+most = datetime.now(
+    ZoneInfo("Europe/Budapest")
+)
+
+ev = most.strftime("%Y")
+honap = most.strftime("%m")
+nap = int(most.strftime("%d"))
+
+ev_honap = f"{ev}.{honap}."
+nap_keresett = f"{nap}."
+
+
+print(
+    "Excelhez használt dátum:",
+    most.strftime("%Y-%m-%d")
+)
+
+print(
+    "Keresett év/hónap:",
+    ev_honap
+)
+
+print(
+    "Keresett nap:",
+    nap_keresett
+)
+
+
+# =========================================================
+# 9/c. HAVI EXCEL FÁJL
+# =========================================================
+
+EXCEL_FAJL = (
+    f"data/biztor_{ev}.{honap}.xlsx"
+)
+
+print(
+    "Excel fájl:",
+    EXCEL_FAJL
+)
+
+
+if not os.path.exists(EXCEL_FAJL):
+
+    raise FileNotFoundError(
+        f"Nem található az Excel fájl:\n"
+        f"{EXCEL_FAJL}"
+    )
+
+
+# =========================================================
+# 9/d. MUNKALAPOK MEGNYITÁSA
+# =========================================================
+
+wb = openpyxl.load_workbook(
+    EXCEL_FAJL,
+    read_only=True,
+    data_only=True
+)
+
+munkalapok = wb.sheetnames
+
+print(
+    "Munkalapok száma:",
+    len(munkalapok)
+)
+
+print(
+    "Első munkalap kihagyva:",
+    munkalapok[0]
+)
+
+
+# =========================================================
+# 9/e. AZNAPI MUNKALAP KERESÉSE
+# =========================================================
+
+talalt_munkalap = None
+
+
+for nev in munkalapok[1:]:
+
+    ws = wb[nev]
+
+    c4 = ws["C4"].value
+    d4 = ws["D4"].value
+
+    c4_szoveg = (
+        ""
+        if c4 is None
+        else str(c4).strip()
+    )
+
+    d4_szoveg = (
+        ""
+        if d4 is None
+        else str(d4).strip()
+    )
+
+    # C4-ben az év/hónap keresése
+    if ev_honap not in c4_szoveg:
+        continue
+
+    # D4-ben a nap keresése
+    napok = [
+        x.strip()
+        for x in d4_szoveg
+        .replace(",", " ")
+        .split()
+    ]
+
+    if nap_keresett in napok:
+
+        talalt_munkalap = nev
+        break
+
+
+# =========================================================
+# 9/f. ELLENŐRZÉS
+# =========================================================
+
+if talalt_munkalap is None:
+
+    raise ValueError(
+        f"Nem található az aktuális naphoz "
+        f"tartozó munkalap.\n"
+        f"Keresett C4: {ev_honap}\n"
+        f"Keresett D4 nap: {nap_keresett}"
+    )
+
+
+print(
+    "Talált munkalap:",
+    talalt_munkalap
+)
+
+
+# =========================================================
+# 9/g. MUNKALAP BEOLVASÁSA
+# =========================================================
+
+excel = pd.read_excel(
+    EXCEL_FAJL,
+    sheet_name=talalt_munkalap,
+    header=None
+)
+
+
+print(
+    "Munkalap beolvasva."
+)
+
+print(
+    "Sorok száma:",
+    len(excel)
+)
+
+
+# =========================================================
+# 9/h. FORDÁK BEOLVASÁSA B8:F OSZLOPBÓL
+# =========================================================
+
+figyelt_fordak = []
+
+
+for i in range(7, len(excel)):
+
+    # -----------------------------------------------------
+    # A oszlop
+    # -----------------------------------------------------
+
+    a_ertek = excel.iloc[i, 0]
+
+    # Első "Őr" sornál megállunk
+    if (
+        pd.notna(a_ertek)
+        and str(a_ertek).strip() == "Őr"
+    ):
+        break
+
+
+    # -----------------------------------------------------
+    # B–F oszlopok
+    # -----------------------------------------------------
+
+    viszonylat = excel.iloc[i, 1]
+    forda = excel.iloc[i, 2]
+    kezdes = excel.iloc[i, 3]
+    vegzes = excel.iloc[i, 4]
+    hely = excel.iloc[i, 5]
+
+
+    # -----------------------------------------------------
+    # Üres B/C sorok kihagyása
+    # -----------------------------------------------------
+
+    if (
+        pd.isna(viszonylat)
+        or pd.isna(forda)
+    ):
+        continue
+
+
+    viszonylat = str(
+        viszonylat
+    ).strip()
+
+    forda = str(
+        forda
+    ).strip()
+
+
+    if not viszonylat or not forda:
+        continue
+
+
+    # -----------------------------------------------------
+    # Excelből érkező .0 eltávolítása
+    # -----------------------------------------------------
+
+    if viszonylat.endswith(".0"):
+        viszonylat = viszonylat[:-2]
+
+    if forda.endswith(".0"):
+        forda = forda[:-2]
+
+
+    # -----------------------------------------------------
+    # Kezdési idő
+    # -----------------------------------------------------
+
+    kezdes = ido_konvertalasa(
+        kezdes
+    )
+
+
+    # -----------------------------------------------------
+    # Végzési idő
+    # -----------------------------------------------------
+
+    vegzes = ido_konvertalasa(
+        vegzes
+    )
+
+
+    # -----------------------------------------------------
+    # Hely
+    # -----------------------------------------------------
+
+    if pd.notna(hely):
+
+        hely = str(
+            hely
+        ).strip()
+
+    else:
+
+        hely = ""
+
+
+    # =====================================================
+    # 9/i. EXCEL HELY → HELYSZÍN
+    # =====================================================
+
+    helyszin_talalatok = []
+
+    hely_normalizalt = (
+        hely.casefold()
+    )
+
+
+    for helyszin_kulcs, adat in HELYSZINEK.items():
+
+        kulcsszo = (
+            adat["kulcsszo"]
+            .casefold()
+        )
+
+        if hely_normalizalt.startswith(
+            kulcsszo
+        ):
+
+            helyszin_talalatok.append(
+                helyszin_kulcs
+            )
+
+
+    # =====================================================
+    # 9/j. HELYSZÍN ELLENŐRZÉSE
+    # =====================================================
+
+    if len(helyszin_talalatok) == 0:
+
+        print(
+            f"FIGYELEM: nincs helyszín-"
+            f"konfiguráció ehhez: {hely}"
+        )
+
+        helyszin = ""
+
+
+    elif len(helyszin_talalatok) > 1:
+
+        raise ValueError(
+            f"Több helyszín illeszkedik ehhez: "
+            f"{hely}\n"
+            f"Találatok: "
+            f"{helyszin_talalatok}"
+        )
+
+
+    else:
+
+        helyszin = (
+            helyszin_talalatok[0]
+        )
+
+
+    # =====================================================
+    # 9/k. ADAT HOZZÁADÁSA
+    # =====================================================
+
+    figyelt_fordak.append({
+
+        "viszonylat": viszonylat,
+
+        "forda": forda,
+
+        "kezdés": kezdes,
+
+        "végzés": vegzes,
+
+        "hely": hely,
+
+        "helyszín": helyszin
+
+    })
+
+
+# =========================================================
+# 9/l. ELLENŐRZÉS
+# =========================================================
+
+figyelt_fordak = pd.DataFrame(
+    figyelt_fordak
+)
+
+
+print(
+    "Figyelt fordák:",
+    len(figyelt_fordak)
+)
+
+print(
+    figyelt_fordak.to_string(
+        index=False
+    )
+)
