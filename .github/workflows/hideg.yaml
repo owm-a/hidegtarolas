@@ -3,18 +3,31 @@ name: ArrivaBus hidegtárolás
 on:
 
   schedule:
-    - cron: "34,39,44 * * * *"
+
+    # 07:00–14:50, 10 percenként
+    - cron: "*/10 7-14 * * *"
+      timezone: "Europe/Budapest"
+
+    # 15:00
+    - cron: "0 15 * * *"
+      timezone: "Europe/Budapest"
 
   workflow_dispatch:
+
 
 permissions:
   contents: write
 
+
 jobs:
+
   teszt:
+
     runs-on: ubuntu-latest
 
+
     steps:
+
 
       # ==================================================
       # 1. REPÓ LETÖLTÉSE
@@ -30,6 +43,7 @@ jobs:
 
       - name: Python beállítása
         uses: actions/setup-python@v6
+
         with:
           python-version: "3.14"
 
@@ -39,6 +53,7 @@ jobs:
       # ==================================================
 
       - name: Csomagok telepítése
+
         run: pip install -r requirements.txt
 
 
@@ -47,8 +62,11 @@ jobs:
       # ==================================================
 
       - name: Budapest dátum meghatározása
+
         id: datum
+
         run: |
+
           echo "datum=$(TZ=Europe/Budapest date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
 
 
@@ -57,9 +75,13 @@ jobs:
       # ==================================================
 
       - name: GTFS cache betöltése
+
         uses: actions/cache@v4
+
         with:
+
           path: gtfs_cache
+
           key: gtfs-cache-${{ steps.datum.outputs.datum }}
 
 
@@ -68,25 +90,38 @@ jobs:
       # ==================================================
 
       - name: Program futtatása
+
         env:
+
           BKK_API_KEY: ${{ secrets.BKK_API_KEY }}
+
         run: python main.py
 
 
-         # ==================================================
-      # 7. NAPI ADATOK ÉS HTML TESZT EXPORT MENTÉSE
+      # ==================================================
+      # 7. NAPI ADATOK ÉS HTML EXPORT MENTÉSE
       # ==================================================
 
       - name: Napi adatok mentése
+
         run: |
+
           git config user.name "github-actions[bot]"
+
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add napi_adatok.json export_teszt.html
+
+          git add napi_adatok.json index.html
+
 
           if git diff --cached --quiet; then
+
             echo "Nincs új mentendő adat."
+
           else
+
             git commit -m "Napi adatok és HTML export frissítése"
+
             git push
+
           fi
