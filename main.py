@@ -44,30 +44,205 @@ print("Modulok betöltve.")
 # =========================================================
 # 3. BKK GTFS BETÖLTÉSE
 # =========================================================
+#
+# A GTFS-t naponta csak egyszer töltjük le.
+#
+# Az első napi futáskor:
+#   1. ellenőrizzük a GTFS cache-t
+#   2. ha előző napi GTFS van benne, töröljük
+#   3. letöltjük az aktuális GTFS-t
+#   4. elmentjük a cache-be
+#
+# A nap további futásai ugyanazt a GTFS-t használják.
+#
+# =========================================================
 
 GTFS_URL = (
     "https://go.bkk.hu/api/static/v1/public-gtfs/"
     "budapest_gtfs.zip"
 )
 
-gtfs_response = requests.get(GTFS_URL)
+GTFS_CACHE_DIR = "gtfs_cache"
 
-if gtfs_response.status_code != 200:
-    raise Exception(
-        f"GTFS letöltési hiba. "
-        f"HTTP státusz: {gtfs_response.status_code}"
+GTFS_CACHE_FILE = os.path.join(
+    GTFS_CACHE_DIR,
+    "budapest_gtfs.zip"
+)
+
+GTFS_DATE_FILE = os.path.join(
+    GTFS_CACHE_DIR,
+    "letoltes_datum.txt"
+)
+
+
+# =========================================================
+# 3/a. CACHE MAPPA LÉTREHOZÁSA
+# =========================================================
+
+os.makedirs(
+    GTFS_CACHE_DIR,
+    exist_ok=True
+)
+
+
+# =========================================================
+# 3/b. AKTUÁLIS BUDAPESTI DÁTUM
+# =========================================================
+
+budapesti_datum = datetime.now(
+    ZoneInfo("Europe/Budapest")
+).strftime("%Y-%m-%d")
+
+
+# =========================================================
+# 3/c. MEGNÉZZÜK, MELYIK NAPHOZ TARTOZIK A CACHE
+# =========================================================
+
+tarolt_datum = None
+
+if os.path.exists(GTFS_DATE_FILE):
+
+    with open(
+        GTFS_DATE_FILE,
+        "r",
+        encoding="utf-8"
+    ) as f:
+
+        tarolt_datum = f.read().strip()
+
+
+# =========================================================
+# 3/d. ELSŐ FUTÁS / ÚJ NAP ELLENŐRZÉSE
+# =========================================================
+
+if (
+    tarolt_datum != budapesti_datum
+    or not os.path.exists(GTFS_CACHE_FILE)
+):
+
+    print()
+    print(
+        "Új nap vagy hiányzó GTFS cache."
     )
 
-gtfs_zip = zipfile.ZipFile(
-    io.BytesIO(gtfs_response.content)
-)
+    print(
+        "Régi GTFS törlése..."
+    )
 
-print("GTFS betöltve.")
+
+    # -----------------------------------------------------
+    # Régi GTFS törlése
+    # -----------------------------------------------------
+
+    if os.path.exists(GTFS_CACHE_FILE):
+
+        os.remove(
+            GTFS_CACHE_FILE
+        )
+
+        print(
+            "Régi GTFS törölve."
+        )
+
+
+    # -----------------------------------------------------
+    # Új GTFS letöltése
+    # -----------------------------------------------------
+
+    print(
+        "Új GTFS letöltése..."
+    )
+
+    gtfs_response = requests.get(
+        GTFS_URL,
+        timeout=60
+    )
+
+
+    if gtfs_response.status_code != 200:
+
+        raise Exception(
+            f"GTFS letöltési hiba. "
+            f"HTTP státusz: "
+            f"{gtfs_response.status_code}"
+        )
+
+
+    # -----------------------------------------------------
+    # Új GTFS mentése
+    # -----------------------------------------------------
+
+    with open(
+        GTFS_CACHE_FILE,
+        "wb"
+    ) as f:
+
+        f.write(
+            gtfs_response.content
+        )
+
+
+    # -----------------------------------------------------
+    # Aktuális dátum mentése
+    # -----------------------------------------------------
+
+    with open(
+        GTFS_DATE_FILE,
+        "w",
+        encoding="utf-8"
+    ) as f:
+
+        f.write(
+            budapesti_datum
+        )
+
+
+    print(
+        "Új GTFS sikeresen letöltve."
+    )
+
+
+# =========================================================
+# 3/e. HA MÁR VAN MAI GTFS
+# =========================================================
+
+else:
+
+    print()
+    print(
+        "A mai GTFS már rendelkezésre áll."
+    )
+
+    print(
+        "Új letöltés nem szükséges."
+    )
+
+
+# =========================================================
+# 3/f. GTFS ZIP MEGNYITÁSA
+# =========================================================
+
+with open(
+    GTFS_CACHE_FILE,
+    "rb"
+) as f:
+
+    gtfs_zip = zipfile.ZipFile(
+        io.BytesIO(
+            f.read()
+        )
+    )
+
+
+print()
 print(
-    f"Fájlok száma: {len(gtfs_zip.namelist())}"
+    "GTFS betöltve."
 )
 
-
+print(
+    f"Fájlok száma: "
+    f"{len(gtfs_zip.namelist())}"
+)
 # =========================================================
 # 4. GTFS ADATOK BETÖLTÉSE
 # =========================================================
