@@ -1,13 +1,9 @@
 name: ArrivaBus hidegtárolás
 
 on:
-  workflow_dispatch:
-
-  push:
 
   schedule:
     - cron: "*/5 * * * *"
-      timezone: "Europe/Budapest"
 
 permissions:
   contents: write
