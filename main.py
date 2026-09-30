@@ -2167,3 +2167,352 @@ print(
         ].shape[0]
     )
 )
+
+# ============================================================
+# IDEIGLENES HTML EXPORT
+# napi_adatok.json → export_teszt.html
+# ============================================================
+
+import json
+from html import escape
+
+
+def html_export_teszt():
+
+    # --------------------------------------------------------
+    # JSON betöltése
+    # --------------------------------------------------------
+
+    try:
+
+        with open(
+            "napi_adatok.json",
+            "r",
+            encoding="utf-8"
+        ) as f:
+
+            napi_adatok = json.load(f)
+
+    except FileNotFoundError:
+
+        print("Nincs napi_adatok.json, HTML export nem készül.")
+        return
+
+
+    # --------------------------------------------------------
+    # Pozíciótörténet
+    # --------------------------------------------------------
+
+    pozicio_tortenet = napi_adatok.get(
+        "pozicio_tortenet",
+        []
+    )
+
+    if not pozicio_tortenet:
+
+        print("Nincs pozíciótörténet, HTML export nem készül.")
+        return
+
+
+    # --------------------------------------------------------
+    # Időpontok összegyűjtése
+    # --------------------------------------------------------
+
+    idopontok = sorted(
+        {
+            rekord.get("frissítve", "")[:5]
+            for rekord in pozicio_tortenet
+            if rekord.get("frissítve")
+        }
+    )
+
+
+    # --------------------------------------------------------
+    # Fordák összegyűjtése
+    # --------------------------------------------------------
+
+    sorok = {}
+
+    for rekord in pozicio_tortenet:
+
+        viszonylat = str(
+            rekord.get("viszonylat", "")
+        )
+
+        forda = str(
+            rekord.get("forda", "")
+        )
+
+        hely = str(
+            rekord.get("hely", "")
+        )
+
+        rendszam = str(
+            rekord.get("rendszám", "")
+        )
+
+        kulcs = (
+            viszonylat,
+            forda
+        )
+
+        if kulcs not in sorok:
+
+            sorok[kulcs] = {
+                "viszonylat": viszonylat,
+                "forda": forda,
+                "hely": hely,
+                "rendszám": rendszam,
+                "ellenőrzés": {}
+            }
+
+        # ----------------------------------------------------
+        # Ellenőrzés eredménye
+        # ----------------------------------------------------
+
+        idopont = rekord.get(
+            "frissítve",
+            ""
+        )[:5]
+
+        ellenorzes = rekord.get(
+            "ellenőrzés",
+            "-"
+        )
+
+        sorok[kulcs]["ellenőrzés"][idopont] = (
+            ellenorzes
+        )
+
+
+    # --------------------------------------------------------
+    # HTML fejléc
+    # --------------------------------------------------------
+
+    html = []
+
+    html.append("""
+<!DOCTYPE html>
+<html lang="hu">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>ArrivaBus hidegtárolás</title>
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background: #f5f5f5;
+}
+
+h1 {
+    font-size: 22px;
+    margin-bottom: 20px;
+}
+
+table {
+    border-collapse: collapse;
+    background: white;
+    font-size: 13px;
+}
+
+th,
+td {
+    border: 1px solid #888;
+    padding: 6px 8px;
+    text-align: center;
+}
+
+th {
+    background: #d9d9d9;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+td.alap {
+    white-space: nowrap;
+    text-align: left;
+}
+
+th.idopont,
+td.ellenorzes {
+    width: 38px;
+    min-width: 38px;
+    max-width: 38px;
+    padding: 4px 2px;
+}
+
+td.ellenorzes {
+    font-weight: bold;
+}
+
+.ok {
+    background: #00b050;
+    color: white;
+}
+
+.nem {
+    background: #ff0000;
+    color: white;
+}
+
+.nincs {
+    background: #000000;
+    color: white;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>ArrivaBus hidegtárolás – pozícióellenőrzés</h1>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Viszonylat</th>
+<th>Forda</th>
+<th>Hely</th>
+<th>Rendszám</th>
+""")
+
+    # --------------------------------------------------------
+    # Időpont oszlopok
+    # --------------------------------------------------------
+
+    for idopont in idopontok:
+
+        html.append(
+            f'<th class="idopont">{escape(idopont)}</th>'
+        )
+
+
+    html.append("""
+</tr>
+
+</thead>
+
+<tbody>
+""")
+
+
+    # --------------------------------------------------------
+    # Sorok
+    # --------------------------------------------------------
+
+    for _, sor in sorted(
+        sorok.items(),
+        key=lambda x: (
+            x[1]["viszonylat"],
+            x[1]["forda"]
+        )
+    ):
+
+        html.append("<tr>")
+
+        html.append(
+            f'<td class="alap">{escape(sor["viszonylat"])}</td>'
+        )
+
+        html.append(
+            f'<td class="alap">{escape(sor["forda"])}</td>'
+        )
+
+        html.append(
+            f'<td class="alap">{escape(sor["hely"])}</td>'
+        )
+
+        html.append(
+            f'<td class="alap">{escape(sor["rendszám"])}</td>'
+        )
+
+
+        # ----------------------------------------------------
+        # Időpontok
+        # ----------------------------------------------------
+
+        for idopont in idopontok:
+
+            eredmeny = sor["ellenőrzés"].get(
+                idopont,
+                "-"
+            )
+
+            if eredmeny == "OK":
+
+                osztaly = "ok"
+
+            elif eredmeny == "NEM":
+
+                osztaly = "nem"
+
+            else:
+
+                osztaly = "nincs"
+
+                eredmeny = "-"
+
+
+            html.append(
+                f'<td class="ellenorzes {osztaly}">'
+                f'{escape(eredmeny)}'
+                f'</td>'
+            )
+
+
+        html.append("</tr>")
+
+
+    # --------------------------------------------------------
+    # HTML lezárása
+    # --------------------------------------------------------
+
+    html.append("""
+</tbody>
+
+</table>
+
+</body>
+
+</html>
+""")
+
+
+    # --------------------------------------------------------
+    # Fájl mentése
+    # --------------------------------------------------------
+
+    with open(
+        "export_teszt.html",
+        "w",
+        encoding="utf-8"
+    ) as f:
+
+        f.write(
+            "".join(html)
+        )
+
+
+    print()
+    print(
+        "HTML export elkészült:"
+    )
+    print(
+        "export_teszt.html"
+    )
+
+
+# ============================================================
+# EXPORT FUTTATÁSA
+# ============================================================
+
+html_export_teszt()
