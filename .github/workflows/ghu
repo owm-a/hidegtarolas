@@ -2,8 +2,8 @@ name: Schedule Test
 
 on:
   schedule:
-    - cron: "7,22,37,52 * * * *"
-  workflow_dispatch:
+    - cron: "8,23,38,53 * * * *"   # shifted by 1 minute
+  workflow_dispatch: {}
 
 jobs:
   test:
