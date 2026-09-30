@@ -366,7 +366,7 @@ print(
 # =========================================================
 
 EXCEL_FAJL = (
-    f"data/biztor_{ev}.{honap}.xlsx"
+    f"data/biztor_{ev}-{honap}.xlsx"
 )
 
 print(
