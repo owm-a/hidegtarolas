@@ -1,5 +1,5 @@
- This workflow runs the ArrivaBus Python application
-# Based on the GitHub Python application workflow structure
+# This workflow will install Python dependencies
+# and run the ArrivaBus Python application.
 
 name: ArrivaBus hidegtárolás
 
@@ -11,7 +11,8 @@ on:
     branches: [ "main" ]
 
   schedule:
-    - cron: "6,16,26,36,46,56 * * * *"
+    - cron: "6,11,16,21,26,31,36,41,46,51,56 * * * *"
+      timezone: "Europe/Budapest"
 
   workflow_dispatch:
 
@@ -24,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
     - uses: actions/checkout@v4
 
     - name: Set up Python 3.10
