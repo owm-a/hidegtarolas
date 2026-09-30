@@ -11,21 +11,67 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      # ==================================================
+      # 1. REPÓ LETÖLTÉSE
+      # ==================================================
+
       - name: Kód letöltése
         uses: actions/checkout@v5
+
+
+      # ==================================================
+      # 2. PYTHON
+      # ==================================================
 
       - name: Python beállítása
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
+
+      # ==================================================
+      # 3. CSOMAGOK
+      # ==================================================
+
       - name: Csomagok telepítése
         run: pip install -r requirements.txt
+
+
+      # ==================================================
+      # 4. BUDAPESTI DÁTUM MEGHATÁROZÁSA
+      # ==================================================
+
+      - name: Budapest dátum meghatározása
+        id: datum
+        run: |
+          echo "datum=$(TZ=Europe/Budapest date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+
+      # ==================================================
+      # 5. GTFS CACHE
+      # ==================================================
+
+      - name: GTFS cache betöltése
+        uses: actions/cache@v4
+        with:
+          path: gtfs_cache
+          key: gtfs-cache-${{ steps.datum.outputs.datum }}
+
+
+      # ==================================================
+      # 6. PROGRAM FUTTATÁSA
+      # ==================================================
 
       - name: Program futtatása
         env:
           BKK_API_KEY: ${{ secrets.BKK_API_KEY }}
         run: python main.py
+
+
+      # ==================================================
+      # 7. NAPI ADATOK MENTÉSE
+      # ==================================================
 
       - name: Napi adatok mentése
         run: |
