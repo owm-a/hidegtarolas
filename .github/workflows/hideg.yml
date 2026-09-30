@@ -1,125 +1,56 @@
 name: ArrivaBus hidegtárolás
 
 on:
-
   schedule:
-    - cron: "4/10 * * * *"
+    - cron: "4,14,24,34,44,54 * * * *"
       timezone: "Europe/Budapest"
-    
-    # 07:00–14:50, 10 percenként
-    #- cron: "7/10 7-14 * * *"
-    #  timezone: "Europe/Budapest"
-
   workflow_dispatch:
-
 
 permissions:
   contents: write
 
-
 jobs:
-
   teszt:
-
     runs-on: ubuntu-latest
 
-
     steps:
-
-
-      # ==================================================
-      # 1. REPÓ LETÖLTÉSE
-      # ==================================================
-
       - name: Kód letöltése
         uses: actions/checkout@v5
 
-
-      # ==================================================
-      # 2. PYTHON
-      # ==================================================
-
       - name: Python beállítása
         uses: actions/setup-python@v6
-
         with:
           python-version: "3.14"
 
-
-      # ==================================================
-      # 3. CSOMAGOK
-      # ==================================================
-
       - name: Csomagok telepítése
-
         run: pip install -r requirements.txt
 
-
-      # ==================================================
-      # 4. BUDAPESTI DÁTUM MEGHATÁROZÁSA
-      # ==================================================
-
       - name: Budapest dátum meghatározása
-
         id: datum
-
         run: |
-
           echo "datum=$(TZ=Europe/Budapest date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
 
-
-      # ==================================================
-      # 5. GTFS CACHE
-      # ==================================================
-
       - name: GTFS cache betöltése
-
         uses: actions/cache@v4
-
         with:
-
           path: gtfs_cache
-
           key: gtfs-cache-${{ steps.datum.outputs.datum }}
 
-
-      # ==================================================
-      # 6. PROGRAM FUTTATÁSA
-      # ==================================================
-
       - name: Program futtatása
-
         env:
-
           BKK_API_KEY: ${{ secrets.BKK_API_KEY }}
-
         run: python main.py
 
-
-      # ==================================================
-      # 7. NAPI ADATOK ÉS HTML EXPORT MENTÉSE
-      # ==================================================
-
       - name: Napi adatok mentése
-
         run: |
-
           git config user.name "github-actions[bot]"
-
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
 
           git add napi_adatok.json index.html
 
-
           if git diff --cached --quiet; then
-
             echo "Nincs új mentendő adat."
-
           else
-
             git commit -m "Napi adatok és HTML export frissítése"
-
             git push
-
           fi
