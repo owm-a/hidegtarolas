@@ -1,4 +1,6 @@
 
+name: BKK teszt
+
 on:
   workflow_dispatch:
 
