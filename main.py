@@ -874,7 +874,51 @@ print(
 
 import json
 
+# =========================================================
+# 10/a. AKTUÁLIS FÁZIS
+# =========================================================
 
+fazis_ideje = datetime.now(
+    ZoneInfo("Europe/Budapest")
+).time()
+
+azonositas_idoszak = (
+    time(7, 0)
+    <= fazis_ideje
+    <= time(9, 0)
+)
+
+pozicio_idoszak = (
+    time(10, 0)
+    <= fazis_ideje
+    <= time(14, 0)
+)
+
+print()
+print(
+    "Budapesti aktuális idő:",
+    fazis_ideje.strftime("%H:%M:%S")
+)
+
+if azonositas_idoszak:
+
+    print(
+        "Aktív fázis: 07:00–09:00 "
+        "forda → rendszám"
+    )
+
+elif pozicio_idoszak:
+
+    print(
+        "Aktív fázis: 10:00–14:00 "
+        "rendszám → pozíció"
+    )
+
+else:
+
+    print(
+        "Jelenleg nincs aktív adatgyűjtési fázis."
+    )
 # =========================================================
 # 10/a. NAPI ADATFÁJL
 # =========================================================
@@ -1092,7 +1136,11 @@ mai_service_ids = set(
 sikeres_frissitesek = 0
 
 
-for _, forda_sor in figyelt_fordak.iterrows():
+for _, forda_sor in (
+    figyelt_fordak.iterrows()
+    if azonositas_idoszak
+    else []
+):
 
     viszonylat = str(
         forda_sor["viszonylat"]
@@ -1415,7 +1463,11 @@ url = (
 
 feed = None
 
-for probalkozas in range(1, 4):
+for probalkozas in (
+    range(1, 4)
+    if pozicio_idoszak
+    else []
+):
 
     print(
         f"VehiclePositions lekérés "
