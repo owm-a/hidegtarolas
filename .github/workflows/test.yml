@@ -1,7 +1,10 @@
-name: BKK teszt
+name: ArrivaBus hidegtárolás
 
 on:
   workflow_dispatch:
+
+  schedule:
+    - cron: "*/10 5-13 * * *"
 
 permissions:
   contents: write
