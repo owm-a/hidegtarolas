@@ -1,30 +1,34 @@
+# Adatok forrása: BKK Zrt., CC BY 4.0
+
+# =========================================================
+# BKK FORDA → RENDSZÁM → POZÍCIÓ
+# =========================================================
+
+# =========================================================
+# 1. API-KULCS
+# =========================================================
+
 import os
-import io
-import zipfile
+
+API_KEY = os.environ.get("BKK_API_KEY")
+
+if not API_KEY:
+    raise ValueError(
+        "A BKK_API_KEY nincs beállítva a GitHub Secrets között."
+    )
+
+print("API-kulcs betöltve.")
+
+
+# =========================================================
+# 2. SZÜKSÉGES MODULOK
+# =========================================================
+
 import requests
 import pandas as pd
-
-from datetime import datetime
-from zoneinfo import ZoneInfo
+import zipfile
+import io
 
 from google.transit import gtfs_realtime_pb2
 
-
-# ===========================================================
-# BEÁLLÍTÁSOK
-# ===========================================================
-
-API_KEY = os.environ["BKK_API_KEY"]
-
-GTFS_URL = (
-    "https://go.bkk.hu/api/static/v1/public-gtfs/"
-    "budapest_gtfs.zip"
-)
-
-VEHICLE_POSITIONS_URL = (
-    "https://go.bkk.hu/api/query/v1/ws/"
-    "gtfs-rt/full/VehiclePositions.pb"
-)
-
-
-print("Program elindult.")
+print("Modulok betöltve.")
