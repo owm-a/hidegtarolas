@@ -1,0 +1,2 @@
+# hidegtarolas
+Napi hidegtárolások ellenőrzése
