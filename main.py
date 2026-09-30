@@ -2256,28 +2256,33 @@ def html_export_teszt():
 
 
     # --------------------------------------------------------
-    # Futás dátuma
+    # Futás dátuma és utolsó lekérdezés ideje
     # --------------------------------------------------------
 
-    if utolso_lekkerdezes != "-":
+    futas_datum = napi_adatok.get(
+        "datum",
+        "-"
+    )
+
+
+    if futas_datum != "-":
 
         futas_datum = (
-            utolso_lekkerdezes[:10]
+            futas_datum
             .replace("-", ".")
             + "."
         )
 
 
-        utolso_ido = (
-            utolso_lekkerdezes[11:16]
-        )
 
+    if utolso_lekkerdezes != "-":
+
+        utolso_ido = utolso_lekkerdezes[:5]
 
     else:
 
-        futas_datum = "-"
-
         utolso_ido = "-"
+
 
 
 
