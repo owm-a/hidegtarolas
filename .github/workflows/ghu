@@ -1,6 +1,9 @@
 name: Schedule Test
 
 on:
+
+  push:
+
   schedule:
     - cron: "8,23,38,53 * * * *"   # shifted by 1 minute
   workflow_dispatch: {}
