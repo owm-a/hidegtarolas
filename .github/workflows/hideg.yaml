@@ -8,10 +8,6 @@ on:
     - cron: "*/10 7-14 * * *"
       timezone: "Europe/Budapest"
 
-    # 15:00
-    - cron: "0 15 * * *"
-      timezone: "Europe/Budapest"
-
   workflow_dispatch:
 
 
