@@ -3,10 +3,12 @@ name: ArrivaBus hidegtárolás
 on:
 
   schedule:
-
-    # 07:00–14:50, 10 percenként
-    - cron: "*/10 7-14 * * *"
+    - cron: "3/5 * * * *"
       timezone: "Europe/Budapest"
+    
+    # 07:00–14:50, 10 percenként
+    #- cron: "*/10 7-14 * * *"
+    #  timezone: "Europe/Budapest"
 
   workflow_dispatch:
 
