@@ -1,7 +1,16 @@
-#Adatok forrása: BKK Zrt., CC BY 4.0
+# -*- coding: utf-8 -*-
 
-# BKK Forda → Rendszám lekérdező
-# 1. Beállítások és API-kulcs
+# Adatok forrása: BKK Zrt., CC BY 4.0
+
+# =========================================================
+# BKK FORDA → RENDSZÁM → POZÍCIÓ
+# GitHub Actions verzió
+# =========================================================
+
+
+# =========================================================
+# 1. API-KULCS
+# =========================================================
 
 import os
 
@@ -14,68 +23,114 @@ if not API_KEY:
 
 print("API-kulcs betöltve.")
 
-if not API_KEY:
-    raise ValueError("A BKK_API_KEY nincs beállítva a Colab Secrets között.")
 
-print("API-kulcs betöltve.")
-
-gtfs-realtime-bindings
+# =========================================================
+# 2. SZÜKSÉGES MODULOK
+# =========================================================
 
 import requests
 import pandas as pd
 import zipfile
 import io
+
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 from google.transit import gtfs_realtime_pb2
 
 print("Modulok betöltve.")
 
-# 4. BKK GTFS betöltése
 
-GTFS_URL = "https://go.bkk.hu/api/static/v1/public-gtfs/budapest_gtfs.zip"
+# =========================================================
+# 3. BKK GTFS BETÖLTÉSE
+# =========================================================
+
+GTFS_URL = (
+    "https://go.bkk.hu/api/static/v1/public-gtfs/"
+    "budapest_gtfs.zip"
+)
 
 gtfs_response = requests.get(GTFS_URL)
 
 if gtfs_response.status_code != 200:
     raise Exception(
-        f"GTFS letöltési hiba. HTTP státusz: {gtfs_response.status_code}"
+        f"GTFS letöltési hiba. "
+        f"HTTP státusz: {gtfs_response.status_code}"
     )
 
-gtfs_zip = zipfile.ZipFile(io.BytesIO(gtfs_response.content))
+gtfs_zip = zipfile.ZipFile(
+    io.BytesIO(gtfs_response.content)
+)
 
 print("GTFS betöltve.")
-print(f"Fájlok száma: {len(gtfs_zip.namelist())}")
+print(
+    f"Fájlok száma: {len(gtfs_zip.namelist())}"
+)
 
-# 5. GTFS adatok betöltése
+
+# =========================================================
+# 4. GTFS ADATOK BETÖLTÉSE
+# =========================================================
 
 with gtfs_zip.open("trips.txt") as f:
-    trips = pd.read_csv(f, dtype=str)
+    trips = pd.read_csv(
+        f,
+        dtype=str
+    )
 
 with gtfs_zip.open("stop_times.txt") as f:
-    stop_times = pd.read_csv(f, dtype=str)
+    stop_times = pd.read_csv(
+        f,
+        dtype=str
+    )
 
-print("trips.txt:", len(trips), "sor")
-print("stop_times.txt:", len(stop_times), "sor")
+print(
+    "trips.txt:",
+    len(trips),
+    "sor"
+)
 
-# 6. Mai naphoz tartozó GTFS trip-ek kiválasztása
+print(
+    "stop_times.txt:",
+    len(stop_times),
+    "sor"
+)
 
-from datetime import datetime
-from zoneinfo import ZoneInfo
 
-# Mai dátum budapesti idő szerint
+# =========================================================
+# 5. MAI NAPHOZ TARTOZÓ GTFS TRIP-EK
+# =========================================================
+
 mai_datum = datetime.now(
     ZoneInfo("Europe/Budapest")
 ).strftime("%Y%m%d")
 
-# calendar_dates.txt betöltése
-with gtfs_zip.open("calendar_dates.txt") as f:
-    calendar_dates = pd.read_csv(f, dtype=str)
 
+# ---------------------------------------------------------
+# calendar_dates.txt betöltése
+# ---------------------------------------------------------
+
+with gtfs_zip.open("calendar_dates.txt") as f:
+    calendar_dates = pd.read_csv(
+        f,
+        dtype=str
+    )
+
+
+# ---------------------------------------------------------
 # Csak a mai nap rekordjai
+# ---------------------------------------------------------
+
 mai_calendar = calendar_dates[
-    calendar_dates["date"].astype(str) == mai_datum
+    calendar_dates["date"].astype(str)
+    == mai_datum
 ].copy()
 
+
+# ---------------------------------------------------------
 # Csak a szolgáltatásként érvényes rekordok
+# ---------------------------------------------------------
+
 mai_service_ids = set(
     mai_calendar.loc[
         mai_calendar["exception_type"].astype(str) == "1",
@@ -83,23 +138,55 @@ mai_service_ids = set(
     ].astype(str)
 )
 
+
+# ---------------------------------------------------------
 # Mai trip-ek
+# ---------------------------------------------------------
+
 trips_ma = trips[
-    trips["service_id"].astype(str).isin(mai_service_ids)
+    trips["service_id"]
+    .astype(str)
+    .isin(mai_service_ids)
 ].copy()
 
-print("Mai dátum:", mai_datum)
-print("Mai service_id-k:", len(mai_service_ids))
-print("Mai trip-ek:", len(trips_ma))
 
-stop_times_fast = stop_times[
-    ["trip_id", "arrival_time", "departure_time"]
-].copy()
+print(
+    "Mai dátum:",
+    mai_datum
+)
 
-print("Optimalizált stop_times:", len(stop_times_fast), "sor")
+print(
+    "Mai service_id-k:",
+    len(mai_service_ids)
+)
+
+print(
+    "Mai trip-ek:",
+    len(trips_ma)
+)
+
 
 # =========================================================
-# 8. HELYSZÍNEK / GEO-KONFIGURÁCIÓ
+# 6. STOP_TIMES OPTIMALIZÁLÁSA
+# =========================================================
+
+stop_times_fast = stop_times[
+    [
+        "trip_id",
+        "arrival_time",
+        "departure_time"
+    ]
+].copy()
+
+print(
+    "Optimalizált stop_times:",
+    len(stop_times_fast),
+    "sor"
+)
+
+
+# =========================================================
+# 7. HELYSZÍNEK / GEO-KONFIGURÁCIÓ
 # =========================================================
 
 HELYSZINEK = {
@@ -170,4 +257,25 @@ HELYSZINEK = {
 
 }
 
-EXCEL_FAJL = f"data/biztor_{ev}.{honap}.xlsx"
+
+print(
+    "Helyszín-konfiguráció betöltve:",
+    len(HELYSZINEK),
+    "helyszín"
+)
+
+
+# =========================================================
+# 8. EXCEL FÁJL
+# =========================================================
+#
+# Az Excel a GitHub repón belül található:
+#
+# data/biztor_2026.10.xlsx
+#
+# Az év és hónap meghatározását az Excel-kezelő részben
+# fogjuk elvégezni.
+#
+# =========================================================
+
+print("GTFS és helyszín-konfiguráció betöltése kész.")
