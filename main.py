@@ -2169,8 +2169,8 @@ print(
 )
 
 # ============================================================
-# IDEIGLENES HTML EXPORT
-# napi_adatok.json → export_teszt.html
+# HTML EXPORT
+# napi_adatok.json → index.html
 # ============================================================
 
 import json
@@ -2771,7 +2771,7 @@ td.ellenorzes {
 
     with open(
 
-        "export_teszt.html",
+        "index.html",
 
         "w",
 
@@ -2791,7 +2791,7 @@ td.ellenorzes {
     )
 
     print(
-        "export_teszt.html"
+        "index.html"
     )
 
 
