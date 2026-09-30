@@ -2175,27 +2175,9 @@ print(
 
 import json
 from html import escape
-from datetime import datetime
-from zoneinfo import ZoneInfo
 
 
 def html_export_teszt():
-
-    # --------------------------------------------------------
-    # Budapest aktuális idő
-    # --------------------------------------------------------
-
-    most = datetime.now(
-        ZoneInfo("Europe/Budapest")
-    )
-
-   # aktualis_datum = most.strftime(
-    #    "%Y.%m.%d."
-   # )
-
-    #aktualis_ido = most.strftime(
-    #    "%H:%M:%S"
-   # )
 
 
     # --------------------------------------------------------
@@ -2212,14 +2194,15 @@ def html_export_teszt():
 
             napi_adatok = json.load(f)
 
+
     except FileNotFoundError:
 
         print(
-            "Nincs napi_adatok.json, "
-            "HTML export nem készül."
+            "Nincs napi_adatok.json, HTML export nem készül."
         )
 
         return
+
 
 
     # --------------------------------------------------------
@@ -2231,30 +2214,39 @@ def html_export_teszt():
         []
     )
 
+
     if not pozicio_tortenet:
 
         print(
-            "Nincs pozíciótörténet, "
-            "HTML export nem készül."
+            "Nincs pozíciótörténet, HTML export nem készül."
         )
 
         return
 
 
+
     # --------------------------------------------------------
-    # Utolsó lekérdezés időpontja
+    # Utolsó lekérdezés
     # --------------------------------------------------------
 
-    lekkerdezesi_idopontok = [
-        rekord.get("frissítve", "")
+    lekkerdezesek = [
+
+        rekord.get(
+            "frissítve",
+            ""
+        )
+
         for rekord in pozicio_tortenet
+
         if rekord.get("frissítve")
+
     ]
 
-    if lekkerdezesi_idopontok:
+
+    if lekkerdezesek:
 
         utolso_lekkerdezes = max(
-            lekkerdezesi_idopontok
+            lekkerdezesek
         )
 
     else:
@@ -2262,31 +2254,67 @@ def html_export_teszt():
         utolso_lekkerdezes = "-"
 
 
+
     # --------------------------------------------------------
-    # Időpontok összegyűjtése
+    # Futás dátuma
+    # --------------------------------------------------------
+
+    if utolso_lekkerdezes != "-":
+
+        futas_datum = (
+            utolso_lekkerdezes[:10]
+            .replace("-", ".")
+            + "."
+        )
+
+
+        utolso_ido = (
+            utolso_lekkerdezes[11:16]
+        )
+
+
+    else:
+
+        futas_datum = "-"
+
+        utolso_ido = "-"
+
+
+
+    # --------------------------------------------------------
+    # Időpontok
     # --------------------------------------------------------
 
     idopontok = sorted(
+
         {
+
             rekord.get(
                 "frissítve",
                 ""
             )[:5]
 
+
             for rekord in pozicio_tortenet
 
+
             if rekord.get("frissítve")
+
         }
+
     )
 
 
+
     # --------------------------------------------------------
-    # Fordák összegyűjtése
+    # Sorok
     # --------------------------------------------------------
 
     sorok = {}
 
+
     for rekord in pozicio_tortenet:
+
 
         viszonylat = str(
             rekord.get(
@@ -2295,12 +2323,14 @@ def html_export_teszt():
             )
         )
 
+
         forda = str(
             rekord.get(
                 "forda",
                 ""
             )
         )
+
 
         kezdes = str(
             rekord.get(
@@ -2309,12 +2339,14 @@ def html_export_teszt():
             )
         )
 
+
         vegzes = str(
             rekord.get(
                 "végzés",
                 ""
             )
         )
+
 
         hely = str(
             rekord.get(
@@ -2323,6 +2355,7 @@ def html_export_teszt():
             )
         )
 
+
         rendszam = str(
             rekord.get(
                 "rendszám",
@@ -2330,15 +2363,19 @@ def html_export_teszt():
             )
         )
 
+
         kulcs = (
             viszonylat,
             forda
         )
 
 
+
         if kulcs not in sorok:
 
+
             sorok[kulcs] = {
+
 
                 "viszonylat": viszonylat,
 
@@ -2357,35 +2394,28 @@ def html_export_teszt():
             }
 
 
-        # ----------------------------------------------------
-        # Ellenőrzés eredménye
-        # ----------------------------------------------------
 
         idopont = rekord.get(
             "frissítve",
             ""
         )[:5]
 
-        ellenorzes = rekord.get(
-            "ellenőrzés",
-            "-"
+
+        sorok[kulcs]["ellenőrzés"][idopont] = (
+
+            rekord.get(
+                "ellenőrzés",
+                "-"
+            )
+
         )
 
-        sorok[kulcs][
-            "ellenőrzés"
-        ][idopont] = ellenorzes
-
-
-    # --------------------------------------------------------
+  # --------------------------------------------------------
     # HTML
     # --------------------------------------------------------
 
     html = []
 
-
-    # --------------------------------------------------------
-    # Fejléc
-    # --------------------------------------------------------
 
     html.append("""
 <!DOCTYPE html>
@@ -2405,7 +2435,7 @@ body {
 
     font-family: Arial, sans-serif;
 
-    margin: 20px;
+    margin: 15px;
 
     background: #f5f5f5;
 
@@ -2414,59 +2444,51 @@ body {
 }
 
 
+
 .fejlec {
 
-    background: #ffffff;
+    background: white;
 
     border: 1px solid #cccccc;
 
-    padding: 18px 22px;
-
-    margin-bottom: 20px;
-
-}
-
-
-.cim {
-
-    font-size: 24px;
-
-    font-weight: bold;
-
-    margin-bottom: 8px;
-
-}
-
-
-.datum {
-
-    font-size: 16px;
+    padding: 10px 15px;
 
     margin-bottom: 12px;
 
 }
 
 
-.info {
 
-    font-size: 13px;
+.cim {
 
-    color: #555;
-
-    margin-top: 4px;
-
-}
-
-
-.aktualis-ido {
-
-    font-size: 18px;
+    font-size: 22px;
 
     font-weight: bold;
 
-    margin-top: 8px;
+    margin-bottom: 6px;
 
 }
+
+
+
+.datum {
+
+    font-size: 14px;
+
+    margin-bottom: 4px;
+
+}
+
+
+
+.info {
+
+    font-size: 12px;
+
+    color: #555;
+
+}
+
 
 
 table {
@@ -2475,9 +2497,10 @@ table {
 
     background: white;
 
-    font-size: 13px;
+    font-size: 12px;
 
 }
+
 
 
 th,
@@ -2485,11 +2508,12 @@ td {
 
     border: 1px solid #888;
 
-    padding: 6px 8px;
+    padding: 3px 5px;
 
     text-align: center;
 
 }
+
 
 
 th {
@@ -2503,6 +2527,7 @@ th {
 }
 
 
+
 td.alap {
 
     white-space: nowrap;
@@ -2512,29 +2537,30 @@ td.alap {
 }
 
 
+
 th.idopont,
 td.ellenorzes {
 
-    width: 42px;
+    width: 32px;
 
-    min-width: 42px;
+    min-width: 32px;
 
-    max-width: 42px;
+    max-width: 32px;
 
-    height: 32px;
+    height: 24px;
 
-    padding: 2px;
+    padding: 1px;
 
 }
+
 
 
 td.ellenorzes {
 
     font-weight: bold;
 
-    text-align: center;
-
 }
+
 
 
 .ok {
@@ -2546,6 +2572,7 @@ td.ellenorzes {
 }
 
 
+
 .nem {
 
     background: #ff0000;
@@ -2553,6 +2580,7 @@ td.ellenorzes {
     color: white;
 
 }
+
 
 
 .nincs {
@@ -2566,6 +2594,7 @@ td.ellenorzes {
 
 </style>
 
+
 </head>
 
 
@@ -2574,35 +2603,42 @@ td.ellenorzes {
 
 <div class="fejlec">
 
-    <div class="cim">
-        ArrivaBus hidegtárolás
-    </div>
 
-    <div class="datum">
-        Dátum: """ + escape(aktualis_datum) + """
-    </div>
+<div class="cim">
 
-    <div class="aktualis-ido">
-        Aktuális idő: """ + escape(aktualis_ido) + """
-    </div>
-
-    <div class="info">
-        Export készült: """ + escape(aktualis_ido) + """
-    </div>
-
-    <div class="info">
-        Utolsó lekérdezés: """ +
-        escape(utolso_lekkerdezes) + """
-    </div>
+ArrivaBus hidegtárolás
 
 </div>
 
 
+<div class="datum">
+
+Dátum:
+""" + escape(futas_datum) + """
+
+</div>
+
+
+<div class="info">
+
+Utolsó lekérdezés:
+""" + escape(utolso_ido) + """
+
+</div>
+
+
+</div>
+
+
+
 <table>
+
 
 <thead>
 
+
 <tr>
+
 
 <th>Viszonylat</th>
 
@@ -2619,16 +2655,19 @@ td.ellenorzes {
 
 
     # --------------------------------------------------------
-    # Időpont oszlopok
+    # Időoszlopok
     # --------------------------------------------------------
 
     for idopont in idopontok:
 
         html.append(
+
             f'<th class="idopont">'
             f'{escape(idopont)}'
             f'</th>'
+
         )
+
 
 
     html.append("""
@@ -2638,11 +2677,13 @@ td.ellenorzes {
 
 
 <tbody>
+
 """)
 
 
+
     # --------------------------------------------------------
-    # Sorok
+    # Táblázat sorok
     # --------------------------------------------------------
 
     for _, sor in sorted(
@@ -2659,62 +2700,75 @@ td.ellenorzes {
 
     ):
 
+
         html.append("<tr>")
 
 
+
         html.append(
+
             f'<td class="alap">'
             f'{escape(sor["viszonylat"])}'
             f'</td>'
+
         )
 
 
         html.append(
+
             f'<td class="alap">'
             f'{escape(sor["forda"])}'
             f'</td>'
+
         )
 
 
         html.append(
+
             f'<td class="alap">'
             f'{escape(sor["kezdés"])}'
             f'</td>'
+
         )
 
 
         html.append(
+
             f'<td class="alap">'
             f'{escape(sor["végzés"])}'
             f'</td>'
+
         )
 
 
         html.append(
+
             f'<td class="alap">'
             f'{escape(sor["hely"])}'
             f'</td>'
+
         )
 
 
         html.append(
+
             f'<td class="alap">'
             f'{escape(sor["rendszám"])}'
             f'</td>'
+
         )
 
 
-        # ----------------------------------------------------
-        # Időpontok
-        # ----------------------------------------------------
 
         for idopont in idopontok:
 
-            eredmeny = sor[
-                "ellenőrzés"
-            ].get(
+
+            eredmeny = sor["ellenőrzés"].get(
+
                 idopont,
+
                 "-"
+
             )
 
 
@@ -2735,6 +2789,7 @@ td.ellenorzes {
                 eredmeny = "-"
 
 
+
             html.append(
 
                 f'<td class="ellenorzes {osztaly}">'
@@ -2746,27 +2801,29 @@ td.ellenorzes {
             )
 
 
+
         html.append("</tr>")
 
 
-    # --------------------------------------------------------
-    # HTML lezárása
-    # --------------------------------------------------------
 
     html.append("""
 </tbody>
+
 
 </table>
 
 
 </body>
 
+
 </html>
+
 """)
 
 
+
     # --------------------------------------------------------
-    # Fájl mentése
+    # Mentés
     # --------------------------------------------------------
 
     with open(
@@ -2779,9 +2836,13 @@ td.ellenorzes {
 
     ) as f:
 
+
         f.write(
+
             "".join(html)
+
         )
+
 
 
     print()
@@ -2793,6 +2854,7 @@ td.ellenorzes {
     print(
         "index.html"
     )
+
 
 
 # ============================================================
