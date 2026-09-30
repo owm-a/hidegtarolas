@@ -1,0 +1,25 @@
+name: BKK teszt
+
+on:
+  workflow_dispatch:
+
+jobs:
+  teszt:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kód letöltése
+        uses: actions/checkout@v4
+
+      - name: Python beállítása
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Csomagok telepítése
+        run: pip install -r requirements.txt
+
+      - name: Program futtatása
+        env:
+          BKK_API_KEY: ${{ secrets.BKK_API_KEY }}
+        run: python main.py
