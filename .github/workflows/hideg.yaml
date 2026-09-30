@@ -3,7 +3,7 @@ name: ArrivaBus hidegtárolás
 on:
 
   schedule:
-    - cron: "3/5 * * * *"
+    - cron: "7/10 * * * *"
       timezone: "Europe/Budapest"
     
     # 07:00–14:50, 10 percenként
