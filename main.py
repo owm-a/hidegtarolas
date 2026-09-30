@@ -1604,8 +1604,7 @@ for rekord in poziciok:
     )
 
 
-    # Ha nincs fordaadat, nem tudjuk eldönteni,
-    # hogy az adott időpontban aktuális volt-e.
+    # Ha nincs fordaadat, nincs értékelhető eredmény
 
     if forda_adat is None:
 
@@ -1621,7 +1620,7 @@ for rekord in poziciok:
 
             "időpont": idopont,
 
-            "ellenőrzés": "n.a"
+            "ellenőrzés": "-"
 
         })
 
@@ -1644,7 +1643,7 @@ for rekord in poziciok:
 
 
     # --------------------------------------------------------
-    # AKTUALITÁS ELLENŐRZÉSE
+    # AKTUÁLIS-E A FORDA AZ ADOTT IDŐPONTBAN?
     # --------------------------------------------------------
 
     if not (
@@ -1665,7 +1664,7 @@ for rekord in poziciok:
 
             "időpont": idopont,
 
-            "ellenőrzés": "n.a"
+            "ellenőrzés": "-"
 
         })
 
@@ -1698,7 +1697,7 @@ for rekord in poziciok:
 
             "időpont": idopont,
 
-            "ellenőrzés": "n.a"
+            "ellenőrzés": "-"
 
         })
 
@@ -1719,7 +1718,7 @@ for rekord in poziciok:
 
             "időpont": idopont,
 
-            "ellenőrzés": "n.a"
+            "ellenőrzés": "-"
 
         })
 
@@ -1757,7 +1756,7 @@ for rekord in poziciok:
 
             "időpont": idopont,
 
-            "ellenőrzés": "n.a"
+            "ellenőrzés": "-"
 
         })
 
@@ -1792,7 +1791,7 @@ for rekord in poziciok:
 
             "időpont": idopont,
 
-            "ellenőrzés": "n.a"
+            "ellenőrzés": "-"
 
         })
 
@@ -1888,51 +1887,11 @@ if len(helyszin_ellenorzes) > 0:
 
 print()
 
-print(
-    helyszin_ellenorzes.to_string(
-        index=False
-    )
-)
-
-
-# ============================================================
-# ÖSSZESÍTÉS
-# ============================================================
-
-print()
-
 if len(helyszin_ellenorzes) > 0:
 
     print(
-        "OK:",
-        (
-            helyszin_ellenorzes[
-                helyszin_ellenorzes[
-                    "ellenőrzés"
-                ] == "OK"
-            ].shape[0]
-        )
-    )
-
-    print(
-        "NEM:",
-        (
-            helyszin_ellenorzes[
-                helyszin_ellenorzes[
-                    "ellenőrzés"
-                ] == "NEM"
-            ].shape[0]
-        )
-    )
-
-    print(
-        "n.a:",
-        (
-            helyszin_ellenorzes[
-                helyszin_ellenorzes[
-                    "ellenőrzés"
-                ] == "n.a"
-            ].shape[0]
+        helyszin_ellenorzes.to_string(
+            index=False
         )
     )
 
@@ -1941,3 +1900,43 @@ else:
     print(
         "Nincs ellenőrizhető pozíciórekord."
     )
+
+
+# ============================================================
+# ÖSSZESÍTÉS
+# ============================================================
+
+print()
+
+print(
+    "OK:",
+    (
+        helyszin_ellenorzes[
+            helyszin_ellenorzes[
+                "ellenőrzés"
+            ] == "OK"
+        ].shape[0]
+    )
+)
+
+print(
+    "NEM:",
+    (
+        helyszin_ellenorzes[
+            helyszin_ellenorzes[
+                "ellenőrzés"
+            ] == "NEM"
+        ].shape[0]
+    )
+)
+
+print(
+    "-:",
+    (
+        helyszin_ellenorzes[
+            helyszin_ellenorzes[
+                "ellenőrzés"
+            ] == "-"
+        ].shape[0]
+    )
+)
