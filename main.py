@@ -889,7 +889,7 @@ azonositas_idoszak = (
 )
 
 pozicio_idoszak = (
-    time(10, 0)
+    time(9, 0)
     <= fazis_ideje
     <= time(14, 0)
 )
