@@ -6,11 +6,7 @@ on:
   push:
 
   schedule:
-    - cron: "40,50 20 * * *"
-      timezone: "Europe/Budapest"
-    - cron: "*/10 21 * * *"
-      timezone: "Europe/Budapest"
-    - cron: "0 22 * * *"
+    - cron: "*/5 * * * *"
       timezone: "Europe/Budapest"
 
 permissions:
