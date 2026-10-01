@@ -5826,8 +5826,9 @@
   "hidegtarolas_riport": {
     "datum": "2026-10-01",
     "kesz": true,
-    "excel_kesz": false,
-    "keszult": "2026-10-01 18:15:19",
+    "excel_kesz": true,
+    "keszult": "2026-10-01 18:27:23",
+    "utolso_futas": "2026-10-01 18:15:19",
     "vizsgalt_fordak": 21,
     "eredmenyek": [
       {
