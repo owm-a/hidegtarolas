@@ -907,9 +907,9 @@ azonositas_idoszak = (
 )
 
 pozicio_idoszak = (
-    time(8, 20)
+    time(8, 0)
     <= fazis_ideje
-    <= time(16, 40)
+    <= time(17, 0)
 )
 
 print()
@@ -928,7 +928,7 @@ if azonositas_idoszak:
 elif pozicio_idoszak:
 
     print(
-        "Aktív fázis: 08:20–16:40 "
+        "Aktív fázis: 08:00–17:00 "
         "rendszám → pozíció"
     )
 
@@ -2305,6 +2305,370 @@ print(
     )
 )
 
+
+# ============================================================
+# NAPI HIDEGTÁROLÁSI RIPORT
+# 16:30 UTÁN EGYSZER NAPONTA
+# ============================================================
+
+RIport_XLSX = "data/hidegtarolas_export.xlsx"
+
+
+def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
+    """
+    RENDBEN TÁROLT akkor, ha a forda teljes kezdés-végzés
+    időtartamának legalább 70%-án keresztül folyamatosan OK
+    állapotú, egymást követő ellenőrzések álltak rendelkezésre.
+    """
+
+    kezdés = forda_sor.get("kezdés")
+    végzés = forda_sor.get("végzés")
+
+    if pd.isna(kezdés) or pd.isna(végzés):
+        return "ELTÉRÉS TÖRTÉNT"
+
+    kezdés_dt = datetime.combine(
+        datetime.now(ZoneInfo("Europe/Budapest")).date(),
+        kezdés
+    )
+    végzés_dt = datetime.combine(
+        datetime.now(ZoneInfo("Europe/Budapest")).date(),
+        végzés
+    )
+
+    # Éjfélen átnyúló forda esetén
+    if végzés_dt < kezdés_dt:
+        végzés_dt += timedelta(days=1)
+
+    teljes_idotartam = (végzés_dt - kezdés_dt).total_seconds()
+
+    if teljes_idotartam <= 0:
+        return "ELTÉRÉS TÖRTÉNT"
+
+    szukseges_idotartam = teljes_idotartam * 0.70
+
+    kulcs_viszonylat = str(forda_sor["viszonylat"]).strip()
+    kulcs_forda = str(forda_sor["forda"]).strip()
+
+    rekordok = []
+
+    for rekord in pozicio_tortenet:
+        if (
+            str(rekord.get("viszonylat", "")).strip()
+            != kulcs_viszonylat
+            or str(rekord.get("forda", "")).strip()
+            != kulcs_forda
+        ):
+            continue
+
+        if str(rekord.get("ellenőrzés", "")).strip() != "OK":
+            continue
+
+        idoszoveg = str(
+            rekord.get("frissítve", "")
+        ).strip()
+
+        try:
+            ido = datetime.strptime(
+                idoszoveg,
+                "%H:%M:%S"
+            ).time()
+
+            dt = datetime.combine(
+                kezdés_dt.date(),
+                ido
+            )
+
+            # Éjfél körüli időpontok kezelése
+            if dt < kezdés_dt:
+                dt += timedelta(days=1)
+
+            if kezdés_dt <= dt <= végzés_dt:
+                rekordok.append(dt)
+
+        except (ValueError, TypeError):
+            continue
+
+    if not rekordok:
+        return "ELTÉRÉS TÖRTÉNT"
+
+    rekordok = sorted(set(rekordok))
+
+    # Legnagyobb folyamatos OK-szakasz.
+    # A program 5 percenként fut; 6 perces határ megengedi
+    # az időzítő néhány másodperces eltérését, de egy kimaradt
+    # 5 perces ellenőrzést már megszakításként kezel.
+    max_folyamatos = 0.0
+    szakasz_kezdete = rekordok[0]
+    elozo = rekordok[0]
+
+    for aktualis in rekordok[1:]:
+        kulonbseg = (
+            aktualis - elozo
+        ).total_seconds()
+
+        if kulonbseg <= 360:
+            elozo = aktualis
+        else:
+            szakasz_hossza = (
+                elozo - szakasz_kezdete
+            ).total_seconds()
+
+            max_folyamatos = max(
+                max_folyamatos,
+                szakasz_hossza
+            )
+
+            szakasz_kezdete = aktualis
+            elozo = aktualis
+
+    szakasz_hossza = (
+        elozo - szakasz_kezdete
+    ).total_seconds()
+
+    max_folyamatos = max(
+        max_folyamatos,
+        szakasz_hossza
+    )
+
+    if max_folyamatos >= szukseges_idotartam:
+        return "RENDBEN TÁROLT"
+
+    return "ELTÉRÉS TÖRTÉNT"
+
+
+def keszit_hidegtarolas_riport():
+    """
+    A napi riportot 16:30 után egyszer készíti el.
+    A napi JSON tárolja, hogy az adott nap riportja már elkészült.
+    Az Excel riportfájl egyszer jön létre, majd minden új napon
+    új sorokkal bővül.
+    """
+
+    budapesti_most = datetime.now(
+        ZoneInfo("Europe/Budapest")
+    )
+
+    if budapesti_most.time() < time(16, 30):
+        return None
+
+    riportok = napi_adatok.get(
+        "hidegtarolas_riport",
+        {}
+    )
+
+    if riportok.get("datum") == MAI_NAP and riportok.get("kesz"):
+        print(
+            "A mai hidegtárolási riport már elkészült."
+        )
+        return riportok
+
+    eredmenyek = []
+
+    for _, forda_sor in figyelt_fordak.iterrows():
+
+        viszonylat = str(
+            forda_sor["viszonylat"]
+        ).strip()
+
+        forda = str(
+            forda_sor["forda"]
+        ).strip()
+
+        kulcs = f"{viszonylat}|{forda}"
+
+        forda_adat = forda_rendszamok.get(
+            kulcs,
+            {}
+        )
+
+        rendszam = str(
+            forda_adat.get(
+                "rendszám",
+                ""
+            )
+        ).strip()
+
+        eredmeny = hidegtarolas_riport_eredmeny(
+            forda_sor,
+            pozicio_tortenet
+        )
+
+        eredmenyek.append({
+            "dátum": MAI_NAP,
+            "viszonylat": viszonylat,
+            "forda": forda,
+            "rendszám": rendszam,
+            "eredmény": eredmeny
+        })
+
+    # --------------------------------------------------------
+    # Excel riport: egyszer létrejön, utána bővül
+    # --------------------------------------------------------
+
+    os.makedirs(
+        "data",
+        exist_ok=True
+    )
+
+    if os.path.exists(RIport_XLSX):
+
+        export_wb = openpyxl.load_workbook(
+            RIport_XLSX
+        )
+
+        if "Riport" in export_wb.sheetnames:
+            export_ws = export_wb["Riport"]
+        else:
+            export_ws = export_wb.create_sheet(
+                "Riport"
+            )
+
+    else:
+
+        export_wb = openpyxl.Workbook()
+
+        export_ws = export_wb.active
+        export_ws.title = "Riport"
+
+        export_ws.append([
+            "Dátum",
+            "Viszonylat",
+            "Forda",
+            "Rendszám",
+            "Eredmény"
+        ])
+
+    # Ha valamiért üres munkalap létezett, fejléc létrehozása.
+    if export_ws.max_row == 1 and all(
+        export_ws.cell(1, col).value is None
+        for col in range(1, 6)
+    ):
+        export_ws.delete_rows(1)
+        export_ws.append([
+            "Dátum",
+            "Viszonylat",
+            "Forda",
+            "Rendszám",
+            "Eredmény"
+        ])
+
+    zold_toltes = openpyxl.styles.PatternFill(
+        fill_type="solid",
+        fgColor="00B050"
+    )
+
+    piros_toltes = openpyxl.styles.PatternFill(
+        fill_type="solid",
+        fgColor="FF0000"
+    )
+
+    feher_betu = openpyxl.styles.Font(
+        color="FFFFFF",
+        bold=True
+    )
+
+    for sor in eredmenyek:
+
+        export_ws.append([
+            sor["dátum"],
+            sor["viszonylat"],
+            sor["forda"],
+            sor["rendszám"],
+            sor["eredmény"]
+        ])
+
+        eredmeny_cella = export_ws.cell(
+            export_ws.max_row,
+            5
+        )
+
+        if sor["eredmény"] == "RENDBEN TÁROLT":
+            eredmeny_cella.fill = zold_toltes
+            eredmeny_cella.font = feher_betu
+
+        else:
+            eredmeny_cella.fill = piros_toltes
+            eredmeny_cella.font = feher_betu
+
+    for oszlop in range(1, 6):
+        max_hossz = 0
+
+        for cella in export_ws.iter_cols(
+            min_col=oszlop,
+            max_col=oszlop
+        ):
+            for cell in cella:
+                if cell.value is not None:
+                    max_hossz = max(
+                        max_hossz,
+                        len(str(cell.value))
+                    )
+
+        export_ws.column_dimensions[
+            openpyxl.utils.get_column_letter(oszlop)
+        ].width = min(
+            max_hossz + 2,
+            35
+        )
+
+    export_wb.save(
+        RIport_XLSX
+    )
+
+    riport_idopont = budapesti_most.strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+
+    riportok = {
+        "datum": MAI_NAP,
+        "kesz": True,
+        "keszult": riport_idopont,
+        "vizsgalt_fordak": len(eredmenyek),
+        "eredmenyek": eredmenyek
+    }
+
+    napi_adatok[
+        "hidegtarolas_riport"
+    ] = riportok
+
+    with open(
+        NAPI_ADATOK_FAJL,
+        "w",
+        encoding="utf-8"
+    ) as f:
+
+        json.dump(
+            napi_adatok,
+            f,
+            ensure_ascii=False,
+            indent=2
+        )
+
+    print()
+    print("=== HIDEGTÁROLÁSI RIPORT ===")
+    print(
+        "Riport készült:",
+        riport_idopont
+    )
+    print(
+        "Vizsgált fordák:",
+        len(eredmenyek),
+        "/",
+        len(figyelt_fordak)
+    )
+    print(
+        "Excel:",
+        RIport_XLSX
+    )
+
+    return riportok
+
+
+# A riport 16:30 után készül el, de naponta csak egyszer.
+hidegtarolas_riport = keszit_hidegtarolas_riport()
+
+
 # ============================================================
 # HTML EXPORT
 # napi_adatok.json → index.html
@@ -3066,6 +3430,52 @@ td.ellenorzes {
 
 
 /* =========================================================
+   HIDEGTÁROLÁSI RIPORT
+   ========================================================= */
+
+.riport-resz {
+    flex: 0 0 auto;
+    margin-left: 4px;
+}
+
+.riport-meta {
+    background: white;
+    border: 1px solid #cccccc;
+    border-bottom: 0;
+    padding: 4px 7px;
+    font-size: 12px;
+    line-height: 1.35;
+    white-space: nowrap;
+}
+
+.riport-tablazat {
+    background: white;
+}
+
+.riport-tablazat th,
+.riport-tablazat td {
+    min-width: 145px;
+    height: 24px;
+    box-sizing: border-box;
+}
+
+.riport-tablazat th {
+    text-align: center;
+}
+
+.riport-ok {
+    background: #00b050;
+    color: white;
+    font-weight: bold;
+}
+
+.riport-eltérés {
+    background: #ff0000;
+    color: white;
+    font-weight: bold;
+}
+
+/* =========================================================
    TÉRKÉP
    ========================================================= */
 
@@ -3414,6 +3824,84 @@ ArrivaBus hidegtárolás
 >
 
 </div>
+
+""")
+
+    # --------------------------------------------------------
+    # HIDEGTÁROLÁSI RIPORT OSZLOP
+    # --------------------------------------------------------
+
+    if hidegtarolas_riport:
+
+        riport_eredmenyek = {
+            (
+                str(sor.get("viszonylat", "")).strip(),
+                str(sor.get("forda", "")).strip()
+            ): sor.get("eredmény", "ELTÉRÉS TÖRTÉNT")
+            for sor in hidegtarolas_riport.get(
+                "eredmenyek",
+                []
+            )
+        }
+
+        html.append("""
+<div class="riport-resz">
+
+<div class="riport-meta">
+    <b>Riport készült:</b> """ + escape(
+        str(
+            hidegtarolas_riport.get(
+                "keszult",
+                "-"
+            )
+        )
+    ) + """<br>
+    <b>Vizsgált fordák:</b> """ + str(
+        hidegtarolas_riport.get(
+            "vizsgalt_fordak",
+            0
+        )
+    ) + """ / """ + str(
+        excel_fordak_szama
+    ) + """
+</div>
+
+<table class="riport-tablazat">
+<thead>
+<tr>
+    <th>Eredmény</th>
+</tr>
+</thead>
+<tbody>
+""")
+
+        for _, sor in rendezett_sorok:
+
+            kulcs = (
+                str(sor["viszonylat"]).strip(),
+                str(sor["forda"]).strip()
+            )
+
+            eredmeny = riport_eredmenyek.get(
+                kulcs,
+                "ELTÉRÉS TÖRTÉNT"
+            )
+
+            osztaly = (
+                "riport-ok"
+                if eredmeny == "RENDBEN TÁROLT"
+                else "riport-eltérés"
+            )
+
+            html.append(
+                f'<tr><td class="{osztaly}">'
+                f'{escape(eredmeny)}'
+                f'</td></tr>'
+            )
+
+        html.append("""
+</tbody>
+</table>
 
 </div>
 
