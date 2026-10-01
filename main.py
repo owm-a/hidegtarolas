@@ -2551,8 +2551,14 @@ def keszit_hidegtarolas_riport():
             "eredmény": eredmeny
         })
 
-    riport_idopont = budapesti_most.strftime(
+    aktualis_futas_idopont = budapesti_most.strftime(
         "%Y-%m-%d %H:%M:%S"
+    )
+
+    # Az "Utolsó futás" az előző riport készítési ideje.
+    utolso_futas = korabbi_riport.get(
+        "keszult",
+        "-"
     )
 
     # --------------------------------------------------------
@@ -2622,6 +2628,11 @@ def keszit_hidegtarolas_riport():
             fgColor="FF0000"
         )
 
+        fekete_toltes = openpyxl.styles.PatternFill(
+            fill_type="solid",
+            fgColor="000000"
+        )
+
         feher_betu = openpyxl.styles.Font(
             color="FFFFFF",
             bold=True
@@ -2629,12 +2640,19 @@ def keszit_hidegtarolas_riport():
 
         for sor in eredmenyek:
 
+            if not sor["rendszám"] and sor["forda"]:
+                export_eredmeny = "???"
+            elif sor["eredmény"] == "RENDBEN TÁROLT":
+                export_eredmeny = "+++"
+            else:
+                export_eredmeny = "---"
+
             export_ws.append([
                 sor["dátum"],
                 sor["viszonylat"],
                 sor["forda"],
                 sor["rendszám"],
-                sor["eredmény"]
+                export_eredmeny
             ])
 
             eredmeny_cella = export_ws.cell(
@@ -2642,7 +2660,10 @@ def keszit_hidegtarolas_riport():
                 5
             )
 
-            if sor["eredmény"] == "RENDBEN TÁROLT":
+            if not sor["rendszám"] and sor["forda"]:
+                eredmeny_cella.fill = fekete_toltes
+                eredmeny_cella.font = feher_betu
+            elif sor["eredmény"] == "RENDBEN TÁROLT":
                 eredmeny_cella.fill = zold_toltes
                 eredmeny_cella.font = feher_betu
             else:
@@ -2674,11 +2695,24 @@ def keszit_hidegtarolas_riport():
             RIport_XLSX
         )
 
+        # A "Riport készült" időpontja az XLS export befejezési ideje.
+        riport_idopont = datetime.now(
+            ZoneInfo("Europe/Budapest")
+        ).strftime("%Y-%m-%d %H:%M:%S")
+
+    if excel_mar_mentve:
+        # Ha a mai XLS már korábban elkészült, annak ideje maradjon.
+        riport_idopont = korabbi_riport.get(
+            "keszult",
+            aktualis_futas_idopont
+        )
+
     riportok = {
         "datum": MAI_NAP,
         "kesz": True,
         "excel_kesz": True,
         "keszult": riport_idopont,
+        "utolso_futas": utolso_futas,
         "vizsgalt_fordak": len(eredmenyek),
         "eredmenyek": eredmenyek
     }
@@ -2734,7 +2768,7 @@ import json
 from html import escape
 
 
-def html_export_teszt():
+def html_export():
 
     # --------------------------------------------------------
     # JSON betöltése
@@ -3492,7 +3526,7 @@ td.ellenorzes {
 
 .riport-fejlec-adatok {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
     align-items: center;
     gap: 18px;
     margin-bottom: 2px;
@@ -3648,7 +3682,34 @@ ArrivaBus hidegtárolás
 </div>
 
 
-<div class="riport-fejlec-adatok">
+<div class="fejlec-adatok riport-fejlec-adatok">
+
+    <div class="adat">
+        <b>Utolsó futás:</b> """ + escape(
+            str(
+                hidegtarolas_riport.get(
+                    "utolso_futas",
+                    "-"
+                )
+            )
+        ) + """
+    </div>
+
+    <div class="adat">
+        <b>Dátum:</b> """ + escape(futas_datum) + """
+    </div>
+
+    <div class="adat">
+        <b>Naptípus:</b> """ + escape(str(talalt_munkalap)) + """
+    </div>
+
+    <div class="adat">
+        <b>Utolsó lekérdezés:</b> """ + escape(utolso_ido) + """
+    </div>
+
+    <div class="adat">
+        <b>Járművek száma:</b> """ + str(megtalalt_jarmuvek) + "/" + str(excel_fordak_szama) + """
+    </div>
 
     <div class="adat">
         <b>Riport készült:</b> """ + escape(
@@ -3665,27 +3726,6 @@ ArrivaBus hidegtárolás
         <b>Vizsgált fordák:</b> """ + str(
             megtalalt_jarmuvek
         ) + """
-    </div>
-
-</div>
-
-
-<div class="fejlec-adatok">
-
-    <div class="adat">
-        <b>Dátum:</b> """ + escape(futas_datum) + """
-    </div>
-
-    <div class="adat">
-        <b>Naptípus:</b> """ + escape(str(talalt_munkalap)) + """
-    </div>
-
-    <div class="adat">
-        <b>Utolsó lekérdezés:</b> """ + escape(utolso_ido) + """
-    </div>
-
-    <div class="adat">
-        <b>Járművek száma:</b> """ + str(megtalalt_jarmuvek) + "/" + str(excel_fordak_szama) + """
     </div>
 
 </div>
@@ -3748,8 +3788,9 @@ ArrivaBus hidegtárolás
     rendezett_sorok = sorted(
         sorok.items(),
         key=lambda x: (
-            x[1]["viszonylat"],
-            x[1]["forda"]
+            x[1].get("kezdés", ""),
+            x[1].get("viszonylat", ""),
+            x[1].get("forda", "")
         )
     )
 
@@ -4318,4 +4359,4 @@ if (terkepElemek.length > 0) {
 # EXPORT FUTTATÁSA
 # ============================================================
 
-html_export_teszt()
+html_export()
