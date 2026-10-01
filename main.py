@@ -885,7 +885,7 @@ fazis_ideje = datetime.now(
 azonositas_idoszak = (
     time(7, 0)
     <= fazis_ideje
-    <= time(9, 0)
+    <= time(10, 0)
 )
 
 pozicio_idoszak = (
