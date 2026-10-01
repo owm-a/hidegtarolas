@@ -2421,6 +2421,18 @@ def html_export_teszt():
         utolso_ido = "-"
 
 
+    # --------------------------------------------------------
+    # Összesítés a fejléc számára
+    # --------------------------------------------------------
+
+    excel_fordak_szama = len(figyelt_fordak)
+
+    megtalalt_jarmuvek = len({
+        str(rekord.get("rendszám", "")).strip().upper()
+        for rekord in pozicio_tortenet
+        if str(rekord.get("rendszám", "")).strip()
+    })
+
 
 
     # --------------------------------------------------------
@@ -2444,7 +2456,7 @@ def html_export_teszt():
 
         }
 
-    )
+    )[-18:]
 
 
 
@@ -2730,6 +2742,28 @@ body {
 
 
 
+.fejlec-adatok {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 28px;
+
+    flex-wrap: wrap;
+
+}
+
+
+.adat {
+
+    font-size: 13px;
+
+    white-space: nowrap;
+
+}
+
+
 .datum {
 
     font-size: 14px;
@@ -2756,7 +2790,22 @@ table {
 
     background: white;
 
-    font-size: 12px;
+    font-size: 11px;
+
+    width: max-content;
+
+}
+
+
+.table-wrap {
+
+    width: 100%;
+
+    overflow-x: auto;
+
+    background: white;
+
+    border: 1px solid #cccccc;
 
 }
 
@@ -2767,9 +2816,11 @@ td {
 
     border: 1px solid #888;
 
-    padding: 3px 5px;
+    padding: 2px 4px;
 
     text-align: center;
+
+    height: 21px;
 
 }
 
@@ -2792,6 +2843,30 @@ td.alap {
     white-space: nowrap;
 
     text-align: left;
+
+}
+
+
+/* Kért igazítások */
+
+th.viszonylat,
+td.viszonylat,
+th.forda,
+td.forda,
+th.kezdés,
+td.kezdés,
+th.végzés,
+td.végzés {
+
+    text-align: center;
+
+}
+
+
+th.rendszam,
+td.rendszam {
+
+    text-align: right;
 
 }
 
@@ -2936,25 +3011,27 @@ ArrivaBus hidegtárolás
 </div>
 
 
-<div class="datum">
+<div class="fejlec-adatok">
 
-Dátum:
-""" + escape(futas_datum) + """
+    <div class="adat">
+        <b>Dátum:</b> """ + escape(futas_datum) + """
+    </div>
 
-</div>
+    <div class="adat">
+        <b>Utolsó lekérdezés:</b> """ + escape(utolso_ido) + """
+    </div>
 
-
-<div class="info">
-
-Utolsó lekérdezés:
-""" + escape(utolso_ido) + """
-
-</div>
-
+    <div class="adat">
+        <b>Járművek száma:</b> """ + str(megtalalt_jarmuvek) + "/" + str(excel_fordak_szama) + """
+    </div>
 
 </div>
 
 
+</div>
+
+
+<div class="table-wrap">
 
 <table>
 
@@ -2975,7 +3052,7 @@ Utolsó lekérdezés:
 
 <th>Hely</th>
 
-<th>Rendszám</th>
+<th class="rendszam">Rendszám</th>
 """)
 
 
@@ -3077,7 +3154,7 @@ Utolsó lekérdezés:
 
         html.append(
 
-            f'<td class="alap">'
+            f'<td class="alap rendszam">'
             f'{escape(sor["rendszám"])}'
             f'</td>'
 
@@ -3136,6 +3213,8 @@ Utolsó lekérdezés:
 
 
 </table>
+
+</div>
 
 
 <!-- =========================================================
