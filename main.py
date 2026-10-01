@@ -2327,13 +2327,21 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
     if pd.isna(kezdés) or pd.isna(végzés):
         return "ELTÉRÉS TÖRTÉNT"
 
+    budapest_tz = ZoneInfo("Europe/Budapest")
+    budapest_now = datetime.now(budapest_tz)
+    mai_datum = budapest_now.date()
+
+    # A kezdés/végzés is időzónás datetime legyen, mert az aktuális
+    # idő (budapest_now) szintén timezone-aware.
     kezdés_dt = datetime.combine(
-        datetime.now(ZoneInfo("Europe/Budapest")).date(),
-        kezdés
+        mai_datum,
+        kezdés,
+        tzinfo=budapest_tz
     )
     végzés_dt = datetime.combine(
-        datetime.now(ZoneInfo("Europe/Budapest")).date(),
-        végzés
+        mai_datum,
+        végzés,
+        tzinfo=budapest_tz
     )
 
     # Éjfélen átnyúló forda esetén
@@ -2407,7 +2415,8 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
     # (pl. 08:00, 08:08, 08:17...) nem szakítja meg tévesen
     # a folyamatos OK-szakaszt.
     # ------------------------------------------------------------
-    budapest_now = datetime.now(ZoneInfo("Europe/Budapest"))
+    # budapest_now már a függvény elején létrejött timezone-aware
+    # datetime-ként.
 
     # Csak az eddig eltelt időt értékeljük; a jövőbeli időt
     # természetesen nem tekintjük OK-nak.
