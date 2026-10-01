@@ -2325,8 +2325,8 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
        az aktuális pillanatig el kell telnie.
 
     Ha mindhárom feltétel teljesül: RENDBEN TÁROLT.
-    A NEM állapot, illetve 10 percnél hosszabb adatkimaradás
-    megszakítja a folyamatos OK-szakaszt.
+    A NEM / - állapot megszakítja a folyamatos OK-szakaszt.
+    Az adatkimaradás önmagában nem szakítja meg.
     """
 
     kezdés = forda_sor.get("kezdés")
@@ -2461,17 +2461,9 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
         if allapot != "OK":
             return "ELTÉRÉS TÖRTÉNT"
 
-        # Kb. 8 perces futási ciklus mellett 10 perc a megengedett
-        # maximális mintaköz. Ennél nagyobb rés már adatkimaradás.
-        if (aktualis - elozo_ok).total_seconds() > 600:
-            return "ELTÉRÉS TÖRTÉNT"
-
+        # Az adatkimaradás önmagában NEM szakítja meg a folyamatos OK-t.
+        # Csak egy tényleges NEM / - állapot szakítja meg.
         elozo_ok = aktualis
-
-    # Az utolsó OK mérés és a futás pillanata közötti időnek is
-    # folyamatosnak kell lennie.
-    if (vizsgalat_vege - elozo_ok).total_seconds() > 600:
-        return "ELTÉRÉS TÖRTÉNT"
 
     return "RENDBEN TÁROLT"
 
@@ -3536,9 +3528,11 @@ td.ellenorzes {
 
     width: 100%;
 
-    height: 800px;
+    height: 50vh;
 
-    max-height: 800px;
+    max-height: 50vh;
+
+    min-height: 320px;
 
     margin-top: 0;
 
