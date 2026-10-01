@@ -2316,17 +2316,17 @@ RIport_XLSX = "data/hidegtarolas_export.xlsx"
 
 def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
     """
-    A forda akkor lesz RENDBEN TÁROLT, ha a teljes
-    kezdés-végzés időtartamának legalább 70%-a (0,7 * X)
-    egyetlen folyamatos OK szakaszban teljesül.
+    A hidegtárolási szabály:
 
-    Fontos:
-    - nem a mérések darabszámát nézzük;
-    - a tényleges időtartamot számítjuk;
-    - egy NEM vagy hiányzó mérés megszakítja a folyamatos OK-t;
-    - a kb. 8 perces lekérdezési ütem miatt legfeljebb 10 perc
-      lehet két egymást követő érvényes mérés között;
-    - minden futáskor az aktuális időpontig újraértékeljük az állapotot.
+    1. Megnézzük, hogy a forda kezdése után érkezett-e OK mérés.
+    2. Az első ilyen OK méréstől kezdve folyamatosnak kell lennie az
+       OK állapotnak a futás (aktuális lekérdezés) pillanatáig.
+    3. A teljes forda X időtartamának 70%-ának a forda kezdésétől
+       az aktuális pillanatig el kell telnie.
+
+    Ha mindhárom feltétel teljesül: RENDBEN TÁROLT.
+    A NEM állapot, illetve 10 percnél hosszabb adatkimaradás
+    megszakítja a folyamatos OK-szakaszt.
     """
 
     kezdés = forda_sor.get("kezdés")
@@ -2351,72 +2351,49 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
         tzinfo=budapest_tz
     )
 
-    # Éjfélen átnyúló forda kezelése.
+    # Éjfélen átnyúló forda
     if végzés_dt < kezdés_dt:
         végzés_dt += timedelta(days=1)
 
-    teljes_idotartam = (
-        végzés_dt - kezdés_dt
-    ).total_seconds()
+    teljes_idotartam = (végzés_dt - kezdés_dt).total_seconds()
 
     if teljes_idotartam <= 0:
         return "ELTÉRÉS TÖRTÉNT"
 
-    # X * 0,7
-    szukseges_idotartam = (
-        teljes_idotartam * 0.70
-    )
+    # X * 0,70 – ezt mindig a FORDA TELJES IDEJÉBŐL számoljuk.
+    szukseges_idotartam = teljes_idotartam * 0.70
 
-    kulcs_viszonylat = str(
-        forda_sor["viszonylat"]
-    ).strip()
+    # A vizsgálat pillanata nem mehet a forda vége után.
+    vizsgalat_vege = min(budapest_now, végzés_dt)
 
-    kulcs_forda = str(
-        forda_sor["forda"]
-    ).strip()
+    # A 70%-nyi idő még nem telt el a forda kezdésétől.
+    eltelt_ido = (vizsgalat_vege - kezdés_dt).total_seconds()
 
-    # ------------------------------------------------------------
-    # MINDEN releváns rekordot betöltünk, nem csak az OK-kat.
-    #
-    # Ez fontos: ha például
-    # 10:00 OK
-    # 10:08 NEM
-    # 10:16 OK
-    # akkor a két OK között NEM volt folyamatos OK.
-    # ------------------------------------------------------------
+    if eltelt_ido < szukseges_idotartam:
+        return "ELTÉRÉS TÖRTÉNT"
 
+    kulcs_viszonylat = str(forda_sor["viszonylat"]).strip()
+    kulcs_forda = str(forda_sor["forda"]).strip()
+
+    # Minden releváns mérés kell: az első OK után egy NEM megszakítja
+    # a folyamatosságot. Az OK-kat nem szabad külön kiszűrni.
     rekordok = []
 
     for rekord in pozicio_tortenet:
 
         if (
-            str(
-                rekord.get(
-                    "viszonylat",
-                    ""
-                )
-            ).strip()
+            str(rekord.get("viszonylat", "")).strip()
             != kulcs_viszonylat
-            or
-            str(
-                rekord.get(
-                    "forda",
-                    ""
-                )
-            ).strip()
+            or str(rekord.get("forda", "")).strip()
             != kulcs_forda
         ):
             continue
 
         idoszoveg = str(
-            rekord.get(
-                "frissítve",
-                ""
-            )
+            rekord.get("frissítve", "")
         ).strip()
 
         try:
-
             ido = datetime.strptime(
                 idoszoveg,
                 "%H:%M:%S"
@@ -2428,170 +2405,76 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
                 tzinfo=budapest_tz
             )
 
-            # Éjfél körüli időpontok kezelése.
             if dt < kezdés_dt:
                 dt += timedelta(days=1)
 
-            if (
-                kezdés_dt
-                <= dt
-                <= végzés_dt
-            ):
-
+            if kezdés_dt < dt <= vizsgalat_vege:
                 rekordok.append({
                     "idő": dt,
                     "állapot": str(
-                        rekord.get(
-                            "ellenőrzés",
-                            "-"
-                        )
-                    ).strip()
+                        rekord.get("ellenőrzés", "-")
+                    ).strip().upper()
                 })
 
-        except (
-            ValueError,
-            TypeError
-        ):
+        except (ValueError, TypeError):
             continue
 
     if not rekordok:
         return "ELTÉRÉS TÖRTÉNT"
 
-    # Azonos időpontból csak egy rekord számítson.
-    # Ha ugyanarra az időpontra több rekord van, az utolsó
-    # beolvasott állapot marad.
-    rekordok_ido_szerint = {}
+    # Azonos időpontból csak egy állapot maradjon.
+    rekordok.sort(key=lambda x: x["idő"])
+    idopont_allapot = {}
 
     for rekord in rekordok:
-        rekordok_ido_szerint[
-            rekord["idő"]
-        ] = rekord["állapot"]
+        idopont_allapot[rekord["idő"]] = rekord["állapot"]
 
     rekordok = [
-        {
-            "idő": ido,
-            "állapot": allapot
-        }
-        for ido, allapot
-        in sorted(
-            rekordok_ido_szerint.items()
-        )
+        {"idő": dt, "állapot": allapot}
+        for dt, allapot in sorted(idopont_allapot.items())
     ]
 
     # ------------------------------------------------------------
-    # IDŐALAPÚ, 0,7 * X FOLYAMATOS OK ELLENŐRZÉS
+    # 1. Az első OK a forda kezdése után
     # ------------------------------------------------------------
+    elso_ok_index = None
 
-    vizsgalat_vege = min(
-        budapest_now,
-        végzés_dt
-    )
+    for index, rekord in enumerate(rekordok):
+        if rekord["állapot"] == "OK":
+            elso_ok_index = index
+            break
 
-    if vizsgalat_vege < kezdés_dt:
+    if elso_ok_index is None:
         return "ELTÉRÉS TÖRTÉNT"
 
-    max_folyamatos = 0.0
+    # ------------------------------------------------------------
+    # 2. Az első OK-tól a vizsgálat pillanatáig folyamatos OK kell.
+    # ------------------------------------------------------------
+    elozo_ok = rekordok[elso_ok_index]["idő"]
 
-    szakasz_kezdete = None
-    elozo_ok = None
-
-    for rekord in rekordok:
+    for rekord in rekordok[elso_ok_index + 1:]:
 
         aktualis = rekord["idő"]
         allapot = rekord["állapot"]
 
-        if aktualis > vizsgalat_vege:
-            break
+        # Bármilyen NEM / - megszakítja a folyamatos OK-t.
+        if allapot != "OK":
+            return "ELTÉRÉS TÖRTÉNT"
 
-        # --------------------------------------------------------
-        # OK rekord
-        # --------------------------------------------------------
+        # Kb. 8 perces futási ciklus mellett 10 perc a megengedett
+        # maximális mintaköz. Ennél nagyobb rés már adatkimaradás.
+        if (aktualis - elozo_ok).total_seconds() > 600:
+            return "ELTÉRÉS TÖRTÉNT"
 
-        if allapot == "OK":
+        elozo_ok = aktualis
 
-            if (
-                szakasz_kezdete is None
-                or elozo_ok is None
-            ):
-                # Új OK szakasz indul.
-                szakasz_kezdete = aktualis
-                elozo_ok = aktualis
-                continue
+    # Az utolsó OK mérés és a futás pillanata közötti időnek is
+    # folyamatosnak kell lennie.
+    if (vizsgalat_vege - elozo_ok).total_seconds() > 600:
+        return "ELTÉRÉS TÖRTÉNT"
 
-            kulonbseg = (
-                aktualis - elozo_ok
-            ).total_seconds()
+    return "RENDBEN TÁROLT"
 
-            if kulonbseg <= 600:
-                # Folyamatos OK.
-                elozo_ok = aktualis
-
-            else:
-                # Túl nagy lyuk → új OK szakasz.
-                szakasz_hossza = (
-                    elozo_ok
-                    - szakasz_kezdete
-                ).total_seconds()
-
-                max_folyamatos = max(
-                    max_folyamatos,
-                    szakasz_hossza
-                )
-
-                szakasz_kezdete = aktualis
-                elozo_ok = aktualis
-
-        # --------------------------------------------------------
-        # NEM / - rekord
-        # --------------------------------------------------------
-
-        else:
-
-            if (
-                szakasz_kezdete is not None
-                and elozo_ok is not None
-            ):
-
-                szakasz_hossza = (
-                    elozo_ok
-                    - szakasz_kezdete
-                ).total_seconds()
-
-                max_folyamatos = max(
-                    max_folyamatos,
-                    szakasz_hossza
-                )
-
-            # A NEM megszakítja a folyamatos OK-szakaszt.
-            szakasz_kezdete = None
-            elozo_ok = None
-
-    # ------------------------------------------------------------
-    # Az utolsó, aktuális időpontig tartó OK szakasz lezárása.
-    # ------------------------------------------------------------
-
-    if (
-        szakasz_kezdete is not None
-        and elozo_ok is not None
-    ):
-
-        szakasz_hossza = (
-            min(
-                elozo_ok,
-                vizsgalat_vege
-            )
-            - szakasz_kezdete
-        ).total_seconds()
-
-        max_folyamatos = max(
-            max_folyamatos,
-            szakasz_hossza
-        )
-
-    if max_folyamatos >= szukseges_idotartam:
-        return "RENDBEN TÁROLT"
-
-    return "ELTÉRÉS TÖRTÉNT"
 
 def keszit_hidegtarolas_riport():
     """
@@ -3653,9 +3536,11 @@ td.ellenorzes {
 
     width: 100%;
 
-    height: 650px;
+    height: 800px;
 
-    margin-top: 12px;
+    max-height: 800px;
+
+    margin-top: 0;
 
     border: 1px solid #cccccc;
 
@@ -3796,6 +3681,13 @@ ArrivaBus hidegtárolás
 </div>
 
 </div>
+
+
+<!-- =========================================================
+     TÉRKÉP – KÖZVETLENÜL A FEJLÉC ALATT
+     ========================================================= -->
+
+<div id="geozona-terkep"></div>
 
 
 <!-- =========================================================
@@ -4174,12 +4066,6 @@ window.addEventListener(
 
 </script>
 
-
-<!-- =========================================================
-     TÉRKÉP
-     ========================================================= -->
-
-<div id="geozona-terkep"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
