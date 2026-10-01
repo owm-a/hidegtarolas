@@ -2580,15 +2580,15 @@ body { font-family: Arial, sans-serif; margin: 15px; background: #f5f5f5; color:
 .datum { font-size: 14px; }
 .info { font-size: 12px; color: #555; }
 .forda-info { font-size: 14px; font-weight: bold; }
-.tabla-sor { display: flex; align-items: flex-start; width: max-content; }
+.tabla-sor { display: flex; align-items: flex-start; width: 100%; overflow: hidden; }
 .fix-panel { flex: 0 0 auto; background: white; }
-.idopont-panel { flex: 0 0 612px; width: 612px; background: white; }
-.idopont-ablak { width: 612px; overflow: hidden; background: white; }
+.idopont-panel { flex: 0 0 612px; width: 612px; background: white; margin-left: 0; }
+.idopont-ablak { width: 612px; max-width: 612px; overflow: hidden; background: white; }
 .idopont-belso { width: max-content; }
-table { border-collapse: collapse; background: white; font-size: 12px; }
+table { border-collapse: collapse; background: white; font-size: 12px; table-layout: fixed; }
 th, td { border: 1px solid #888; padding: 3px 5px; text-align: center; white-space: nowrap; height: 24px; box-sizing: border-box; }
 th { background: #d9d9d9; font-weight: bold; }
-.fix-panel table { width: max-content; }
+.fix-panel table { width: max-content; table-layout: auto; }
 td.viszonylat, td.forda, td.kezdes, td.vegzes { text-align: center; }
 td.hely { text-align: left; }
 td.rendszam { text-align: right; }
@@ -2599,7 +2599,7 @@ td.ellenorzes { font-weight: bold; }
 .nincs { background: #000000; color: white; }
 .idopont-csuszkasav { width: 612px; margin-top: 4px; }
 .idopont-csuszkasav input[type="range"] { width: 100%; margin: 0; cursor: pointer; }
-#geozona-terkep { width: 100%; height: 650px; margin-top: 12px; border: 1px solid #cccccc; background: white; }
+#geozona-terkep { width: 100%; height: 650px; margin-top: 20px; border: 1px solid #cccccc; background: white; display: block; clear: both; position: relative; z-index: 1; }
 .vehicle-pin { width: 22px; height: 22px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid white; box-shadow: 0 1px 5px rgba(0,0,0,0.45); box-sizing: border-box; }
 .vehicle-pin::after { content: ""; display: block; width: 7px; height: 7px; margin: 5px auto 0; border-radius: 50%; background: white; }
 .vehicle-pin.green { background: #00b050; }
@@ -2645,6 +2645,7 @@ td.ellenorzes { font-weight: bold; }
 </tbody></table>
 </div>
 <div class="idopont-panel">
+<!-- A belső táblázat az ÖSSZES időoszlopot tartalmazza; az ablakból 18 oszlop látszik. -->
 <div class="idopont-ablak" id="idopont-ablak">
 <div class="idopont-belso" id="idopont-belso">
 <table id="idopont-tabla">
@@ -2990,6 +2991,14 @@ if (terkepElemek.length > 0) {
     }
 
 }
+
+
+/* A térkép méretének újraszámítása az oldal teljes betöltése után. */
+window.addEventListener("load", function() {
+    setTimeout(function() {
+        map.invalidateSize();
+    }, 100);
+});
 
 
 </script>
