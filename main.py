@@ -33,7 +33,7 @@ import pandas as pd
 import zipfile
 import io
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from google.transit import gtfs_realtime_pb2
@@ -877,6 +877,19 @@ import json
 # =========================================================
 # 10/a. AKTUÁLIS FÁZIS
 # =========================================================
+
+def forda_aktiv_e(kezdés, végzés, időpont):
+    """A forda helyszínellenőrzési időablaka: kezdés -5 perc, végzés +10 perc."""
+
+    kezdés_dt = datetime.strptime(kezdés, "%H:%M:%S")
+    végzés_dt = datetime.strptime(végzés, "%H:%M:%S")
+    időpont_dt = datetime.strptime(időpont, "%H:%M:%S")
+
+    ellenőrzési_kezdés = kezdés_dt - timedelta(minutes=5)
+    ellenőrzési_végzés = végzés_dt + timedelta(minutes=10)
+
+    return ellenőrzési_kezdés <= időpont_dt <= ellenőrzési_végzés
+
 
 fazis_ideje = datetime.now(
     ZoneInfo("Europe/Budapest")
@@ -1737,10 +1750,10 @@ else:
         # Csak akkor ellenőrizzük a helyszínt,
         # ha a forda az adott időpontban aktív
 
-        if not (
-            adat["kezdés"]
-            <= idopont
-            <= adat["végzés"]
+        if not forda_aktiv_e(
+            adat["kezdés"],
+            adat["végzés"],
+            idopont
         ):
 
             ellenorzes = "-"
@@ -1992,10 +2005,10 @@ for rekord in poziciok:
     # AKTUÁLIS-E A FORDA AZ ADOTT IDŐPONTBAN?
     # --------------------------------------------------------
 
-    if not (
-        kezdés
-        <= idopont
-        <= végzés
+    if not forda_aktiv_e(
+        kezdés,
+        végzés,
+        idopont
     ):
 
         ellenorzesek.append({
