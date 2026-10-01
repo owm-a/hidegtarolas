@@ -3288,11 +3288,11 @@ terkepJarmuvek.forEach(function(jarmu) {
 
     if (jarmu.statusz === "OK") {
         statuszSzoveg =
-            '<span style="color:#00a040;font-weight:bold;">BENNE VAN</span>';
+            '<span style="color:#00a040;font-weight:bold;">OK</span>';
     }
     else if (jarmu.statusz === "NEM") {
         statuszSzoveg =
-            '<span style="color:#e00000;font-weight:bold;">NINCS BENNE</span>';
+            '<span style="color:#e00000;font-weight:bold;">ELTÉRÉS</span>';
     }
 
 
