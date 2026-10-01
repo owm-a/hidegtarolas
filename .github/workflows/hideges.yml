@@ -5,7 +5,7 @@ on:
   - cron: "2,12,22,32,42,52 * * * *"
     timezone: "Europe/Budapest"
     
-  pushh
+  push:
 
   workflow_dispatch:
 
