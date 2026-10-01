@@ -3478,19 +3478,22 @@ td.ellenorzes {
    HIDEGTÁROLÁSI RIPORT
    ========================================================= */
 
-.riport-resz {
-    flex: 0 0 auto;
-    margin-left: 4px;
-}
-
-.riport-meta {
-    background: white;
-    border: 1px solid #cccccc;
-    border-bottom: 0;
-    padding: 4px 7px;
+.riport-fejlec-adatok {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 2px;
+    padding-right: 0;
     font-size: 12px;
     line-height: 1.35;
     white-space: nowrap;
+}
+
+.riport-resz {
+    flex: 0 0 auto;
+    margin-left: 4px;
+    align-self: flex-start;
 }
 
 .riport-tablazat {
@@ -3625,6 +3628,28 @@ td.ellenorzes {
 <div class="cim">
 
 ArrivaBus hidegtárolás
+
+</div>
+
+
+<div class="riport-fejlec-adatok">
+
+    <div class="adat">
+        <b>Riport készült:</b> """ + escape(
+            str(
+                hidegtarolas_riport.get(
+                    "keszult",
+                    "-"
+                )
+            )
+        ) + """
+    </div>
+
+    <div class="adat">
+        <b>Vizsgált fordák:</b> """ + str(
+            megtalalt_jarmuvek
+        ) + """
+    </div>
 
 </div>
 
@@ -3898,25 +3923,6 @@ ArrivaBus hidegtárolás
 
         html.append("""
 <div class="riport-resz">
-
-<div class="riport-meta">
-    <b>Riport készült:</b> """ + escape(
-        str(
-            hidegtarolas_riport.get(
-                "keszult",
-                "-"
-            )
-        )
-    ) + """<br>
-    <b>Vizsgált fordák:</b> """ + str(
-        hidegtarolas_riport.get(
-            "vizsgalt_fordak",
-            0
-        )
-    ) + """ / """ + str(
-        excel_fordak_szama
-    ) + """
-</div>
 
 <table class="riport-tablazat">
 <thead>
