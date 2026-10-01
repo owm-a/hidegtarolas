@@ -1450,7 +1450,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import requests
 import pandas as pd
-import time
+import time as time_module
 
 
 print("\n=== 10:00–14:00 pozíciólekérés ===")
@@ -1548,7 +1548,7 @@ for probalkozas in (
                 "Újrapróbálkozás 2 másodperc múlva..."
             )
 
-            time.sleep(2)
+            time_module.sleep(2)
 
         else:
 
