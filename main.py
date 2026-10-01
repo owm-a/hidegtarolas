@@ -2667,7 +2667,7 @@ def keszit_hidegtarolas_riport():
         "kesz": True,
         "excel_kesz": True,
         "keszult": riport_idopont,
-        "vizsgalt_fordak": len(eredmenyek),
+        "vizsgalt_fordak": megtalalt_jarmuvek,
         "eredmenyek": eredmenyek
     }
 
@@ -3252,7 +3252,7 @@ body {
 
     width: max-content;
 
-    max-width: 100%;
+    max-width: none;
 
     background: white;
 
@@ -3478,7 +3478,8 @@ td.ellenorzes {
    ========================================================= */
 
 .riport-resz {
-    flex: 0 0 auto;
+    flex: 0 0 145px;
+    width: 145px;
     margin-left: 4px;
 }
 
@@ -3524,6 +3525,8 @@ td.ellenorzes {
    ========================================================= */
 
 #geozona-terkep {
+
+    clear: both;
 
     width: 100%;
 
@@ -3631,6 +3634,10 @@ ArrivaBus hidegtárolás
 
     <div class="adat">
         <b>Dátum:</b> """ + escape(futas_datum) + """
+    </div>
+
+    <div class="adat">
+        <b>Naptípus:</b> """ + escape(str(talalt_munkalap)) + """
     </div>
 
     <div class="adat">
@@ -3849,8 +3856,6 @@ ArrivaBus hidegtárolás
 
 </div>
 
-</div>
-
 
 <!-- =========================================================
      KÜLÖN CSÚSZKA
@@ -3866,6 +3871,8 @@ ArrivaBus hidegtárolás
     value="0"
     step="1"
 >
+
+</div>
 
 </div>
 
@@ -3906,7 +3913,7 @@ ArrivaBus hidegtárolás
             0
         )
     ) + """ / """ + str(
-        excel_fordak_szama
+        megtalalt_jarmuvek
     ) + """
 </div>
 
