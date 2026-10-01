@@ -903,14 +903,14 @@ print(
 if azonositas_idoszak:
 
     print(
-        "Aktív fázis: 07:00–09:00 "
+        "Aktív fázis: 07:00–10:30 "
         "forda → rendszám"
     )
 
 elif pozicio_idoszak:
 
     print(
-        "Aktív fázis: 10:00–14:00 "
+        "Aktív fázis: 08:20–16:40 "
         "rendszám → pozíció"
     )
 
@@ -1671,10 +1671,17 @@ for forda_kulcs, adat in (
         for elozo in reversed(pozicio_tortenet):
 
             if (
-                str(elozo.get("rendszám", "")).strip().upper()
+                str(
+                    elozo.get(
+                        "rendszám",
+                        ""
+                    )
+                ).strip().upper()
                 == rendszam
             ):
-                elozo_pozicio = elozo.get("pozíció")
+                elozo_pozicio = elozo.get(
+                    "pozíció"
+                )
                 break
 
 
@@ -1706,7 +1713,6 @@ for forda_kulcs, adat in (
 
     else:
 
-        # Első találat
         rt = talalat.iloc[0]
 
         pozicio = (
@@ -1721,6 +1727,108 @@ for forda_kulcs, adat in (
         )
 
 
+    # ----------------------------------------------------
+    # POZÍCIÓ ELLENŐRZÉSE
+    # ----------------------------------------------------
+
+    ellenorzes = "-"
+
+    helyszin_kulcs = str(
+        adat.get(
+            "helyszín",
+            ""
+        )
+    ).strip()
+
+
+    if helyszin_kulcs in HELYSZINEK:
+
+        try:
+
+            latitude_szoveg, longitude_szoveg = (
+                pozicio.split(",", 1)
+            )
+
+            latitude = float(
+                latitude_szoveg.strip()
+            )
+
+            longitude = float(
+                longitude_szoveg.strip()
+            )
+
+            helyszin = HELYSZINEK[
+                helyszin_kulcs
+            ]
+
+            lat_benne = (
+                helyszin["lat_min"]
+                <= latitude
+                <= helyszin["lat_max"]
+            )
+
+            lon_benne = (
+                helyszin["lon_min"]
+                <= longitude
+                <= helyszin["lon_max"]
+            )
+
+            if lat_benne and lon_benne:
+
+                ellenorzes = "OK"
+
+            else:
+
+                ellenorzes = "NEM"
+
+        except (
+            ValueError,
+            TypeError
+        ):
+
+            ellenorzes = "-"
+
+
+    # ----------------------------------------------------
+    # ÚJ történeti rekord
+    #
+    # Friss RT pozíció vagy utolsó ismert pozíció.
+    # Az OK/NEM eredmény is mentésre kerül.
+    # ----------------------------------------------------
+
+    pozicio_tortenet.append({
+
+        "viszonylat": adat["viszonylat"],
+
+        "forda": adat["forda"],
+
+        "kezdés": adat["kezdés"],
+
+        "végzés": adat["végzés"],
+
+        "hely": adat["hely"],
+
+        "helyszín": adat["helyszín"],
+
+        "rendszám": rendszam,
+
+        "pozíció": pozicio,
+
+        "ellenőrzés": ellenorzes,
+
+        "frissítve": idopont
+    })
+
+
+    uj_poziciok += 1
+
+
+    print(
+        f"{forda_kulcs}: "
+        f"{rendszam} → "
+        f"{pozicio} "
+        f"[{ellenorzes}]"
+    )
     # ----------------------------------------------------
     # ÚJ történeti rekord
     #
