@@ -887,7 +887,7 @@ print(
 
 # =========================================================
 # 10. FORDA → RENDSZÁM
-# 07:00–08:30 AZONOSÍTÁSI FÁZIS
+# 07:00–09:00 AZONOSÍTÁSI FÁZIS
 # =========================================================
 
 import json
@@ -903,7 +903,7 @@ fazis_ideje = datetime.now(
 azonositas_idoszak = (
     time(7, 0)
     <= fazis_ideje
-    <= time(10, 30)
+    <= time(8, 30)
 )
 
 pozicio_idoszak = (
@@ -2422,6 +2422,135 @@ def html_export_teszt():
 
 
        # --------------------------------------------------------
+    # Időpontok
+    # --------------------------------------------------------
+
+    idopontok = sorted(
+        {
+            rekord.get("frissítve", "")[:5]
+            for rekord in pozicio_tortenet
+            if rekord.get("frissítve")
+        }
+    )
+
+
+    # --------------------------------------------------------
+    # Sorok
+    # --------------------------------------------------------
+
+    sorok = {}
+
+    for rekord in pozicio_tortenet:
+        viszonylat = str(rekord.get("viszonylat", ""))
+        forda = str(rekord.get("forda", ""))
+        kezdes = str(rekord.get("kezdés", ""))[:5]
+        vegzes = str(rekord.get("végzés", ""))[:5]
+        hely = str(rekord.get("hely", ""))
+        rendszam = str(rekord.get("rendszám", ""))
+        kulcs = (viszonylat, forda)
+
+        if kulcs not in sorok:
+            sorok[kulcs] = {
+                "viszonylat": viszonylat,
+                "forda": forda,
+                "kezdés": kezdes,
+                "végzés": vegzes,
+                "hely": hely,
+                "rendszám": rendszam,
+                "ellenőrzés": {}
+            }
+
+        idopont = rekord.get("frissítve", "")[:5]
+        if idopont:
+            sorok[kulcs]["ellenőrzés"][idopont] = rekord.get("ellenőrzés", "-")
+
+
+    # --------------------------------------------------------
+    # TÉRKÉP ADATOK
+    # --------------------------------------------------------
+
+    terkep_jarmuvek = {}
+
+    for rekord in pozicio_tortenet:
+        rendszam = str(rekord.get("rendszám", "")).strip().upper()
+        if not rendszam:
+            continue
+        frissitve = str(rekord.get("frissítve", "")).strip()
+        pozicio = str(rekord.get("pozíció", "")).strip()
+        if not pozicio:
+            continue
+
+        try:
+            latitude_szoveg, longitude_szoveg = pozicio.split(",", 1)
+            latitude = float(latitude_szoveg.strip())
+            longitude = float(longitude_szoveg.strip())
+        except (ValueError, TypeError):
+            continue
+
+        elozo = terkep_jarmuvek.get(rendszam)
+        if elozo is not None and str(elozo.get("frissitve", "")) >= frissitve:
+            continue
+
+        forda_adat = forda_rendszamok.get(
+            f"{str(rekord.get('viszonylat', '')).strip()}|{str(rekord.get('forda', '')).strip()}"
+        )
+        if forda_adat is None:
+            continue
+
+        kezdés = str(forda_adat.get("kezdés", "")).strip()
+        végzés = str(forda_adat.get("végzés", "")).strip()
+        if not kezdés or not végzés or not frissitve:
+            continue
+
+        try:
+            _kezd = datetime.strptime(kezdés, "%H:%M:%S")
+            _vegz = datetime.strptime(végzés, "%H:%M:%S")
+            _fr = datetime.strptime(frissitve, "%H:%M:%S")
+            if not (_kezd <= _fr <= _vegz):
+                continue
+        except ValueError:
+            continue
+
+        helyszin_kulcs = str(rekord.get("helyszín", "")).strip()
+        helyszin = HELYSZINEK.get(helyszin_kulcs)
+
+        if helyszin is not None:
+            benne_van = (
+                helyszin["lat_min"] <= latitude <= helyszin["lat_max"]
+                and helyszin["lon_min"] <= longitude <= helyszin["lon_max"]
+            )
+            statusz = "OK" if benne_van else "NEM"
+            helyszin_nev = helyszin.get("kulcsszo", helyszin_kulcs)
+        else:
+            statusz = "-"
+            helyszin_nev = helyszin_kulcs if helyszin_kulcs else "Nincs kijelölt geozóna"
+
+        terkep_jarmuvek[rendszam] = {
+            "rendszam": rendszam,
+            "viszonylat": str(rekord.get("viszonylat", "")),
+            "forda": str(rekord.get("forda", "")),
+            "hely": str(rekord.get("hely", "")),
+            "helyszin": helyszin_nev,
+            "statusz": statusz,
+            "latitude": latitude,
+            "longitude": longitude,
+            "frissitve": frissitve
+        }
+
+    terkep_jarmuvek_lista = list(terkep_jarmuvek.values())
+    terkep_zonak = []
+    for kulcs, helyszin in HELYSZINEK.items():
+        terkep_zonak.append({
+            "kulcs": kulcs,
+            "nev": helyszin.get("kulcsszo", kulcs),
+            "lat_min": helyszin["lat_min"],
+            "lat_max": helyszin["lat_max"],
+            "lon_min": helyszin["lon_min"],
+            "lon_max": helyszin["lon_max"]
+        })
+
+
+    # --------------------------------------------------------
     # HTML
     # --------------------------------------------------------
 
@@ -2439,550 +2568,242 @@ def html_export_teszt():
 
     html.append("""
 <!DOCTYPE html>
-
 <html lang="hu">
-
 <head>
-
 <meta charset="UTF-8">
-
 <title>ArrivaBus hidegtárolás</title>
-
 <style>
-
-body {
-    font-family: Arial, sans-serif;
-    margin: 15px;
-    background: #f5f5f5;
-    color: #222;
-}
-
-.fejlec {
-    background: white;
-    border: 1px solid #cccccc;
-    padding: 10px 15px;
-    margin-bottom: 12px;
-}
-
-.cim {
-    font-size: 22px;
-    font-weight: bold;
-    margin-bottom: 8px;
-}
-
-.fejlec-adatok {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-    flex-wrap: wrap;
-}
-
-.datum {
-    font-size: 14px;
-}
-
-.info {
-    font-size: 12px;
-    color: #555;
-}
-
-.forda-info {
-    font-size: 14px;
-    font-weight: bold;
-}
-
-/* =========================================================
-   KÉT RÉSZES TÁBLÁZAT
-   ========================================================= */
-
-.tabla-egesz {
-    display: flex;
-    align-items: flex-start;
-    width: max-content;
-    max-width: 100%;
-    background: white;
-}
-
-/* Bal oldali 6 fix oszlop */
-
-.alap-tabla {
-    flex: 0 0 auto;
-}
-
-/* Jobb oldali időoszlopok */
-
-.idopont-panel {
-    flex: 0 0 612px;
-    width: 612px;
-    max-width: calc(100vw - 30px);
-}
-
-.idopont-ablak {
-    width: 100%;
-    overflow: hidden;
-}
-
-.idopont-tabla {
-    border-collapse: collapse;
-    background: white;
-    font-size: 12px;
-    width: max-content;
-    table-layout: fixed;
-}
-
-.alap-tabla table {
-    border-collapse: collapse;
-    background: white;
-    font-size: 12px;
-    width: max-content;
-}
-
-th,
-td {
-    border: 1px solid #888;
-    padding: 3px 5px;
-    text-align: center;
-    white-space: nowrap;
-    height: 24px;
-    box-sizing: border-box;
-}
-
-th {
-    background: #d9d9d9;
-    font-weight: bold;
-}
-
-/* Az első 6 oszlop csak a tartalomhoz szükséges szélességű */
-
-.alap-tabla th,
-.alap-tabla td {
-    width: auto;
-}
-
-td.viszonylat,
-td.forda,
-td.kezdes,
-td.vegzes {
-    text-align: center;
-}
-
-td.hely {
-    text-align: left;
-}
-
-td.rendszam {
-    text-align: right;
-}
-
-/* Pontosan 18 időoszlop fér el egyszerre */
-
-th.idopont,
-td.ellenorzes {
-    width: 34px;
-    min-width: 34px;
-    max-width: 34px;
-    height: 24px;
-    padding: 1px;
-}
-
-td.ellenorzes {
-    font-weight: bold;
-}
-
-.ok {
-    background: #00b050;
-    color: white;
-}
-
-.nem {
-    background: #ff0000;
-    color: white;
-}
-
-.nincs {
-    background: #000000;
-    color: white;
-}
-
-/* =========================================================
-   KÜLÖN VÍZSZINTES CSÚSZKA
-   ========================================================= */
-
-.idopont-csuszkater {
-    width: 100%;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    box-sizing: border-box;
-    padding: 0 2px;
-    background: white;
-    border-left: 1px solid #888;
-    border-right: 1px solid #888;
-    border-bottom: 1px solid #888;
-}
-
-#idopont-csuszkas {
-    width: 100%;
-    height: 16px;
-    margin: 0;
-    cursor: pointer;
-}
-
-/* =========================================================
-   TÉRKÉP
-   ========================================================= */
-
-#geozona-terkep {
-    width: 100%;
-    height: 650px;
-    margin-top: 12px;
-    border: 1px solid #cccccc;
-    background: white;
-}
-
-.vehicle-pin {
-    width: 22px;
-    height: 22px;
-    border-radius: 50% 50% 50% 0;
-    transform: rotate(-45deg);
-    border: 2px solid white;
-    box-shadow: 0 1px 5px rgba(0,0,0,0.45);
-    box-sizing: border-box;
-}
-
-.vehicle-pin::after {
-    content: "";
-    display: block;
-    width: 7px;
-    height: 7px;
-    margin: 5px auto 0;
-    border-radius: 50%;
-    background: white;
-}
-
+body { font-family: Arial, sans-serif; margin: 15px; background: #f5f5f5; color: #222; }
+.fejlec { background: white; border: 1px solid #cccccc; padding: 10px 15px; margin-bottom: 12px; }
+.cim { font-size: 22px; font-weight: bold; margin-bottom: 8px; }
+.fejlec-adatok { display: flex; align-items: center; gap: 30px; flex-wrap: wrap; }
+.datum { font-size: 14px; }
+.info { font-size: 12px; color: #555; }
+.forda-info { font-size: 14px; font-weight: bold; }
+.tabla-sor { display: flex; align-items: flex-start; width: max-content; }
+.fix-panel { flex: 0 0 auto; background: white; }
+.idopont-panel { flex: 0 0 612px; width: 612px; background: white; }
+.idopont-ablak { width: 612px; overflow: hidden; background: white; }
+.idopont-belso { width: max-content; }
+table { border-collapse: collapse; background: white; font-size: 12px; }
+th, td { border: 1px solid #888; padding: 3px 5px; text-align: center; white-space: nowrap; height: 24px; box-sizing: border-box; }
+th { background: #d9d9d9; font-weight: bold; }
+.fix-panel table { width: max-content; }
+td.viszonylat, td.forda, td.kezdes, td.vegzes { text-align: center; }
+td.hely { text-align: left; }
+td.rendszam { text-align: right; }
+th.idopont, td.ellenorzes { width: 34px; min-width: 34px; max-width: 34px; height: 24px; padding: 1px; }
+td.ellenorzes { font-weight: bold; }
+.ok { background: #00b050; color: white; }
+.nem { background: #ff0000; color: white; }
+.nincs { background: #000000; color: white; }
+.idopont-csuszkasav { width: 612px; margin-top: 4px; }
+.idopont-csuszkasav input[type="range"] { width: 100%; margin: 0; cursor: pointer; }
+#geozona-terkep { width: 100%; height: 650px; margin-top: 12px; border: 1px solid #cccccc; background: white; }
+.vehicle-pin { width: 22px; height: 22px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid white; box-shadow: 0 1px 5px rgba(0,0,0,0.45); box-sizing: border-box; }
+.vehicle-pin::after { content: ""; display: block; width: 7px; height: 7px; margin: 5px auto 0; border-radius: 50%; background: white; }
 .vehicle-pin.green { background: #00b050; }
 .vehicle-pin.red { background: #ff0000; }
 .vehicle-pin.gray { background: #777777; }
-
-.leaflet-popup-content {
-    line-height: 1.45;
-}
-
+.leaflet-popup-content { line-height: 1.45; }
 </style>
-
-<link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    crossorigin=""
->
-
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 </head>
-
 <body>
-
 <div class="fejlec">
-
-<div class="cim">
-ArrivaBus hidegtárolás
-</div>
-
+<div class="cim">ArrivaBus hidegtárolás</div>
 <div class="fejlec-adatok">
-
-<div class="datum">
-Dátum:
-""" + escape(futas_datum) + """
+<div class="datum">Dátum: """ + escape(futas_datum) + """</div>
+<div class="info">Utolsó lekérdezés: """ + escape(utolso_ido) + """</div>
+<div class="forda-info">Járművek száma: """ + str(megtalalt_jarmu_db) + "/" + str(excel_forda_db) + """</div>
 </div>
-
-<div class="info">
-Utolsó lekérdezés:
-""" + escape(utolso_ido) + """
 </div>
-
-<div class="forda-info">
-Járművek száma:
-""" + str(megtalalt_jarmu_db) + "/" + str(excel_forda_db) + """
-</div>
-
-</div>
-
-</div>
-
-<!-- =========================================================
-     TÁBLÁZAT – BAL: FIX 6 OSZLOP / JOBB: IDŐOSZLOPOK
-     ========================================================= -->
-
-<div class="tabla-egesz">
-
-<div class="alap-tabla">
-
-<table>
-
-<thead>
-<tr>
-<th>Viszonylat</th>
-<th>Forda</th>
-<th>Kezdés</th>
-<th>Végzés</th>
-<th>Hely</th>
-<th>Rendszám</th>
-</tr>
-</thead>
-
-<tbody>
+<div class="tabla-sor">
+<div class="fix-panel">
+<table id="fix-tabla">
+<thead><tr>
+<th>Viszonylat</th><th>Forda</th><th>Kezdés</th><th>Végzés</th><th>Hely</th><th>Rendszám</th>
+</tr></thead><tbody>
 """)
-
-    # --------------------------------------------------------
-    # Bal oldali, fix adatoszlopok
-    # --------------------------------------------------------
 
     rendezett_sorok = sorted(
         sorok.items(),
-        key=lambda x: (
-            x[1]["viszonylat"],
-            x[1]["forda"]
-        )
+        key=lambda x: (x[1]["viszonylat"], x[1]["forda"])
     )
 
     for _, sor in rendezett_sorok:
-
         html.append("<tr>")
-
-        html.append(
-            f'<td class="alap viszonylat">'
-            f'{escape(sor["viszonylat"])}'
-            f'</td>'
-        )
-
-        html.append(
-            f'<td class="alap forda">'
-            f'{escape(sor["forda"])}'
-            f'</td>'
-        )
-
-        html.append(
-            f'<td class="alap kezdes">'
-            f'{escape(sor["kezdés"])}'
-            f'</td>'
-        )
-
-        html.append(
-            f'<td class="alap vegzes">'
-            f'{escape(sor["végzés"])}'
-            f'</td>'
-        )
-
-        html.append(
-            f'<td class="alap hely">'
-            f'{escape(sor["hely"])}'
-            f'</td>'
-        )
-
-        html.append(
-            f'<td class="alap rendszam">'
-            f'{escape(sor["rendszám"])}'
-            f'</td>'
-        )
-
+        html.append(f'<td class="viszonylat">{escape(sor["viszonylat"])}</td>')
+        html.append(f'<td class="forda">{escape(sor["forda"])}</td>')
+        html.append(f'<td class="kezdes">{escape(sor["kezdés"])}</td>')
+        html.append(f'<td class="vegzes">{escape(sor["végzés"])}</td>')
+        html.append(f'<td class="hely">{escape(sor["hely"])}</td>')
+        html.append(f'<td class="rendszam">{escape(sor["rendszám"])}</td>')
         html.append("</tr>")
 
     html.append("""
-</tbody>
-</table>
-
+</tbody></table>
 </div>
-
 <div class="idopont-panel">
-
-<div id="idopont-ablak" class="idopont-ablak">
-
-<table class="idopont-tabla">
-
-<thead>
-<tr>
+<div class="idopont-ablak" id="idopont-ablak">
+<div class="idopont-belso" id="idopont-belso">
+<table id="idopont-tabla">
+<thead><tr>
 """)
-
-    # --------------------------------------------------------
-    # Jobb oldali, görgethető időoszlopok fejléce
-    # --------------------------------------------------------
 
     for idopont in idopontok:
-
-        html.append(
-            f'<th class="idopont">'
-            f'{escape(idopont)}'
-            f'</th>'
-        )
+        html.append(f'<th class="idopont">{escape(idopont)}</th>')
 
     html.append("""
-</tr>
-</thead>
-
-<tbody>
+</tr></thead><tbody>
 """)
 
-    # --------------------------------------------------------
-    # Jobb oldali, görgethető időoszlopok
-    # --------------------------------------------------------
-
     for _, sor in rendezett_sorok:
-
         html.append("<tr>")
-
         for idopont in idopontok:
-
-            eredmeny = sor["ellenőrzés"].get(
-                idopont,
-                "-"
-            )
-
+            eredmeny = sor["ellenőrzés"].get(idopont, "-")
             if eredmeny == "OK":
                 osztaly = "ok"
-
             elif eredmeny == "NEM":
                 osztaly = "nem"
-
             else:
                 osztaly = "nincs"
                 eredmeny = "-"
-
-            html.append(
-                f'<td class="ellenorzes {osztaly}">'
-                f'{escape(eredmeny)}'
-                f'</td>'
-            )
-
+            html.append(f'<td class="ellenorzes {osztaly}">{escape(eredmeny)}</td>')
         html.append("</tr>")
 
     html.append("""
-</tbody>
-</table>
-
+</tbody></table>
 </div>
-
-<!-- Külön vízszintes csúszka az időoszlopokhoz -->
-<div class="idopont-csuszkater">
-<input
-    type="range"
-    id="idopont-csuszkas"
-    min="0"
-    max="0"
-    value="0"
-    step="1"
->
+<div class="idopont-csuszkasav">
+<input id="idopont-csuszka" type="range" min="0" max="1000" value="1000" step="1" aria-label="Időoszlopok mozgatása">
 </div>
-
 </div>
-
 </div>
-
-<!-- =========================================================
-     TÉRKÉP
-     ========================================================= -->
-
-<div id="geozona-terkep"></div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
+(function() {
+    const ablak = document.getElementById("idopont-ablak");
+    const belso = document.getElementById("idopont-belso");
+    const csuszka = document.getElementById("idopont-csuszka");
+    if (!ablak || !belso || !csuszka) return;
+    function beallitCsuszkát() {
+        const maxScroll = Math.max(0, belso.scrollWidth - ablak.clientWidth);
+        csuszka.disabled = maxScroll <= 0;
+        csuszka.value = 1000;
+        ablak.scrollLeft = maxScroll;
+    }
+    csuszka.addEventListener("input", function() {
+        const maxScroll = Math.max(0, belso.scrollWidth - ablak.clientWidth);
+        ablak.scrollLeft = maxScroll * (Number(csuszka.value) / 1000);
+    });
+    window.addEventListener("resize", beallitCsuszkát);
+    window.addEventListener("load", beallitCsuszkát);
+    beallitCsuszkát();
+})();
+</script>
 
+<div id="geozona-terkep"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
 const terkepJarmuvek = """ + json.dumps(terkep_jarmuvek_lista, ensure_ascii=False) + r""";
+
 
 const terkepZonak = """ + json.dumps(terkep_zonak, ensure_ascii=False) + r""";
 
-/* =========================================================
-   IDŐOSZLOPOK – KÜLÖN VÍZSZINTES CSÚSZKA
-   ========================================================= */
-
-const idopontAblak = document.getElementById("idopont-ablak");
-const idopontCsuszka = document.getElementById("idopont-csuszkas");
-const idopontTabla = document.querySelector(".idopont-tabla");
-
-function frissitIdopontCsuszka() {
-
-    if (!idopontAblak || !idopontCsuszka || !idopontTabla) {
-        return;
-    }
-
-    const maxScroll = Math.max(
-        0,
-        idopontTabla.scrollWidth - idopontAblak.clientWidth
-    );
-
-    idopontCsuszka.min = 0;
-    idopontCsuszka.max = maxScroll;
-    idopontCsuszka.value = maxScroll;
-
-    idopontAblak.scrollLeft = maxScroll;
-}
-
-if (idopontCsuszka && idopontAblak) {
-
-    idopontCsuszka.addEventListener("input", function() {
-        idopontAblak.scrollLeft = Number(this.value);
-    });
-}
-
-window.addEventListener("load", function() {
-    frissitIdopontCsuszka();
-});
-
-window.addEventListener("resize", function() {
-    frissitIdopontCsuszka();
-});
 
 /* =========================================================
    TÉRKÉP
    ========================================================= */
 
 const map = L.map(
+
     "geozona-terkep"
+
 ).setView(
+
     [47.4979, 19.0402],
+
     11
+
 );
 
+
 L.tileLayer(
+
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+
     {
+
         maxZoom: 19,
+
         attribution: "&copy; OpenStreetMap"
+
     }
+
 ).addTo(map);
+
 
 const terkepElemek = [];
 
+
 function escapeHtml(value) {
+
     return String(value ?? "")
+
         .replaceAll("&", "&amp;")
+
         .replaceAll("<", "&lt;")
+
         .replaceAll(">", "&gt;")
+
         .replaceAll('"', "&quot;")
+
         .replaceAll("'", "&#039;");
+
 }
+
 
 function jarmuIkon(statusz) {
 
     let osztaly = "gray";
 
+
     if (statusz === "OK") {
+
         osztaly = "green";
-    }
-    else if (statusz === "NEM") {
-        osztaly = "red";
+
     }
 
+    else if (statusz === "NEM") {
+
+        osztaly = "red";
+
+    }
+
+
     return L.divIcon({
+
         className: "",
+
         html:
+
             '<div class="vehicle-pin '
+
             + osztaly
+
             + '"></div>',
+
         iconSize: [22, 30],
+
         iconAnchor: [11, 30],
+
         popupAnchor: [0, -28]
+
     });
+
 }
+
 
 /* =========================================================
    GEOZÓNÁK
@@ -2990,25 +2811,43 @@ function jarmuIkon(statusz) {
 
 terkepZonak.forEach(function(zona) {
 
+
     const rectangle = L.rectangle(
+
         [
+
             [zona.lat_min, zona.lon_min],
+
             [zona.lat_max, zona.lon_max]
+
         ],
+
         {
+
             color: "#3388ff",
+
             weight: 2,
+
             fillOpacity: 0.12
+
         }
+
     ).addTo(map);
 
+
     rectangle.bindPopup(
+
         "<b>Geozóna</b><br>"
+
         + escapeHtml(zona.nev)
+
     );
 
+
     terkepElemek.push(rectangle);
+
 });
+
 
 /* =========================================================
    JÁRMŰVEK
@@ -3016,64 +2855,113 @@ terkepZonak.forEach(function(zona) {
 
 terkepJarmuvek.forEach(function(jarmu) {
 
+
     const marker = L.marker(
+
         [
+
             jarmu.latitude,
+
             jarmu.longitude
+
         ],
+
         {
+
             icon: jarmuIkon(
+
                 jarmu.statusz
+
             )
+
         }
+
     ).addTo(map);
+
 
     let statuszSzoveg = "Nincs értékelés";
 
+
     if (jarmu.statusz === "OK") {
+
         statuszSzoveg =
+
             '<span style="color:#00a040;font-weight:bold;">OK</span>';
+
     }
+
     else if (jarmu.statusz === "NEM") {
+
         statuszSzoveg =
+
             '<span style="color:#e00000;font-weight:bold;">ELTÉRÉS</span>';
+
     }
+
 
     marker.bindPopup(
+
         "<b>"
+
         + escapeHtml(jarmu.rendszam)
+
         + "</b><br><br>"
 
+
         + "<b>Viszonylat:</b> "
+
         + escapeHtml(jarmu.viszonylat)
+
         + "<br>"
+
 
         + "<b>Forda:</b> "
+
         + escapeHtml(jarmu.forda)
+
         + "<br>"
+
 
         + "<b>Geozóna:</b> "
+
         + escapeHtml(jarmu.helyszin)
+
         + "<br>"
+
 
         + "<b>Állapot:</b> "
+
         + statuszSzoveg
+
         + "<br>"
+
 
         + "<b>Utolsó ismert pozíció:</b> "
+
         + escapeHtml(jarmu.frissitve)
+
         + "<br>"
 
+
         + "<b>GPS:</b> "
+
         + escapeHtml(
+
             jarmu.latitude.toFixed(6)
+
             + ", "
+
             + jarmu.longitude.toFixed(6)
+
         )
+
     );
 
+
     terkepElemek.push(marker);
+
 });
+
 
 /* =========================================================
    TÉRKÉP NÉZET BEÁLLÍTÁSA
@@ -3081,25 +2969,33 @@ terkepJarmuvek.forEach(function(jarmu) {
 
 if (terkepElemek.length > 0) {
 
+
     const bounds = L.featureGroup(
+
         terkepElemek
+
     ).getBounds();
 
+
     if (bounds.isValid()) {
+
+
         map.fitBounds(
+
             bounds.pad(0.08)
+
         );
+
+
     }
+
 }
 
+
 </script>
-
 </body>
-
 </html>
-
 """)
-
     # --------------------------------------------------------
     # Mentés
     # --------------------------------------------------------
