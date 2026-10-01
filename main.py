@@ -33,7 +33,7 @@ import pandas as pd
 import zipfile
 import io
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from google.transit import gtfs_realtime_pb2
@@ -466,6 +466,24 @@ import openpyxl
 # =========================================================
 # 9/a. IDŐ KONVERTÁLÁSA
 # =========================================================
+
+def forda_aktiv_e(kezdés, végzés, időpont):
+
+    if not kezdés or not végzés or not időpont:
+        return False
+
+    try:
+        kezdés_dt = datetime.strptime(kezdés, "%H:%M:%S")
+        végzés_dt = datetime.strptime(végzés, "%H:%M:%S")
+        időpont_dt = datetime.strptime(időpont, "%H:%M:%S")
+    except (ValueError, TypeError):
+        return False
+
+    ellenőrzési_kezdés = kezdés_dt - timedelta(minutes=5)
+    ellenőrzési_végzés = végzés_dt + timedelta(minutes=10)
+
+    return ellenőrzési_kezdés <= időpont_dt <= ellenőrzési_végzés
+
 
 def ido_konvertalasa(ertek):
 
@@ -1737,10 +1755,10 @@ else:
         # Csak akkor ellenőrizzük a helyszínt,
         # ha a forda az adott időpontban aktív
 
-        if not (
-            adat["kezdés"]
-            <= idopont
-            <= adat["végzés"]
+        if not forda_aktiv_e(
+            adat["kezdés"],
+            adat["végzés"],
+            idopont
         ):
 
             ellenorzes = "-"
@@ -1992,10 +2010,10 @@ for rekord in poziciok:
     # AKTUÁLIS-E A FORDA AZ ADOTT IDŐPONTBAN?
     # --------------------------------------------------------
 
-    if not (
-        kezdés
-        <= idopont
-        <= végzés
+    if not forda_aktiv_e(
+        kezdés,
+        végzés,
+        idopont
     ):
 
         ellenorzesek.append({
@@ -2538,81 +2556,101 @@ def html_export_teszt():
     # --------------------------------------------------------
     # TÉRKÉP ADATOK
     # --------------------------------------------------------
-    # Rendszámonként az utolsó ismert pozíciót mutatjuk.
+    # Csak azok a járművek jelennek meg, amelyek az export
+    # pillanatában a saját forda kezdése és végzése között vannak.
+    # A pozíció a legutolsó ismert pozíció.
     # Zöld = a kijelölt geozónában van, piros = azon kívül.
     # --------------------------------------------------------
     terkep_jarmuvek = {}
 
-    for rekord in pozicio_tortenet:
-        rendszam = str(
-            rekord.get("rendszám", "")
-        ).strip().upper()
+    if utolso_lekkerdezes != "-":
 
-        if not rendszam:
-            continue
+        for rekord in pozicio_tortenet:
+            rendszam = str(
+                rekord.get("rendszám", "")
+            ).strip().upper()
 
-        frissitve = str(
-            rekord.get("frissítve", "")
-        ).strip()
+            if not rendszam:
+                continue
 
-        pozicio = str(
-            rekord.get("pozíció", "")
-        ).strip()
+            # A térképen csak a forda pontos kezdés-végzés
+            # időablakában jelenjen meg a jármű.
+            kezdés = str(
+                rekord.get("kezdés", "")
+            ).strip()
 
-        if not pozicio:
-            continue
+            végzés = str(
+                rekord.get("végzés", "")
+            ).strip()
 
-        try:
-            latitude_szoveg, longitude_szoveg = pozicio.split(",", 1)
-            latitude = float(latitude_szoveg.strip())
-            longitude = float(longitude_szoveg.strip())
-        except (ValueError, TypeError):
-            continue
+            if not (
+                kezdés
+                and végzés
+                and kezdés <= utolso_lekkerdezes <= végzés
+            ):
+                continue
 
-        elozo = terkep_jarmuvek.get(rendszam)
+            frissitve = str(
+                rekord.get("frissítve", "")
+            ).strip()
 
-        if (
-            elozo is not None
-            and str(elozo.get("frissítve", "")) >= frissitve
-        ):
-            continue
+            pozicio = str(
+                rekord.get("pozíció", "")
+            ).strip()
 
-        helyszin_kulcs = str(
-            rekord.get("helyszín", "")
-        ).strip()
+            if not pozicio:
+                continue
 
-        helyszin = HELYSZINEK.get(helyszin_kulcs)
+            try:
+                latitude_szoveg, longitude_szoveg = pozicio.split(",", 1)
+                latitude = float(latitude_szoveg.strip())
+                longitude = float(longitude_szoveg.strip())
+            except (ValueError, TypeError):
+                continue
 
-        if helyszin is not None:
-            benne_van = (
-                helyszin["lat_min"] <= latitude <= helyszin["lat_max"]
-                and
-                helyszin["lon_min"] <= longitude <= helyszin["lon_max"]
-            )
-            statusz = "OK" if benne_van else "NEM"
-            helyszin_nev = helyszin.get(
-                "kulcsszo",
-                helyszin_kulcs
-            )
-        else:
-            statusz = "-"
-            helyszin_nev = (
-                helyszin_kulcs
-                if helyszin_kulcs
-                else "Nincs kijelölt geozóna"
-            )
+            elozo = terkep_jarmuvek.get(rendszam)
 
-        terkep_jarmuvek[rendszam] = {
-            "rendszam": rendszam,
-            "viszonylat": str(rekord.get("viszonylat", "")),
-            "forda": str(rekord.get("forda", "")),
-            "hely": str(rekord.get("hely", "")),
-            "helyszin": helyszin_nev,
-            "statusz": statusz,
-            "latitude": latitude,
-            "longitude": longitude,
-            "frissitve": frissitve
-        }
+            if (
+                elozo is not None
+                and str(elozo.get("frissitve", "")) >= frissitve
+            ):
+                continue
+
+            helyszin_kulcs = str(
+                rekord.get("helyszín", "")
+            ).strip()
+
+            helyszin = HELYSZINEK.get(helyszin_kulcs)
+
+            if helyszin is not None:
+                benne_van = (
+                    helyszin["lat_min"] <= latitude <= helyszin["lat_max"]
+                    and
+                    helyszin["lon_min"] <= longitude <= helyszin["lon_max"]
+                )
+                statusz = "OK" if benne_van else "NEM"
+                helyszin_nev = helyszin.get(
+                    "kulcsszo",
+                    helyszin_kulcs
+                )
+            else:
+                statusz = "-"
+                helyszin_nev = (
+                    helyszin_kulcs
+                    if helyszin_kulcs
+                    else "Nincs kijelölt geozóna"
+                )
+
+            terkep_jarmuvek[rendszam] = {
+                "rendszam": rendszam,
+                "viszonylat": str(rekord.get("viszonylat", "")),
+                "forda": str(rekord.get("forda", "")),
+                "helyszin": helyszin_nev,
+                "statusz": statusz,
+                "latitude": latitude,
+                "longitude": longitude,
+                "frissitve": frissitve
+            }
 
     terkep_jarmuvek_lista = list(
         terkep_jarmuvek.values()
@@ -3113,7 +3151,7 @@ Utolsó lekérdezés:
         <b style="color:#00b050;">Zöld PIN</b> = a jármű a saját kijelölt
         geozónájában van &nbsp; | &nbsp;
         <b style="color:#ff0000;">Piros PIN</b> = a jármű a geozónán kívül van.
-        A PIN-re kattintva látható a viszonylat, forda, rendszám és az utolsó ismert pozíció ideje.
+        A PIN-re kattintva látható a viszonylat, forda, rendszám, geozóna és az utolsó ismert pozíció ideje.
     </div>
 </div>
 
@@ -3270,10 +3308,6 @@ terkepJarmuvek.forEach(function(jarmu) {
 
         + "<b>Forda:</b> "
         + escapeHtml(jarmu.forda)
-        + "<br>"
-
-        + "<b>Hely:</b> "
-        + escapeHtml(jarmu.hely)
         + "<br>"
 
         + "<b>Geozóna:</b> "
