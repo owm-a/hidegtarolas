@@ -2492,6 +2492,14 @@ def keszit_hidegtarolas_riport():
         {}
     )
 
+    # A napi pozíciótörténetet itt is be kell tölteni.
+    # Ez a változó a korábbi pozíciólekérési blokkban lokális,
+    # ezért ebben a függvényben külön ki kell venni a napi JSON-ból.
+    pozicio_tortenet = napi_adatok.get(
+        "pozicio_tortenet",
+        []
+    )
+
     eredmenyek = []
 
     for _, forda_sor in figyelt_fordak.iterrows():
