@@ -2394,20 +2394,43 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
 
     rekordok = sorted(set(rekordok))
 
-    # Legnagyobb folyamatos OK-szakasz.
-    # A program 5 percenként fut; 6 perces határ megengedi
-    # az időzítő néhány másodperces eltérését, de egy kimaradt
-    # 5 perces ellenőrzést már megszakításként kezel.
+    # ------------------------------------------------------------
+    # IDŐALAPÚ ÉRTÉKELÉS
+    #
+    # Nem azt nézzük, hogy hány mérés érkezett, hanem a tényleges
+    # időt. A futás bármikor újraértékelhető: az aktuális időig
+    # keressük meg, hogy volt-e már legalább 0,7 * X hosszúságú
+    # folyamatos OK-szakasz.
+    #
+    # A frissítés kb. 8 percenként történik, ezért 10 perces
+    # maximális mintaközt engedünk. Így a nem konstans ütemezés
+    # (pl. 08:00, 08:08, 08:17...) nem szakítja meg tévesen
+    # a folyamatos OK-szakaszt.
+    # ------------------------------------------------------------
+    budapest_now = datetime.now(ZoneInfo("Europe/Budapest"))
+
+    # Csak az eddig eltelt időt értékeljük; a jövőbeli időt
+    # természetesen nem tekintjük OK-nak.
+    vizsgalat_vege = min(budapest_now, végzés_dt)
+
+    if vizsgalat_vege < kezdés_dt:
+        return "ELTÉRÉS TÖRTÉNT"
+
     max_folyamatos = 0.0
     szakasz_kezdete = rekordok[0]
     elozo = rekordok[0]
 
     for aktualis in rekordok[1:]:
+        # A vizsgálat végét már nem lépjük túl.
+        if aktualis > vizsgalat_vege:
+            break
+
         kulonbseg = (
             aktualis - elozo
         ).total_seconds()
 
-        if kulonbseg <= 360:
+        if kulonbseg <= 600:
+            # A két mérés közötti tényleges idő számít.
             elozo = aktualis
         else:
             szakasz_hossza = (
@@ -2422,8 +2445,11 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
             szakasz_kezdete = aktualis
             elozo = aktualis
 
+    # Az aktuális időig eltelt folyamatos OK-időt is figyelembe
+    # vesszük. Ha például az utolsó OK mérés 14:16-kor érkezett,
+    # akkor az addig tartó OK-szakasz 14:16-ig biztosan számítható.
     szakasz_hossza = (
-        elozo - szakasz_kezdete
+        min(elozo, vizsgalat_vege) - szakasz_kezdete
     ).total_seconds()
 
     max_folyamatos = max(
