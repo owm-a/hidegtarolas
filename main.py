@@ -3514,6 +3514,8 @@ window.addEventListener(
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+<script>
+
 const terkepJarmuvek = """ + json.dumps(terkep_jarmuvek_lista, ensure_ascii=False) + r""";
 
 const terkepZonak = """ + json.dumps(terkep_zonak, ensure_ascii=False) + r""";
