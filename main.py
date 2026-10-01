@@ -2487,17 +2487,18 @@ def keszit_hidegtarolas_riport():
     if budapesti_most.time() < time(16, 30):
         return None
 
+    # Ugyanaz a járműszám, amit a HTML fejléc is használ.
+    # A riportnak is ezt kell látnia, ezért itt helyben számoljuk ki,
+    # nem a később definiált html_export_teszt() változójára támaszkodunk.
+    megtalalt_jarmuvek = len({
+        str(rekord.get("rendszám", "")).strip().upper()
+        for rekord in pozicio_tortenet
+        if str(rekord.get("rendszám", "")).strip()
+    })
+
     korabbi_riport = napi_adatok.get(
         "hidegtarolas_riport",
         {}
-    )
-
-    # A napi pozíciótörténetet itt is be kell tölteni.
-    # Ez a változó a korábbi pozíciólekérési blokkban lokális,
-    # ezért ebben a függvényben külön ki kell venni a napi JSON-ból.
-    pozicio_tortenet = napi_adatok.get(
-        "pozicio_tortenet",
-        []
     )
 
     eredmenyek = []
@@ -2696,7 +2697,7 @@ def keszit_hidegtarolas_riport():
     )
     print(
         "Vizsgált fordák:",
-        len(eredmenyek),
+        megtalalt_jarmuvek,
         "/",
         len(figyelt_fordak)
     )
@@ -3252,7 +3253,7 @@ body {
 
     width: max-content;
 
-    max-width: none;
+    max-width: 100%;
 
     background: white;
 
@@ -3478,8 +3479,7 @@ td.ellenorzes {
    ========================================================= */
 
 .riport-resz {
-    flex: 0 0 145px;
-    width: 145px;
+    flex: 0 0 auto;
     margin-left: 4px;
 }
 
@@ -3525,8 +3525,6 @@ td.ellenorzes {
    ========================================================= */
 
 #geozona-terkep {
-
-    clear: both;
 
     width: 100%;
 
@@ -3634,10 +3632,6 @@ ArrivaBus hidegtárolás
 
     <div class="adat">
         <b>Dátum:</b> """ + escape(futas_datum) + """
-    </div>
-
-    <div class="adat">
-        <b>Naptípus:</b> """ + escape(str(talalt_munkalap)) + """
     </div>
 
     <div class="adat">
@@ -3856,6 +3850,8 @@ ArrivaBus hidegtárolás
 
 </div>
 
+</div>
+
 
 <!-- =========================================================
      KÜLÖN CSÚSZKA
@@ -3871,8 +3867,6 @@ ArrivaBus hidegtárolás
     value="0"
     step="1"
 >
-
-</div>
 
 </div>
 
@@ -3913,7 +3907,7 @@ ArrivaBus hidegtárolás
             0
         )
     ) + """ / """ + str(
-        megtalalt_jarmuvek
+        excel_fordak_szama
     ) + """
 </div>
 
