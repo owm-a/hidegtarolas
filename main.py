@@ -1822,12 +1822,10 @@ for forda_kulcs, adat in (
 
     uj_poziciok += 1
 
-
     print(
         f"{forda_kulcs}: "
         f"{rendszam} → "
-        f"{pozicio} "
-        f"[{ellenorzes}]"
+        f"{pozicio}"
     )
     # ----------------------------------------------------
     # ÚJ történeti rekord
