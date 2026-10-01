@@ -1734,60 +1734,73 @@ else:
 
         ellenorzes = "-"
 
-        helyszin_kulcs = str(
-            adat.get(
-                "helyszín",
-                ""
-            )
-        ).strip()
+        # Csak akkor ellenőrizzük a helyszínt,
+        # ha a forda az adott időpontban aktív
 
+        if not (
+            adat["kezdés"]
+            <= idopont
+            <= adat["végzés"]
+        ):
 
-        if helyszin_kulcs in HELYSZINEK:
+            ellenorzes = "-"
 
-            try:
+        else:
 
-                latitude_szoveg, longitude_szoveg = (
-                    pozicio.split(",", 1)
+            helyszin_kulcs = str(
+                adat.get(
+                    "helyszín",
+                    ""
                 )
+            ).strip()
 
-                latitude = float(
-                    latitude_szoveg.strip()
-                )
 
-                longitude = float(
-                    longitude_szoveg.strip()
-                )
+            if helyszin_kulcs in HELYSZINEK:
 
-                helyszin = HELYSZINEK[
-                    helyszin_kulcs
-                ]
+                try:
 
-                lat_benne = (
-                    helyszin["lat_min"]
-                    <= latitude
-                    <= helyszin["lat_max"]
-                )
+                    latitude_szoveg, longitude_szoveg = (
+                        pozicio.split(",", 1)
+                    )
 
-                lon_benne = (
-                    helyszin["lon_min"]
-                    <= longitude
-                    <= helyszin["lon_max"]
-                )
+                    latitude = float(
+                        latitude_szoveg.strip()
+                    )
 
-                if lat_benne and lon_benne:
+                    longitude = float(
+                        longitude_szoveg.strip()
+                    )
 
-                    ellenorzes = "OK"
+                    helyszin = HELYSZINEK[
+                        helyszin_kulcs
+                    ]
 
-                else:
+                    lat_benne = (
+                        helyszin["lat_min"]
+                        <= latitude
+                        <= helyszin["lat_max"]
+                    )
 
-                    ellenorzes = "NEM"
+                    lon_benne = (
+                        helyszin["lon_min"]
+                        <= longitude
+                        <= helyszin["lon_max"]
+                    )
 
-            except (
-                ValueError,
-                TypeError
-            ):
+                    if lat_benne and lon_benne:
 
-                ellenorzes = "-"
+                        ellenorzes = "OK"
+
+                    else:
+
+                        ellenorzes = "NEM"
+
+                except (
+                    ValueError,
+                    TypeError
+                ):
+
+                    ellenorzes = "-"
 
 
         # ----------------------------------------------------
