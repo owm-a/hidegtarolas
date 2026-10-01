@@ -55,9 +55,23 @@ body {
 
     align-items: center;
 
+    justify-content: space-between;
+
+    width: 100%;
+
+}
+
+
+.fejlec-bal,
+.fejlec-jobb {
+
+    display: flex;
+
+    align-items: center;
+
     gap: 28px;
 
-    flex-wrap: wrap;
+    white-space: nowrap;
 
 }
 
@@ -209,6 +223,13 @@ th.rendszam,
 td.rendszam {
 
     text-align: right;
+
+}
+
+
+td.rendszam {
+
+    font-weight: bold;
 
 }
 
@@ -469,37 +490,34 @@ ArrivaBus hidegtárolás
 
 <div class="fejlec-adatok riport-fejlec-adatok">
 
-    <div class="adat">
-        <b>Utolsó futás:</b> 2026-10-01 18:15:19
+    <div class="fejlec-bal">
+        <div class="adat">
+            <b>Dátum:</b> 2026.10.01.
+        </div>
+        <div class="adat">
+            <b>Naptípus:</b> ALAP HC
+        </div>
+        <div class="adat">
+            <b>Utolsó lekérdezés:</b> 16:58
+        </div>
+        <div class="adat">
+            <b>Járművek száma:</b> 10/21
+        </div>
     </div>
 
-    <div class="adat">
-        <b>Dátum:</b> 2026.10.01.
+    <div class="fejlec-jobb">
+        <div class="adat">
+            <b>Riport készült:</b> 2026-10-01 18:27:23
+        </div>
+        <div class="adat">
+            <b>Vizsgált fordák:</b> 10
+        </div>
+        <div class="adat">
+            <b>Utolsó futás:</b> 2026-10-01 18:27:23
+        </div>
     </div>
 
-    <div class="adat">
-        <b>Naptípus:</b> ALAP HC
-    </div>
-
-    <div class="adat">
-        <b>Utolsó lekérdezés:</b> 16:58
-    </div>
-
-    <div class="adat">
-        <b>Járművek száma:</b> 10/21
-    </div>
-
-    <div class="adat">
-        <b>Riport készült:</b> 2026-10-01 18:27:23
-    </div>
-
-    <div class="adat">
-        <b>Vizsgált fordák:</b> 10
-    </div>
-
-</div>
-
-</div>
+</div>v>
 
 
 <!-- =========================================================
