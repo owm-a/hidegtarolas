@@ -25,7 +25,6 @@ body {
 }
 
 
-
 .fejlec {
 
     background: white;
@@ -39,7 +38,6 @@ body {
 }
 
 
-
 .cim {
 
     font-size: 22px;
@@ -49,7 +47,6 @@ body {
     margin-bottom: 6px;
 
 }
-
 
 
 .fejlec-adatok {
@@ -74,24 +71,70 @@ body {
 }
 
 
-.datum {
+/* =========================================================
+   KÉT TÁBLÁZAT
+   ========================================================= */
 
-    font-size: 14px;
+.tabla-egesz {
 
-    margin-bottom: 4px;
+    display: flex;
+
+    align-items: flex-start;
+
+    width: max-content;
+
+    max-width: 100%;
+
+    background: white;
 
 }
 
 
+/* Bal oldali, fix 6 oszlop */
 
-.info {
+.alap-ablak {
 
-    font-size: 12px;
-
-    color: #555;
+    flex: 0 0 auto;
 
 }
 
+
+/* Jobb oldali időtábla */
+
+.idopont-resz {
+
+    flex: 0 0 auto;
+
+    margin-left: 0;
+
+}
+
+
+/*
+   Pontosan 18 időoszlopnyi látható terület.
+   Egy időoszlop 34 px széles.
+*/
+
+.idopont-ablak {
+
+    width: 612px;
+
+    max-width: calc(100vw - 30px);
+
+    overflow: hidden;
+
+    background: white;
+
+}
+
+
+/* Az összes időoszlop széles belső táblázata */
+
+.idopont-belső {
+
+    width: max-content;
+
+}
 
 
 table {
@@ -100,25 +143,9 @@ table {
 
     background: white;
 
-    font-size: 11px;
-
-    width: max-content;
+    font-size: 12px;
 
 }
-
-
-.table-wrap {
-
-    width: 100%;
-
-    overflow-x: auto;
-
-    background: white;
-
-    border: 1px solid #cccccc;
-
-}
-
 
 
 th,
@@ -126,14 +153,15 @@ td {
 
     border: 1px solid #888;
 
-    padding: 2px 4px;
+    padding: 3px 5px;
 
     text-align: center;
 
-    height: 21px;
+    height: 24px;
+
+    box-sizing: border-box;
 
 }
-
 
 
 th {
@@ -147,17 +175,12 @@ th {
 }
 
 
-
 td.alap {
 
     white-space: nowrap;
 
-    text-align: left;
-
 }
 
-
-/* Kért igazítások */
 
 th.viszonylat,
 td.viszonylat,
@@ -173,6 +196,14 @@ td.végzés {
 }
 
 
+th.hely,
+td.hely {
+
+    text-align: left;
+
+}
+
+
 th.rendszam,
 td.rendszam {
 
@@ -181,22 +212,22 @@ td.rendszam {
 }
 
 
+/* Időoszlopok */
 
 th.idopont,
 td.ellenorzes {
 
-    width: 32px;
+    width: 34px;
 
-    min-width: 32px;
+    min-width: 34px;
 
-    max-width: 32px;
+    max-width: 34px;
 
     height: 24px;
 
     padding: 1px;
 
 }
-
 
 
 td.ellenorzes {
@@ -206,6 +237,45 @@ td.ellenorzes {
 }
 
 
+/* =========================================================
+   KÜLÖN VÍZSZINTES CSÚSZKA
+   ========================================================= */
+
+.idopont-csuszkasav {
+
+    width: 612px;
+
+    max-width: calc(100vw - 30px);
+
+    background: white;
+
+    border-left: 1px solid #888;
+
+    border-right: 1px solid #888;
+
+    border-bottom: 1px solid #888;
+
+    box-sizing: border-box;
+
+    padding: 2px 5px 4px 5px;
+
+}
+
+
+.idopont-csuszkasav input[type="range"] {
+
+    display: block;
+
+    width: 100%;
+
+    margin: 0;
+
+    cursor: pointer;
+
+}
+
+
+/* Színezett eredmények */
 
 .ok {
 
@@ -214,7 +284,6 @@ td.ellenorzes {
     color: white;
 
 }
-
 
 
 .nem {
@@ -226,7 +295,6 @@ td.ellenorzes {
 }
 
 
-
 .nincs {
 
     background: #000000;
@@ -236,64 +304,88 @@ td.ellenorzes {
 }
 
 
-
 /* =========================================================
    TÉRKÉP
    ========================================================= */
 
 #geozona-terkep {
+
     width: 100%;
+
     height: 650px;
+
     margin-top: 12px;
+
     border: 1px solid #cccccc;
+
     background: white;
+
 }
 
-.terkep-fejlec {
-    background: white;
-    border: 1px solid #cccccc;
-    padding: 10px 15px;
-    margin-top: 18px;
-    margin-bottom: 0;
-}
-
-.terkep-cim {
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.terkep-magyarazat {
-    font-size: 12px;
-    color: #555;
-}
 
 .vehicle-pin {
+
     width: 22px;
+
     height: 22px;
+
     border-radius: 50% 50% 50% 0;
+
     transform: rotate(-45deg);
+
     border: 2px solid white;
+
     box-shadow: 0 1px 5px rgba(0,0,0,0.45);
+
     box-sizing: border-box;
+
 }
+
 
 .vehicle-pin::after {
+
     content: "";
+
     display: block;
+
     width: 7px;
+
     height: 7px;
+
     margin: 5px auto 0;
+
     border-radius: 50%;
+
     background: white;
+
 }
 
-.vehicle-pin.green { background: #00b050; }
-.vehicle-pin.red { background: #ff0000; }
-.vehicle-pin.gray { background: #777777; }
+
+.vehicle-pin.green {
+
+    background: #00b050;
+
+}
+
+
+.vehicle-pin.red {
+
+    background: #ff0000;
+
+}
+
+
+.vehicle-pin.gray {
+
+    background: #777777;
+
+}
+
 
 .leaflet-popup-content {
+
     line-height: 1.45;
+
 }
 
 </style>
@@ -313,7 +405,6 @@ td.ellenorzes {
 
 <div class="fejlec">
 
-
 <div class="cim">
 
 ArrivaBus hidegtárolás
@@ -328,7 +419,7 @@ ArrivaBus hidegtárolás
     </div>
 
     <div class="adat">
-        <b>Utolsó lekérdezés:</b> 16:10
+        <b>Utolsó lekérdezés:</b> 16:19
     </div>
 
     <div class="adat">
@@ -337,33 +428,41 @@ ArrivaBus hidegtárolás
 
 </div>
 
-
 </div>
 
 
-<div class="table-wrap">
+<!-- =========================================================
+     BAL: 6 FIX OSZLOP
+     JOBB: ÖSSZES IDŐOSZLOP, 18 LÁTHATÓ
+     ========================================================= -->
+
+<div class="tabla-egesz">
+
+
+<!-- =========================================================
+     BAL OLDALI TÁBLÁZAT
+     ========================================================= -->
+
+<div class="alap-ablak">
 
 <table>
 
-
 <thead>
-
 
 <tr>
 
+<th class="viszonylat">Viszonylat</th>
 
-<th>Viszonylat</th>
+<th class="forda">Forda</th>
 
-<th>Forda</th>
+<th class="kezdés">Kezdés</th>
 
-<th>Kezdés</th>
+<th class="végzés">Végzés</th>
 
-<th>Végzés</th>
-
-<th>Hely</th>
+<th class="hely">Hely</th>
 
 <th class="rendszam">Rendszám</th>
-<th class="idopont">14:44</th><th class="idopont">14:45</th><th class="idopont">14:50</th><th class="idopont">14:55</th><th class="idopont">15:01</th><th class="idopont">15:05</th><th class="idopont">15:10</th><th class="idopont">15:14</th><th class="idopont">15:15</th><th class="idopont">15:26</th><th class="idopont">15:34</th><th class="idopont">15:36</th><th class="idopont">15:42</th><th class="idopont">15:44</th><th class="idopont">15:50</th><th class="idopont">15:59</th><th class="idopont">16:06</th><th class="idopont">16:10</th>
+
 </tr>
 
 </thead>
@@ -371,9 +470,8 @@ ArrivaBus hidegtárolás
 
 <tbody>
 
-<tr><td class="alap">0350</td><td class="alap">34</td><td class="alap">12:36</td><td class="alap">13:50</td><td class="alap">Csepel, Szent Imre tér</td><td class="alap rendszam">SGY804</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="alap">0710</td><td class="alap">23</td><td class="alap">10:00</td><td class="alap">14:27</td><td class="alap">Csepel, Szent Imre tér</td><td class="alap rendszam">PDN623</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="alap">1340</td><td class="alap">57</td><td class="alap">10:39</td><td class="alap">15:11</td><td class="alap">Békásmegyer, Újmegyeri tér</td><td class="alap rendszam">AAHY812</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="alap">1480</td><td class="alap">23</td><td class="alap">11:52</td><td class="alap">14:49</td><td class="alap">Csepel, Szent Imre tér</td><td class="alap rendszam">AOJM873</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="alap">1510</td><td class="alap">22</td><td class="alap">10:12</td><td class="alap">13:47</td><td class="alap">Kőbánya alsó vasútállomás</td><td class="alap rendszam">AOGF671</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="alap">1510</td><td class="alap">23</td><td class="alap">10:32</td><td class="alap">14:09</td><td class="alap">Kőbánya alsó vasútállomás</td><td class="alap rendszam">AOGF672</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="alap">1510</td><td class="alap">39</td><td class="alap">12:20</td><td class="alap">13:45</td><td class="alap">Csepel, Szent Imre tér</td><td class="alap rendszam">AOGF659</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="alap">1510</td><td class="alap">46</td><td class="alap">11:22</td><td class="alap">14:16</td><td class="alap">Kőbánya alsó vasútállomás</td><td class="alap rendszam">AOIM014</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="alap">1820</td><td class="alap">21</td><td class="alap">10:22</td><td class="alap">15:13</td><td class="alap">Kőbánya-Kispest M (Sibrik tároló)</td><td class="alap rendszam">PDN609</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="alap">2250</td><td class="alap">60</td><td class="alap">10:20</td><td class="alap">14:02</td><td class="alap">Mexikói út M</td><td class="alap rendszam">AAHY805</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr>
+<tr><td class="alap viszonylat">0350</td><td class="alap forda">34</td><td class="alap kezdés">12:36</td><td class="alap végzés">13:50</td><td class="alap hely">Csepel, Szent Imre tér</td><td class="alap rendszam">SGY804</td></tr><tr><td class="alap viszonylat">0710</td><td class="alap forda">23</td><td class="alap kezdés">10:00</td><td class="alap végzés">14:27</td><td class="alap hely">Csepel, Szent Imre tér</td><td class="alap rendszam">PDN623</td></tr><tr><td class="alap viszonylat">1340</td><td class="alap forda">57</td><td class="alap kezdés">10:39</td><td class="alap végzés">15:11</td><td class="alap hely">Békásmegyer, Újmegyeri tér</td><td class="alap rendszam">AAHY812</td></tr><tr><td class="alap viszonylat">1480</td><td class="alap forda">23</td><td class="alap kezdés">11:52</td><td class="alap végzés">14:49</td><td class="alap hely">Csepel, Szent Imre tér</td><td class="alap rendszam">AOJM873</td></tr><tr><td class="alap viszonylat">1510</td><td class="alap forda">22</td><td class="alap kezdés">10:12</td><td class="alap végzés">13:47</td><td class="alap hely">Kőbánya alsó vasútállomás</td><td class="alap rendszam">AOGF671</td></tr><tr><td class="alap viszonylat">1510</td><td class="alap forda">23</td><td class="alap kezdés">10:32</td><td class="alap végzés">14:09</td><td class="alap hely">Kőbánya alsó vasútállomás</td><td class="alap rendszam">AOGF672</td></tr><tr><td class="alap viszonylat">1510</td><td class="alap forda">39</td><td class="alap kezdés">12:20</td><td class="alap végzés">13:45</td><td class="alap hely">Csepel, Szent Imre tér</td><td class="alap rendszam">AOGF659</td></tr><tr><td class="alap viszonylat">1510</td><td class="alap forda">46</td><td class="alap kezdés">11:22</td><td class="alap végzés">14:16</td><td class="alap hely">Kőbánya alsó vasútállomás</td><td class="alap rendszam">AOIM014</td></tr><tr><td class="alap viszonylat">1820</td><td class="alap forda">21</td><td class="alap kezdés">10:22</td><td class="alap végzés">15:13</td><td class="alap hely">Kőbánya-Kispest M (Sibrik tároló)</td><td class="alap rendszam">PDN609</td></tr><tr><td class="alap viszonylat">2250</td><td class="alap forda">60</td><td class="alap kezdés">10:20</td><td class="alap végzés">14:02</td><td class="alap hely">Mexikói út M</td><td class="alap rendszam">AAHY805</td></tr>
 </tbody>
-
 
 </table>
 
@@ -381,27 +479,160 @@ ArrivaBus hidegtárolás
 
 
 <!-- =========================================================
-     TÉRKÉP
+     JOBB OLDALI IDŐTÁBLA
      ========================================================= -->
 
-<div class="terkep-fejlec">
-    <div class="terkep-cim">
-        🗺️ Geozónák és járművek
-    </div>
+<div class="idopont-resz">
 
-    <div class="terkep-magyarazat">
-        <b style="color:#00b050;">Zöld PIN</b> = a jármű a saját kijelölt
-        geozónájában van &nbsp; | &nbsp;
-        <b style="color:#ff0000;">Piros PIN</b> = a jármű a geozónán kívül van.
-        A PIN-re kattintva látható a viszonylat, forda, rendszám, geozóna és az utolsó ismert pozíció ideje.
-    </div>
+<div
+    class="idopont-ablak"
+    id="idopont-ablak"
+>
+
+<div
+    class="idopont-belső"
+    id="idopont-belső"
+>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th class="idopont">09:47</th><th class="idopont">09:51</th><th class="idopont">09:57</th><th class="idopont">10:15</th><th class="idopont">10:20</th><th class="idopont">10:29</th><th class="idopont">10:39</th><th class="idopont">10:45</th><th class="idopont">10:53</th><th class="idopont">13:16</th><th class="idopont">13:21</th><th class="idopont">13:42</th><th class="idopont">13:50</th><th class="idopont">13:55</th><th class="idopont">14:01</th><th class="idopont">14:05</th><th class="idopont">14:08</th><th class="idopont">14:10</th><th class="idopont">14:15</th><th class="idopont">14:17</th><th class="idopont">14:20</th><th class="idopont">14:25</th><th class="idopont">14:30</th><th class="idopont">14:35</th><th class="idopont">14:40</th><th class="idopont">14:44</th><th class="idopont">14:45</th><th class="idopont">14:50</th><th class="idopont">14:55</th><th class="idopont">15:01</th><th class="idopont">15:05</th><th class="idopont">15:10</th><th class="idopont">15:14</th><th class="idopont">15:15</th><th class="idopont">15:26</th><th class="idopont">15:34</th><th class="idopont">15:36</th><th class="idopont">15:42</th><th class="idopont">15:44</th><th class="idopont">15:50</th><th class="idopont">15:59</th><th class="idopont">16:06</th><th class="idopont">16:10</th><th class="idopont">16:19</th>
+</tr>
+
+</thead>
+
+
+<tbody>
+
+<tr><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes ok">OK</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes ok">OK</td><td class="ellenorzes nincs">-</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes ok">OK</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr><tr><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nem">NEM</td><td class="ellenorzes ok">OK</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td><td class="ellenorzes nincs">-</td></tr>
+</tbody>
+
+</table>
+
 </div>
+
+</div>
+
+
+<!-- =========================================================
+     KÜLÖN CSÚSZKA
+     ========================================================= -->
+
+<div class="idopont-csuszkasav">
+
+<input
+    type="range"
+    id="idopont-csuszka"
+    min="0"
+    max="0"
+    value="0"
+    step="1"
+>
+
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/*
+   Az időtábla NEM használ böngészős vízszintes görgetősávot.
+
+   A második táblázatban minden időoszlop benne van,
+   de egyszerre csak 18 oszlopnyi terület látszik.
+
+   A külön csúszka mozgatja az időtáblát.
+*/
+
+const idopontAblak =
+    document.getElementById("idopont-ablak");
+
+const idopontBelso =
+    document.getElementById("idopont-belső");
+
+const idopontCsuszka =
+    document.getElementById("idopont-csuszka");
+
+
+function frissitIdopontCsuszkat() {
+
+    if (
+        !idopontAblak
+        || !idopontBelso
+        || !idopontCsuszka
+    ) {
+
+        return;
+
+    }
+
+
+    const maxScroll =
+        Math.max(
+            0,
+            idopontBelso.scrollWidth
+            - idopontAblak.clientWidth
+        );
+
+
+    /*
+       A csúszka értéke 0–1000 között mozog.
+       Így független az időoszlopok számától.
+    */
+
+    idopontCsuszka.min = "0";
+
+    idopontCsuszka.max = "1000";
+
+    idopontCsuszka.value = "1000";
+
+
+    idopontCsuszka.oninput = function() {
+
+        const arany =
+            Number(this.value) / 1000;
+
+        idopontAblak.scrollLeft =
+            maxScroll * arany;
+
+    };
+
+
+    /* Induláskor mindig a legutolsó 18 oszlop látszódjon. */
+
+    idopontAblak.scrollLeft = maxScroll;
+
+}
+
+
+window.addEventListener(
+    "load",
+    frissitIdopontCsuszkat
+);
+
+
+window.addEventListener(
+    "resize",
+    frissitIdopontCsuszkat
+);
+
+</script>
+
+
+<!-- =========================================================
+     TÉRKÉP
+     ========================================================= -->
 
 <div id="geozona-terkep"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<script>
 
 const terkepJarmuvek = [];
 
@@ -601,9 +832,7 @@ if (terkepElemek.length > 0) {
 
 </script>
 
-
 </body>
-
 
 </html>
 
