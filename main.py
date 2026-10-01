@@ -2474,10 +2474,10 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
 
 def keszit_hidegtarolas_riport():
     """
-    A napi riportot 16:30 után egyszer készíti el.
-    A napi JSON tárolja, hogy az adott nap riportja már elkészült.
-    Az Excel riportfájl egyszer jön létre, majd minden új napon
-    új sorokkal bővül.
+    16:30 után minden futáskor újraszámolja a napi riportot.
+
+    A HTML mindig a legfrissebb eredményt kapja.
+    Az Excelbe ugyanaz a nap csak egyszer kerül be.
     """
 
     budapesti_most = datetime.now(
@@ -2487,16 +2487,10 @@ def keszit_hidegtarolas_riport():
     if budapesti_most.time() < time(16, 30):
         return None
 
-    riportok = napi_adatok.get(
+    korabbi_riport = napi_adatok.get(
         "hidegtarolas_riport",
         {}
     )
-
-    if riportok.get("datum") == MAI_NAP and riportok.get("kesz"):
-        print(
-            "A mai hidegtárolási riport már elkészült."
-        )
-        return riportok
 
     eredmenyek = []
 
@@ -2537,127 +2531,133 @@ def keszit_hidegtarolas_riport():
             "eredmény": eredmeny
         })
 
-    # --------------------------------------------------------
-    # Excel riport: egyszer létrejön, utána bővül
-    # --------------------------------------------------------
-
-    os.makedirs(
-        "data",
-        exist_ok=True
-    )
-
-    if os.path.exists(RIport_XLSX):
-
-        export_wb = openpyxl.load_workbook(
-            RIport_XLSX
-        )
-
-        if "Riport" in export_wb.sheetnames:
-            export_ws = export_wb["Riport"]
-        else:
-            export_ws = export_wb.create_sheet(
-                "Riport"
-            )
-
-    else:
-
-        export_wb = openpyxl.Workbook()
-
-        export_ws = export_wb.active
-        export_ws.title = "Riport"
-
-        export_ws.append([
-            "Dátum",
-            "Viszonylat",
-            "Forda",
-            "Rendszám",
-            "Eredmény"
-        ])
-
-    # Ha valamiért üres munkalap létezett, fejléc létrehozása.
-    if export_ws.max_row == 1 and all(
-        export_ws.cell(1, col).value is None
-        for col in range(1, 6)
-    ):
-        export_ws.delete_rows(1)
-        export_ws.append([
-            "Dátum",
-            "Viszonylat",
-            "Forda",
-            "Rendszám",
-            "Eredmény"
-        ])
-
-    zold_toltes = openpyxl.styles.PatternFill(
-        fill_type="solid",
-        fgColor="00B050"
-    )
-
-    piros_toltes = openpyxl.styles.PatternFill(
-        fill_type="solid",
-        fgColor="FF0000"
-    )
-
-    feher_betu = openpyxl.styles.Font(
-        color="FFFFFF",
-        bold=True
-    )
-
-    for sor in eredmenyek:
-
-        export_ws.append([
-            sor["dátum"],
-            sor["viszonylat"],
-            sor["forda"],
-            sor["rendszám"],
-            sor["eredmény"]
-        ])
-
-        eredmeny_cella = export_ws.cell(
-            export_ws.max_row,
-            5
-        )
-
-        if sor["eredmény"] == "RENDBEN TÁROLT":
-            eredmeny_cella.fill = zold_toltes
-            eredmeny_cella.font = feher_betu
-
-        else:
-            eredmeny_cella.fill = piros_toltes
-            eredmeny_cella.font = feher_betu
-
-    for oszlop in range(1, 6):
-        max_hossz = 0
-
-        for cella in export_ws.iter_cols(
-            min_col=oszlop,
-            max_col=oszlop
-        ):
-            for cell in cella:
-                if cell.value is not None:
-                    max_hossz = max(
-                        max_hossz,
-                        len(str(cell.value))
-                    )
-
-        export_ws.column_dimensions[
-            openpyxl.utils.get_column_letter(oszlop)
-        ].width = min(
-            max_hossz + 2,
-            35
-        )
-
-    export_wb.save(
-        RIport_XLSX
-    )
-
     riport_idopont = budapesti_most.strftime(
         "%Y-%m-%d %H:%M:%S"
     )
 
+    # --------------------------------------------------------
+    # Excel: egy nap csak egyszer kerüljön bele.
+    # --------------------------------------------------------
+
+    excel_mar_mentve = (
+        korabbi_riport.get("datum") == MAI_NAP
+        and korabbi_riport.get("excel_kesz") is True
+    )
+
+    if not excel_mar_mentve:
+
+        os.makedirs(
+            "data",
+            exist_ok=True
+        )
+
+        if os.path.exists(RIport_XLSX):
+
+            export_wb = openpyxl.load_workbook(
+                RIport_XLSX
+            )
+
+            if "Riport" in export_wb.sheetnames:
+                export_ws = export_wb["Riport"]
+            else:
+                export_ws = export_wb.create_sheet(
+                    "Riport"
+                )
+
+        else:
+
+            export_wb = openpyxl.Workbook()
+
+            export_ws = export_wb.active
+            export_ws.title = "Riport"
+
+            export_ws.append([
+                "Dátum",
+                "Viszonylat",
+                "Forda",
+                "Rendszám",
+                "Eredmény"
+            ])
+
+        if export_ws.max_row == 1 and all(
+            export_ws.cell(1, col).value is None
+            for col in range(1, 6)
+        ):
+            export_ws.delete_rows(1)
+            export_ws.append([
+                "Dátum",
+                "Viszonylat",
+                "Forda",
+                "Rendszám",
+                "Eredmény"
+            ])
+
+        zold_toltes = openpyxl.styles.PatternFill(
+            fill_type="solid",
+            fgColor="00B050"
+        )
+
+        piros_toltes = openpyxl.styles.PatternFill(
+            fill_type="solid",
+            fgColor="FF0000"
+        )
+
+        feher_betu = openpyxl.styles.Font(
+            color="FFFFFF",
+            bold=True
+        )
+
+        for sor in eredmenyek:
+
+            export_ws.append([
+                sor["dátum"],
+                sor["viszonylat"],
+                sor["forda"],
+                sor["rendszám"],
+                sor["eredmény"]
+            ])
+
+            eredmeny_cella = export_ws.cell(
+                export_ws.max_row,
+                5
+            )
+
+            if sor["eredmény"] == "RENDBEN TÁROLT":
+                eredmeny_cella.fill = zold_toltes
+                eredmeny_cella.font = feher_betu
+            else:
+                eredmeny_cella.fill = piros_toltes
+                eredmeny_cella.font = feher_betu
+
+        for oszlop in range(1, 6):
+            max_hossz = 0
+
+            for cella in export_ws.iter_cols(
+                min_col=oszlop,
+                max_col=oszlop
+            ):
+                for cell in cella:
+                    if cell.value is not None:
+                        max_hossz = max(
+                            max_hossz,
+                            len(str(cell.value))
+                        )
+
+            export_ws.column_dimensions[
+                openpyxl.utils.get_column_letter(oszlop)
+            ].width = min(
+                max_hossz + 2,
+                35
+            )
+
+        export_wb.save(
+            RIport_XLSX
+        )
+
     riportok = {
         "datum": MAI_NAP,
         "kesz": True,
+        "excel_kesz": True,
         "keszult": riport_idopont,
         "vizsgalt_fordak": len(eredmenyek),
         "eredmenyek": eredmenyek
@@ -2683,7 +2683,7 @@ def keszit_hidegtarolas_riport():
     print()
     print("=== HIDEGTÁROLÁSI RIPORT ===")
     print(
-        "Riport készült:",
+        "Riport készült/frissítve:",
         riport_idopont
     )
     print(
@@ -2694,7 +2694,8 @@ def keszit_hidegtarolas_riport():
     )
     print(
         "Excel:",
-        RIport_XLSX
+        RIport_XLSX,
+        "(mai nap már mentve)" if excel_mar_mentve else "(mai nap mentve)"
     )
 
     return riportok
