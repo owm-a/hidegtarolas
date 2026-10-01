@@ -3291,6 +3291,13 @@ body {
 }
 
 
+.fejlec-jobb {
+
+    margin-left: auto;
+
+}
+
+
 .adat {
 
     font-size: 13px;
@@ -3547,11 +3554,10 @@ td.ellenorzes {
 
 .riport-fejlec-adatok {
     display: flex;
-    justify-content: flex-start;
+    justify-content: space-between;
     align-items: center;
-    gap: 18px;
+    width: 100%;
     margin-bottom: 2px;
-    padding-right: 0;
     font-size: 12px;
     line-height: 1.35;
     white-space: nowrap;
@@ -3725,14 +3731,14 @@ ArrivaBus hidegtárolás
             <b>Riport készült:</b> """ + escape(str(hidegtarolas_riport.get("keszult", "-"))) + """
         </div>
         <div class="adat">
-            <b>Vizsgált fordák:</b> """ + str(megtalalt_jarmuvek) + """
+            <b>Vizsgált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0)) + """
         </div>
         <div class="adat">
             <b>Utolsó futás:</b> """ + escape(str(hidegtarolas_riport.get("utolso_futas", "-"))) + """
         </div>
     </div>
 
-</div>v>
+</div>
 
 
 <!-- =========================================================
