@@ -2318,15 +2318,12 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
     """
     A hidegtárolási szabály:
 
-    1. Megnézzük, hogy a forda kezdése után érkezett-e OK mérés.
-    2. Az első ilyen OK méréstől kezdve folyamatosnak kell lennie az
-       OK állapotnak a futás (aktuális lekérdezés) pillanatáig.
-    3. A teljes forda X időtartamának 70%-ának a forda kezdésétől
-       az aktuális pillanatig el kell telnie.
-
-    Ha mindhárom feltétel teljesül: RENDBEN TÁROLT.
-    A NEM / - állapot megszakítja a folyamatos OK-szakaszt.
-    Az adatkimaradás önmagában nem szakítja meg.
+    1. Megkeressük a forda kezdése után az első OK mérést.
+    2. Az első OK-tól kezdődő folyamatos OK-szakasznak el kell érnie
+       a teljes fordaidő 70%-át.
+    3. NEM és - megszakítja a folyamatos OK-szakaszt.
+    4. Adatkimaradás önmagában nem szakítja meg.
+    5. Az első OK előtti NEM és - nem számít.
     """
 
     kezdés = forda_sor.get("kezdés")
@@ -2355,47 +2352,52 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
     if végzés_dt < kezdés_dt:
         végzés_dt += timedelta(days=1)
 
-    teljes_idotartam = (végzés_dt - kezdés_dt).total_seconds()
+    teljes_idotartam = (
+        végzés_dt - kezdés_dt
+    ).total_seconds()
 
     if teljes_idotartam <= 0:
         return "ELTÉRÉS TÖRTÉNT"
 
-    # X * 0,70 – ezt mindig a FORDA TELJES IDEJÉBŐL számoljuk.
-    szukseges_idotartam = teljes_idotartam * 0.70
+    # A teljes fordaidő 70%-a.
+    szukseges_ok_idotartam = (
+        teljes_idotartam * 0.70
+    )
 
-    # A vizsgálat pillanata nem mehet a forda vége után.
-    vizsgalat_vege = min(budapest_now, végzés_dt)
+    # A vizsgálat legfeljebb a forda végéig tart.
+    vizsgalat_vege = min(
+        budapest_now,
+        végzés_dt
+    )
 
-    # A 70%-nyi idő még nem telt el a forda kezdésétől.
-    eltelt_ido = (vizsgalat_vege - kezdés_dt).total_seconds()
-
-    if eltelt_ido < szukseges_idotartam:
-        return "ELTÉRÉS TÖRTÉNT"
-
-    kulcs_viszonylat = str(forda_sor["viszonylat"]).strip()
-    kulcs_forda = str(forda_sor["forda"]).strip()
-
-    # Minden releváns mérés kell: az első OK után egy NEM megszakítja
-    # a folyamatosságot. Az OK-kat nem szabad külön kiszűrni.
+    # Csak a forda kezdése után és a vizsgálat végéig
+    # tartó rekordokat vesszük figyelembe.
     rekordok = []
 
     for rekord in pozicio_tortenet:
 
-        if (
-            str(rekord.get("viszonylat", "")).strip()
-            != kulcs_viszonylat
-            or str(rekord.get("forda", "")).strip()
-            != kulcs_forda
-        ):
-            continue
-
-        idoszoveg = str(
-            rekord.get("frissítve", "")
-        ).strip()
-
         try:
+            if (
+                str(rekord.get("viszonylat", "")).strip()
+                != str(forda_sor.get("viszonylat", "")).strip()
+            ):
+                continue
+
+            if (
+                str(rekord.get("forda", "")).strip()
+                != str(forda_sor.get("forda", "")).strip()
+            ):
+                continue
+
+            idopont = str(
+                rekord.get("frissítve", "")
+            ).strip()
+
+            if not idopont:
+                continue
+
             ido = datetime.strptime(
-                idoszoveg,
+                idopont,
                 "%H:%M:%S"
             ).time()
 
@@ -2424,6 +2426,7 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
 
     # Azonos időpontból csak egy állapot maradjon.
     rekordok.sort(key=lambda x: x["idő"])
+
     idopont_allapot = {}
 
     for rekord in rekordok:
@@ -2431,11 +2434,14 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
 
     rekordok = [
         {"idő": dt, "állapot": allapot}
-        for dt, allapot in sorted(idopont_allapot.items())
+        for dt, allapot in sorted(
+            idopont_allapot.items()
+        )
     ]
 
     # ------------------------------------------------------------
-    # 1. Az első OK a forda kezdése után
+    # Az első OK megkeresése.
+    # Az előtte lévő NEM / - nem számít.
     # ------------------------------------------------------------
     elso_ok_index = None
 
@@ -2448,25 +2454,35 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
         return "ELTÉRÉS TÖRTÉNT"
 
     # ------------------------------------------------------------
-    # 2. Az első OK-tól a vizsgálat pillanatáig folyamatos OK kell.
+    # Az első OK-tól folyamatos OK-szakasz.
+    #
+    # NEM vagy - azonnal megszakítja.
+    # Adatkimaradás nem szakítja meg, ezért itt nincs
+    # semmilyen 10 perces / időréses ellenőrzés.
     # ------------------------------------------------------------
-    elozo_ok = rekordok[elso_ok_index]["idő"]
+    elso_ok_ido = rekordok[elso_ok_index]["idő"]
 
     for rekord in rekordok[elso_ok_index + 1:]:
 
-        aktualis = rekord["idő"]
-        allapot = rekord["állapot"]
-
-        # Bármilyen NEM / - megszakítja a folyamatos OK-t.
-        if allapot != "OK":
+        if rekord["állapot"] != "OK":
             return "ELTÉRÉS TÖRTÉNT"
 
-        # Az adatkimaradás önmagában NEM szakítja meg a folyamatos OK-t.
-        # Csak egy tényleges NEM / - állapot szakítja meg.
-        elozo_ok = aktualis
+    # ------------------------------------------------------------
+    # A folyamatos OK-szakasz végét a vizsgálat vége jelenti.
+    # Ez lehet a forda vége, vagy az aktuális időpont.
+    # ------------------------------------------------------------
+    folyamatos_ok_idotartam = (
+        vizsgalat_vege - elso_ok_ido
+    ).total_seconds()
+
+    # ------------------------------------------------------------
+    # A folyamatos OK-szakasznak kell elérnie a teljes
+    # fordaidő 70%-át.
+    # ------------------------------------------------------------
+    if folyamatos_ok_idotartam < szukseges_ok_idotartam:
+        return "ELTÉRÉS TÖRTÉNT"
 
     return "RENDBEN TÁROLT"
-
 
 def keszit_hidegtarolas_riport():
     """
