@@ -33,7 +33,7 @@ import pandas as pd
 import zipfile
 import io
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from google.transit import gtfs_realtime_pb2
@@ -877,19 +877,6 @@ import json
 # =========================================================
 # 10/a. AKTUÁLIS FÁZIS
 # =========================================================
-
-def forda_aktiv_e(kezdés, végzés, időpont):
-    """A forda helyszínellenőrzési időablaka: kezdés -5 perc, végzés +10 perc."""
-
-    kezdés_dt = datetime.strptime(kezdés, "%H:%M:%S")
-    végzés_dt = datetime.strptime(végzés, "%H:%M:%S")
-    időpont_dt = datetime.strptime(időpont, "%H:%M:%S")
-
-    ellenőrzési_kezdés = kezdés_dt - timedelta(minutes=5)
-    ellenőrzési_végzés = végzés_dt + timedelta(minutes=10)
-
-    return ellenőrzési_kezdés <= időpont_dt <= ellenőrzési_végzés
-
 
 fazis_ideje = datetime.now(
     ZoneInfo("Europe/Budapest")
@@ -1750,10 +1737,10 @@ else:
         # Csak akkor ellenőrizzük a helyszínt,
         # ha a forda az adott időpontban aktív
 
-        if not forda_aktiv_e(
-            adat["kezdés"],
-            adat["végzés"],
-            idopont
+        if not (
+            adat["kezdés"]
+            <= idopont
+            <= adat["végzés"]
         ):
 
             ellenorzes = "-"
@@ -2005,10 +1992,10 @@ for rekord in poziciok:
     # AKTUÁLIS-E A FORDA AZ ADOTT IDŐPONTBAN?
     # --------------------------------------------------------
 
-    if not forda_aktiv_e(
-        kezdés,
-        végzés,
-        idopont
+    if not (
+        kezdés
+        <= idopont
+        <= végzés
     ):
 
         ellenorzesek.append({
@@ -2548,6 +2535,103 @@ def html_export_teszt():
         )
 
   # --------------------------------------------------------
+    # --------------------------------------------------------
+    # TÉRKÉP ADATOK
+    # --------------------------------------------------------
+    # Rendszámonként az utolsó ismert pozíciót mutatjuk.
+    # Zöld = a kijelölt geozónában van, piros = azon kívül.
+    # --------------------------------------------------------
+    terkep_jarmuvek = {}
+
+    for rekord in pozicio_tortenet:
+        rendszam = str(
+            rekord.get("rendszám", "")
+        ).strip().upper()
+
+        if not rendszam:
+            continue
+
+        frissitve = str(
+            rekord.get("frissítve", "")
+        ).strip()
+
+        pozicio = str(
+            rekord.get("pozíció", "")
+        ).strip()
+
+        if not pozicio:
+            continue
+
+        try:
+            latitude_szoveg, longitude_szoveg = pozicio.split(",", 1)
+            latitude = float(latitude_szoveg.strip())
+            longitude = float(longitude_szoveg.strip())
+        except (ValueError, TypeError):
+            continue
+
+        elozo = terkep_jarmuvek.get(rendszam)
+
+        if (
+            elozo is not None
+            and str(elozo.get("frissítve", "")) >= frissitve
+        ):
+            continue
+
+        helyszin_kulcs = str(
+            rekord.get("helyszín", "")
+        ).strip()
+
+        helyszin = HELYSZINEK.get(helyszin_kulcs)
+
+        if helyszin is not None:
+            benne_van = (
+                helyszin["lat_min"] <= latitude <= helyszin["lat_max"]
+                and
+                helyszin["lon_min"] <= longitude <= helyszin["lon_max"]
+            )
+            statusz = "OK" if benne_van else "NEM"
+            helyszin_nev = helyszin.get(
+                "kulcsszo",
+                helyszin_kulcs
+            )
+        else:
+            statusz = "-"
+            helyszin_nev = (
+                helyszin_kulcs
+                if helyszin_kulcs
+                else "Nincs kijelölt geozóna"
+            )
+
+        terkep_jarmuvek[rendszam] = {
+            "rendszam": rendszam,
+            "viszonylat": str(rekord.get("viszonylat", "")),
+            "forda": str(rekord.get("forda", "")),
+            "hely": str(rekord.get("hely", "")),
+            "helyszin": helyszin_nev,
+            "statusz": statusz,
+            "latitude": latitude,
+            "longitude": longitude,
+            "frissitve": frissitve
+        }
+
+    terkep_jarmuvek_lista = list(
+        terkep_jarmuvek.values()
+    )
+
+    terkep_zonak = []
+
+    for kulcs, helyszin in HELYSZINEK.items():
+        terkep_zonak.append({
+            "kulcs": kulcs,
+            "nev": helyszin.get("kulcsszo", kulcs),
+            "lat_min": helyszin["lat_min"],
+            "lat_max": helyszin["lat_max"],
+            "lon_min": helyszin["lon_min"],
+            "lon_max": helyszin["lon_max"]
+        })
+
+
+    # --------------------------------------------------------
     # HTML
     # --------------------------------------------------------
 
@@ -2729,8 +2813,74 @@ td.ellenorzes {
 }
 
 
+
+/* =========================================================
+   TÉRKÉP
+   ========================================================= */
+
+#geozona-terkep {
+    width: 100%;
+    height: 650px;
+    margin-top: 12px;
+    border: 1px solid #cccccc;
+    background: white;
+}
+
+.terkep-fejlec {
+    background: white;
+    border: 1px solid #cccccc;
+    padding: 10px 15px;
+    margin-top: 18px;
+    margin-bottom: 0;
+}
+
+.terkep-cim {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.terkep-magyarazat {
+    font-size: 12px;
+    color: #555;
+}
+
+.vehicle-pin {
+    width: 22px;
+    height: 22px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    border: 2px solid white;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.45);
+    box-sizing: border-box;
+}
+
+.vehicle-pin::after {
+    content: "";
+    display: block;
+    width: 7px;
+    height: 7px;
+    margin: 5px auto 0;
+    border-radius: 50%;
+    background: white;
+}
+
+.vehicle-pin.green { background: #00b050; }
+.vehicle-pin.red { background: #ff0000; }
+.vehicle-pin.gray { background: #777777; }
+
+.leaflet-popup-content {
+    line-height: 1.45;
+}
+
 </style>
 
+
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+>
 
 </head>
 
@@ -2948,6 +3098,232 @@ Utolsó lekérdezés:
 
 
 </table>
+
+
+<!-- =========================================================
+     TÉRKÉP
+     ========================================================= -->
+
+<div class="terkep-fejlec">
+    <div class="terkep-cim">
+        🗺️ Geozónák és járművek
+    </div>
+
+    <div class="terkep-magyarazat">
+        <b style="color:#00b050;">Zöld PIN</b> = a jármű a saját kijelölt
+        geozónájában van &nbsp; | &nbsp;
+        <b style="color:#ff0000;">Piros PIN</b> = a jármű a geozónán kívül van.
+        A PIN-re kattintva látható a viszonylat, forda, rendszám és az utolsó ismert pozíció ideje.
+    </div>
+</div>
+
+<div id="geozona-terkep"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+const terkepJarmuvek = """ + json.dumps(terkep_jarmuvek_lista, ensure_ascii=False) + r""";
+
+const terkepZonak = """ + json.dumps(terkep_zonak, ensure_ascii=False) + r""";
+
+
+const map = L.map(
+    "geozona-terkep"
+).setView(
+    [47.4979, 19.0402],
+    11
+);
+
+
+L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap"
+    }
+).addTo(map);
+
+
+const terkepElemek = [];
+
+
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
+
+
+function jarmuIkon(statusz) {
+
+    let osztaly = "gray";
+
+    if (statusz === "OK") {
+        osztaly = "green";
+    }
+    else if (statusz === "NEM") {
+        osztaly = "red";
+    }
+
+    return L.divIcon({
+
+        className: "",
+
+        html:
+            '<div class="vehicle-pin '
+            + osztaly
+            + '"></div>',
+
+        iconSize: [22, 30],
+
+        iconAnchor: [11, 30],
+
+        popupAnchor: [0, -28]
+
+    });
+
+}
+
+
+// ---------------------------------------------------------
+// GEOZÓNÁK
+// ---------------------------------------------------------
+
+terkepZonak.forEach(function(zona) {
+
+    const rectangle = L.rectangle(
+
+        [
+            [zona.lat_min, zona.lon_min],
+            [zona.lat_max, zona.lon_max]
+        ],
+
+        {
+            color: "#3388ff",
+            weight: 2,
+            fillOpacity: 0.12
+        }
+
+    ).addTo(map);
+
+
+    rectangle.bindPopup(
+        "<b>Geozóna</b><br>"
+        + escapeHtml(zona.nev)
+    );
+
+
+    terkepElemek.push(rectangle);
+
+});
+
+
+// ---------------------------------------------------------
+// JÁRMŰVEK
+// ---------------------------------------------------------
+
+terkepJarmuvek.forEach(function(jarmu) {
+
+    const marker = L.marker(
+
+        [
+            jarmu.latitude,
+            jarmu.longitude
+        ],
+
+        {
+            icon: jarmuIkon(
+                jarmu.statusz
+            )
+        }
+
+    ).addTo(map);
+
+
+    let statuszSzoveg = "Nincs értékelés";
+
+    if (jarmu.statusz === "OK") {
+        statuszSzoveg =
+            '<span style="color:#00a040;font-weight:bold;">BENNE VAN</span>';
+    }
+    else if (jarmu.statusz === "NEM") {
+        statuszSzoveg =
+            '<span style="color:#e00000;font-weight:bold;">NINCS BENNE</span>';
+    }
+
+
+    marker.bindPopup(
+
+        "<b>"
+        + escapeHtml(jarmu.rendszam)
+        + "</b><br><br>"
+
+        + "<b>Viszonylat:</b> "
+        + escapeHtml(jarmu.viszonylat)
+        + "<br>"
+
+        + "<b>Forda:</b> "
+        + escapeHtml(jarmu.forda)
+        + "<br>"
+
+        + "<b>Hely:</b> "
+        + escapeHtml(jarmu.hely)
+        + "<br>"
+
+        + "<b>Geozóna:</b> "
+        + escapeHtml(jarmu.helyszin)
+        + "<br>"
+
+        + "<b>Állapot:</b> "
+        + statuszSzoveg
+        + "<br>"
+
+        + "<b>Utolsó ismert pozíció:</b> "
+        + escapeHtml(jarmu.frissitve)
+        + "<br>"
+
+        + "<b>GPS:</b> "
+        + escapeHtml(
+            jarmu.latitude.toFixed(6)
+            + ", "
+            + jarmu.longitude.toFixed(6)
+        )
+
+    );
+
+
+    terkepElemek.push(marker);
+
+});
+
+
+// ---------------------------------------------------------
+// TÉRKÉP NÉZET BEÁLLÍTÁSA
+// ---------------------------------------------------------
+
+if (terkepElemek.length > 0) {
+
+    const bounds = L.featureGroup(
+        terkepElemek
+    ).getBounds();
+
+    if (bounds.isValid()) {
+
+        map.fitBounds(
+            bounds.pad(0.08)
+        );
+
+    }
+
+}
+
+</script>
 
 
 </body>
