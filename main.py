@@ -2487,18 +2487,17 @@ def keszit_hidegtarolas_riport():
     if budapesti_most.time() < time(16, 30):
         return None
 
-    # Ugyanaz a járműszám, amit a HTML fejléc is használ.
-    # A riportnak is ezt kell látnia, ezért itt helyben számoljuk ki,
-    # nem a később definiált html_export_teszt() változójára támaszkodunk.
-    megtalalt_jarmuvek = len({
-        str(rekord.get("rendszám", "")).strip().upper()
-        for rekord in pozicio_tortenet
-        if str(rekord.get("rendszám", "")).strip()
-    })
-
     korabbi_riport = napi_adatok.get(
         "hidegtarolas_riport",
         {}
+    )
+
+    # A napi pozíciótörténetet itt is be kell tölteni.
+    # Ez a változó a korábbi pozíciólekérési blokkban lokális,
+    # ezért ebben a függvényben külön ki kell venni a napi JSON-ból.
+    pozicio_tortenet = napi_adatok.get(
+        "pozicio_tortenet",
+        []
     )
 
     eredmenyek = []
@@ -2668,7 +2667,7 @@ def keszit_hidegtarolas_riport():
         "kesz": True,
         "excel_kesz": True,
         "keszult": riport_idopont,
-        "vizsgalt_fordak": megtalalt_jarmuvek,
+        "vizsgalt_fordak": len(eredmenyek),
         "eredmenyek": eredmenyek
     }
 
@@ -2697,7 +2696,7 @@ def keszit_hidegtarolas_riport():
     )
     print(
         "Vizsgált fordák:",
-        megtalalt_jarmuvek,
+        len(eredmenyek),
         "/",
         len(figyelt_fordak)
     )
@@ -3242,7 +3241,8 @@ body {
 
 
 /* =========================================================
-   KÉT TÁBLÁZAT
+   TÁBLÁZATI BLOKK
+   6 fix oszlop + időtábla + riport egy sorban
    ========================================================= */
 
 .tabla-egesz {
@@ -3522,6 +3522,7 @@ td.ellenorzes {
 
 /* =========================================================
    TÉRKÉP
+   A teljes táblázati blokk alatt, külön sorban.
    ========================================================= */
 
 #geozona-terkep {
@@ -3632,6 +3633,10 @@ ArrivaBus hidegtárolás
 
     <div class="adat">
         <b>Dátum:</b> """ + escape(futas_datum) + """
+    </div>
+
+    <div class="adat">
+        <b>Naptípus:</b> """ + escape(str(talalt_munkalap)) + """
     </div>
 
     <div class="adat">
@@ -3870,6 +3875,8 @@ ArrivaBus hidegtárolás
 
 </div>
 
+</div>
+
 """)
 
     # --------------------------------------------------------
@@ -3947,6 +3954,8 @@ ArrivaBus hidegtárolás
         html.append("""
 </tbody>
 </table>
+
+</div>
 
 </div>
 
