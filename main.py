@@ -375,7 +375,7 @@ HELYSZINEK = {
     },
 
     "csepel_szent_imre": {
-        "kulcsszo": "Csepel, Sz",
+        "kulcsszo": "Csepel, Szent Imre tér",
         "lat_min": 47.429951,
         "lat_max": 47.432414,
         "lon_min": 19.069806,
@@ -383,7 +383,7 @@ HELYSZINEK = {
     },
 
     "kobanya_also": {
-        "kulcsszo": "Kőbánya a",
+        "kulcsszo": "Kőbánya alsó",
         "lat_min": 47.482374761566106,
         "lat_max": 47.48497049937554,
         "lon_min": 19.126160600151543,
@@ -391,7 +391,7 @@ HELYSZINEK = {
     },
 
     "kobanya_kispest": {
-        "kulcsszo": "Kőbánya-K",
+        "kulcsszo": "Kőbánya-Kispest",
         "lat_min": 47.46170217328866,
         "lat_max": 47.46269954567189,
         "lon_min": 19.15013411602212,
@@ -407,7 +407,7 @@ HELYSZINEK = {
     },
 
     "ors_vezer_E": {
-        "kulcsszo": "Örs vezér tere M+H (é",
+        "kulcsszo": "Örs vezér tere M+H (észak",
         "lat_min": 47.5037844857071,
         "lat_max": 47.505753039404794,
         "lon_min": 19.135811875938057,
@@ -415,7 +415,7 @@ HELYSZINEK = {
     },
 
     "ors_vezer_D": {
-        "kulcsszo": "Örs vezér tere M+H (d",
+        "kulcsszo": "Örs vezér tere M+H (dél",
         "lat_min": 47.49940180349382,
         "lat_max": 47.50073054813034,
         "lon_min": 19.134581747988502,
@@ -423,7 +423,7 @@ HELYSZINEK = {
     },
 
     "pestszentlorinc": {
-        "kulcsszo": "Pestszentl",
+        "kulcsszo": "Pestszentlőrinc",
         "lat_min": 47.45337269162761,
         "lat_max": 47.45651651124522,
         "lon_min": 19.178530697809354,
