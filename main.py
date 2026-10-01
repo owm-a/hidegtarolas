@@ -1636,227 +1636,192 @@ else:
     )
 
 
-# 6. A rögzített rendszámok keresése
-# ========================================================
+    # ========================================================
+    # 6. A rögzített rendszámok keresése
+    # ========================================================
 
-uj_poziciok = 0
+    uj_poziciok = 0
 
-for forda_kulcs, adat in (
-    forda_rendszamok.items()
-):
+    for forda_kulcs, adat in (
+        forda_rendszamok.items()
+    ):
 
-    rendszam = (
-        str(adat["rendszám"])
-        .strip()
-        .upper()
-    )
+        rendszam = (
+            str(adat["rendszám"])
+            .strip()
+            .upper()
+        )
 
-    talalat = jarmuvek[
-        jarmuvek["rendszám"] == rendszam
-    ]
+        talalat = jarmuvek[
+            jarmuvek["rendszám"] == rendszam
+        ]
 
 
-    # ----------------------------------------------------
-    # Nincs aktuális RT találat
-    #
-    # → utolsó ismert pozíció használata
-    # ----------------------------------------------------
+        # ----------------------------------------------------
+        # Nincs aktuális RT találat
+        #
+        # → utolsó ismert pozíció használata
+        # ----------------------------------------------------
 
-    if len(talalat) == 0:
+        if len(talalat) == 0:
 
-        elozo_pozicio = None
+            elozo_pozicio = None
 
-        # Visszafelé keresünk, így az első találat
-        # automatikusan az utolsó ismert pozíció.
-        for elozo in reversed(pozicio_tortenet):
+            # Visszafelé keresünk, így az első találat
+            # automatikusan az utolsó ismert pozíció.
+            for elozo in reversed(pozicio_tortenet):
 
-            if (
-                str(
-                    elozo.get(
-                        "rendszám",
-                        ""
+                if (
+                    str(
+                        elozo.get(
+                            "rendszám",
+                            ""
+                        )
+                    ).strip().upper()
+                    == rendszam
+                ):
+                    elozo_pozicio = elozo.get(
+                        "pozíció"
                     )
-                ).strip().upper()
-                == rendszam
-            ):
-                elozo_pozicio = elozo.get(
-                    "pozíció"
+                    break
+
+
+            # Ha még soha nem volt pozíció ehhez a járműhöz
+            if elozo_pozicio is None:
+
+                print(
+                    f"{forda_kulcs}: "
+                    f"{rendszam} – nincs RT találat, "
+                    f"korábbi pozíció sincs"
                 )
-                break
+
+                continue
 
 
-        # Ha még soha nem volt pozíció ehhez a járműhöz
-        if elozo_pozicio is None:
+            # Utolsó ismert pozíció használata
+            pozicio = elozo_pozicio
 
             print(
                 f"{forda_kulcs}: "
                 f"{rendszam} – nincs RT találat, "
-                f"korábbi pozíció sincs"
+                f"utolsó ismert pozíció: {pozicio}"
             )
 
-            continue
 
+        # ----------------------------------------------------
+        # Van aktuális RT találat
+        # ----------------------------------------------------
 
-        # Utolsó ismert pozíció használata
-        pozicio = elozo_pozicio
+        else:
 
-        print(
-            f"{forda_kulcs}: "
-            f"{rendszam} – nincs RT találat, "
-            f"utolsó ismert pozíció: {pozicio}"
-        )
+            rt = talalat.iloc[0]
 
-
-    # ----------------------------------------------------
-    # Van aktuális RT találat
-    # ----------------------------------------------------
-
-    else:
-
-        rt = talalat.iloc[0]
-
-        pozicio = (
-            f"{rt['latitude']}, "
-            f"{rt['longitude']}"
-        )
-
-        print(
-            f"{forda_kulcs}: "
-            f"{rendszam} → "
-            f"{pozicio}"
-        )
-
-
-    # ----------------------------------------------------
-    # POZÍCIÓ ELLENŐRZÉSE
-    # ----------------------------------------------------
-
-    ellenorzes = "-"
-
-    helyszin_kulcs = str(
-        adat.get(
-            "helyszín",
-            ""
-        )
-    ).strip()
-
-
-    if helyszin_kulcs in HELYSZINEK:
-
-        try:
-
-            latitude_szoveg, longitude_szoveg = (
-                pozicio.split(",", 1)
+            pozicio = (
+                f"{rt['latitude']}, "
+                f"{rt['longitude']}"
             )
 
-            latitude = float(
-                latitude_szoveg.strip()
+            print(
+                f"{forda_kulcs}: "
+                f"{rendszam} → "
+                f"{pozicio}"
             )
 
-            longitude = float(
-                longitude_szoveg.strip()
+
+        # ----------------------------------------------------
+        # POZÍCIÓ ELLENŐRZÉSE
+        # ----------------------------------------------------
+
+        ellenorzes = "-"
+
+        helyszin_kulcs = str(
+            adat.get(
+                "helyszín",
+                ""
             )
-
-            helyszin = HELYSZINEK[
-                helyszin_kulcs
-            ]
-
-            lat_benne = (
-                helyszin["lat_min"]
-                <= latitude
-                <= helyszin["lat_max"]
-            )
-
-            lon_benne = (
-                helyszin["lon_min"]
-                <= longitude
-                <= helyszin["lon_max"]
-            )
-
-            if lat_benne and lon_benne:
-
-                ellenorzes = "OK"
-
-            else:
-
-                ellenorzes = "NEM"
-
-        except (
-            ValueError,
-            TypeError
-        ):
-
-            ellenorzes = "-"
+        ).strip()
 
 
-    # ----------------------------------------------------
-    # ÚJ történeti rekord
-    #
-    # Friss RT pozíció vagy utolsó ismert pozíció.
-    # Az OK/NEM eredmény is mentésre kerül.
-    # ----------------------------------------------------
+        if helyszin_kulcs in HELYSZINEK:
 
-    pozicio_tortenet.append({
+            try:
 
-        "viszonylat": adat["viszonylat"],
+                latitude_szoveg, longitude_szoveg = (
+                    pozicio.split(",", 1)
+                )
 
-        "forda": adat["forda"],
+                latitude = float(
+                    latitude_szoveg.strip()
+                )
 
-        "kezdés": adat["kezdés"],
+                longitude = float(
+                    longitude_szoveg.strip()
+                )
 
-        "végzés": adat["végzés"],
+                helyszin = HELYSZINEK[
+                    helyszin_kulcs
+                ]
 
-        "hely": adat["hely"],
+                lat_benne = (
+                    helyszin["lat_min"]
+                    <= latitude
+                    <= helyszin["lat_max"]
+                )
 
-        "helyszín": adat["helyszín"],
+                lon_benne = (
+                    helyszin["lon_min"]
+                    <= longitude
+                    <= helyszin["lon_max"]
+                )
 
-        "rendszám": rendszam,
+                if lat_benne and lon_benne:
 
-        "pozíció": pozicio,
+                    ellenorzes = "OK"
 
-        "ellenőrzés": ellenorzes,
+                else:
 
-        "frissítve": idopont
-    })
+                    ellenorzes = "NEM"
 
+            except (
+                ValueError,
+                TypeError
+            ):
 
-    uj_poziciok += 1
-
-    print(
-        f"{forda_kulcs}: "
-        f"{rendszam} → "
-        f"{pozicio}"
-    )
-    # ----------------------------------------------------
-    # ÚJ történeti rekord
-    #
-    # Friss RT pozíció vagy utolsó ismert pozíció.
-    # ----------------------------------------------------
-
-    pozicio_tortenet.append({
-
-        "viszonylat": adat["viszonylat"],
-
-        "forda": adat["forda"],
-
-        "kezdés": adat["kezdés"],
-
-        "végzés": adat["végzés"],
-
-        "hely": adat["hely"],
-
-        "helyszín": adat["helyszín"],
-
-        "rendszám": rendszam,
-
-        "pozíció": pozicio,
-
-        "frissítve": idopont
-    })
+                ellenorzes = "-"
 
 
-    uj_poziciok += 1
+        # ----------------------------------------------------
+        # ÚJ történeti rekord
+        #
+        # Friss RT pozíció vagy utolsó ismert pozíció.
+        # Az OK/NEM eredmény is mentésre kerül.
+        # ----------------------------------------------------
 
+        pozicio_tortenet.append({
+
+            "viszonylat": adat["viszonylat"],
+
+            "forda": adat["forda"],
+
+            "kezdés": adat["kezdés"],
+
+            "végzés": adat["végzés"],
+
+            "hely": adat["hely"],
+
+            "helyszín": adat["helyszín"],
+
+            "rendszám": rendszam,
+
+            "pozíció": pozicio,
+
+            "ellenőrzés": ellenorzes,
+
+            "frissítve": idopont
+        })
+
+
+        uj_poziciok += 1
 
         print(
             f"{forda_kulcs}: "
@@ -1899,6 +1864,7 @@ for forda_kulcs, adat in (
     # ========================================================
 
     print()
+
     print(
         "Új pozíciórekordok:",
         uj_poziciok
