@@ -3270,9 +3270,23 @@ body {
 
     align-items: center;
 
+    justify-content: space-between;
+
+    width: 100%;
+
+}
+
+
+.fejlec-bal,
+.fejlec-jobb {
+
+    display: flex;
+
+    align-items: center;
+
     gap: 28px;
 
-    flex-wrap: wrap;
+    white-space: nowrap;
 
 }
 
@@ -3424,6 +3438,13 @@ th.rendszam,
 td.rendszam {
 
     text-align: right;
+
+}
+
+
+td.rendszam {
+
+    font-weight: bold;
 
 }
 
@@ -3684,53 +3705,34 @@ ArrivaBus hidegtárolás
 
 <div class="fejlec-adatok riport-fejlec-adatok">
 
-    <div class="adat">
-        <b>Utolsó futás:</b> """ + escape(
-            str(
-                hidegtarolas_riport.get(
-                    "utolso_futas",
-                    "-"
-                )
-            )
-        ) + """
+    <div class="fejlec-bal">
+        <div class="adat">
+            <b>Dátum:</b> """ + escape(futas_datum) + """
+        </div>
+        <div class="adat">
+            <b>Naptípus:</b> """ + escape(str(talalt_munkalap)) + """
+        </div>
+        <div class="adat">
+            <b>Utolsó lekérdezés:</b> """ + escape(utolso_ido) + """
+        </div>
+        <div class="adat">
+            <b>Járművek száma:</b> """ + str(megtalalt_jarmuvek) + "/" + str(excel_fordak_szama) + """
+        </div>
     </div>
 
-    <div class="adat">
-        <b>Dátum:</b> """ + escape(futas_datum) + """
+    <div class="fejlec-jobb">
+        <div class="adat">
+            <b>Riport készült:</b> """ + escape(str(hidegtarolas_riport.get("keszult", "-"))) + """
+        </div>
+        <div class="adat">
+            <b>Vizsgált fordák:</b> """ + str(megtalalt_jarmuvek) + """
+        </div>
+        <div class="adat">
+            <b>Utolsó futás:</b> """ + escape(str(hidegtarolas_riport.get("utolso_futas", "-"))) + """
+        </div>
     </div>
 
-    <div class="adat">
-        <b>Naptípus:</b> """ + escape(str(talalt_munkalap)) + """
-    </div>
-
-    <div class="adat">
-        <b>Utolsó lekérdezés:</b> """ + escape(utolso_ido) + """
-    </div>
-
-    <div class="adat">
-        <b>Járművek száma:</b> """ + str(megtalalt_jarmuvek) + "/" + str(excel_fordak_szama) + """
-    </div>
-
-    <div class="adat">
-        <b>Riport készült:</b> """ + escape(
-            str(
-                hidegtarolas_riport.get(
-                    "keszult",
-                    "-"
-                )
-            )
-        ) + """
-    </div>
-
-    <div class="adat">
-        <b>Vizsgált fordák:</b> """ + str(
-            megtalalt_jarmuvek
-        ) + """
-    </div>
-
-</div>
-
-</div>
+</div>v>
 
 
 <!-- =========================================================
