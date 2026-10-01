@@ -5827,7 +5827,7 @@
     "datum": "2026-10-01",
     "kesz": true,
     "excel_kesz": true,
-    "keszult": "2026-10-01 17:55:28",
+    "keszult": "2026-10-01 18:00:53",
     "vizsgalt_fordak": 21,
     "eredmenyek": [
       {
@@ -5842,7 +5842,7 @@
         "viszonylat": "1340",
         "forda": "57",
         "rendszám": "AAHY812",
-        "eredmény": "ELTÉRÉS TÖRTÉNT"
+        "eredmény": "RENDBEN TÁROLT"
       },
       {
         "dátum": "2026-10-01",
@@ -5863,7 +5863,7 @@
         "viszonylat": "0710",
         "forda": "23",
         "rendszám": "PDN623",
-        "eredmény": "ELTÉRÉS TÖRTÉNT"
+        "eredmény": "RENDBEN TÁROLT"
       },
       {
         "dátum": "2026-10-01",
@@ -5898,14 +5898,14 @@
         "viszonylat": "1510",
         "forda": "23",
         "rendszám": "AOGF672",
-        "eredmény": "ELTÉRÉS TÖRTÉNT"
+        "eredmény": "RENDBEN TÁROLT"
       },
       {
         "dátum": "2026-10-01",
         "viszonylat": "1510",
         "forda": "46",
         "rendszám": "AOIM014",
-        "eredmény": "ELTÉRÉS TÖRTÉNT"
+        "eredmény": "RENDBEN TÁROLT"
       },
       {
         "dátum": "2026-10-01",
@@ -5933,7 +5933,7 @@
         "viszonylat": "1820",
         "forda": "21",
         "rendszám": "PDN609",
-        "eredmény": "ELTÉRÉS TÖRTÉNT"
+        "eredmény": "RENDBEN TÁROLT"
       },
       {
         "dátum": "2026-10-01",
