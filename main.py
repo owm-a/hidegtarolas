@@ -885,13 +885,13 @@ fazis_ideje = datetime.now(
 azonositas_idoszak = (
     time(7, 0)
     <= fazis_ideje
-    <= time(10, 0)
+    <= time(10, 30)
 )
 
 pozicio_idoszak = (
-    time(9, 0)
+    time(8, 20)
     <= fazis_ideje
-    <= time(15, 0)
+    <= time(16, 40)
 )
 
 print()
