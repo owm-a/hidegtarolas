@@ -1636,86 +1636,120 @@ else:
     )
 
 
-    # ========================================================
-    # 6. A rögzített rendszámok keresése
-    # ========================================================
+# 6. A rögzített rendszámok keresése
+# ========================================================
 
-    uj_poziciok = 0
+uj_poziciok = 0
 
-    for forda_kulcs, adat in (
-        forda_rendszamok.items()
-    ):
+for forda_kulcs, adat in (
+    forda_rendszamok.items()
+):
 
-        rendszam = (
-            str(adat["rendszám"])
-            .strip()
-            .upper()
-        )
+    rendszam = (
+        str(adat["rendszám"])
+        .strip()
+        .upper()
+    )
 
-        talalat = jarmuvek[
-            jarmuvek["rendszám"] == rendszam
-        ]
+    talalat = jarmuvek[
+        jarmuvek["rendszám"] == rendszam
+    ]
 
 
-        # ----------------------------------------------------
-        # Nincs találat
-        #
-        # Nem készül új rekord.
-        # ----------------------------------------------------
+    # ----------------------------------------------------
+    # Nincs aktuális RT találat
+    #
+    # → utolsó ismert pozíció használata
+    # ----------------------------------------------------
 
-        if len(talalat) == 0:
+    if len(talalat) == 0:
+
+        elozo_pozicio = None
+
+        # Visszafelé keresünk, így az első találat
+        # automatikusan az utolsó ismert pozíció.
+        for elozo in reversed(pozicio_tortenet):
+
+            if (
+                str(elozo.get("rendszám", "")).strip().upper()
+                == rendszam
+            ):
+                elozo_pozicio = elozo.get("pozíció")
+                break
+
+
+        # Ha még soha nem volt pozíció ehhez a járműhöz
+        if elozo_pozicio is None:
 
             print(
                 f"{forda_kulcs}: "
-                f"{rendszam} – nincs RT találat"
+                f"{rendszam} – nincs RT találat, "
+                f"korábbi pozíció sincs"
             )
 
             continue
 
 
-        # ----------------------------------------------------
-        # Találat → első találat
-        # ----------------------------------------------------
+        # Utolsó ismert pozíció használata
+        pozicio = elozo_pozicio
 
+        print(
+            f"{forda_kulcs}: "
+            f"{rendszam} – nincs RT találat, "
+            f"utolsó ismert pozíció: {pozicio}"
+        )
+
+
+    # ----------------------------------------------------
+    # Van aktuális RT találat
+    # ----------------------------------------------------
+
+    else:
+
+        # Első találat
         rt = talalat.iloc[0]
-
 
         pozicio = (
             f"{rt['latitude']}, "
             f"{rt['longitude']}"
         )
 
-
-        # ----------------------------------------------------
-        # ÚJ történeti rekord
-        #
-        # Akkor is létrejön, ha a pozíció
-        # megegyezik az előző lekéréssel.
-        # ----------------------------------------------------
-
-        pozicio_tortenet.append({
-
-            "viszonylat": adat["viszonylat"],
-
-            "forda": adat["forda"],
-
-            "kezdés": adat["kezdés"],
-
-            "végzés": adat["végzés"],
-
-            "hely": adat["hely"],
-
-            "helyszín": adat["helyszín"],
-
-            "rendszám": rendszam,
-
-            "pozíció": pozicio,
-
-            "frissítve": idopont
-        })
+        print(
+            f"{forda_kulcs}: "
+            f"{rendszam} → "
+            f"{pozicio}"
+        )
 
 
-        uj_poziciok += 1
+    # ----------------------------------------------------
+    # ÚJ történeti rekord
+    #
+    # Friss RT pozíció vagy utolsó ismert pozíció.
+    # ----------------------------------------------------
+
+    pozicio_tortenet.append({
+
+        "viszonylat": adat["viszonylat"],
+
+        "forda": adat["forda"],
+
+        "kezdés": adat["kezdés"],
+
+        "végzés": adat["végzés"],
+
+        "hely": adat["hely"],
+
+        "helyszín": adat["helyszín"],
+
+        "rendszám": rendszam,
+
+        "pozíció": pozicio,
+
+        "frissítve": idopont
+    })
+
+
+    uj_poziciok += 1
 
 
         print(
