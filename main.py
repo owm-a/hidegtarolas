@@ -2836,17 +2836,40 @@ body {
    TÁBLÁZAT
    ========================================================= */
 
-#tabla-ablak {
+#tabla-keret {
 
     width: 100%;
 
-    height: 305px;
+    max-width: 100%;
 
-    overflow: auto;
+    height: 285px;
+
+    overflow-y: auto;
+
+    overflow-x: hidden;
+
+    direction: rtl;
 
     background: white;
 
     border: 1px solid #888;
+
+    box-sizing: border-box;
+
+}
+
+
+#tabla-ablak {
+
+    direction: ltr;
+
+    overflow-x: auto;
+
+    overflow-y: hidden;
+
+    background: white;
+
+    min-width: 0;
 
 }
 
@@ -2861,7 +2884,7 @@ table {
 
     width: max-content;
 
-    min-width: 100%;
+    table-layout: auto;
 
 }
 
@@ -3127,8 +3150,9 @@ Járművek száma:
      TÁBLÁZAT
      ========================================================= -->
 
-<div id="tabla-ablak">
+<div id="tabla-keret">
 
+<div id="tabla-ablak">
 
 <table>
 
@@ -3311,6 +3335,7 @@ Járművek száma:
 
 </table>
 
+</div>
 
 </div>
 
@@ -3341,29 +3366,72 @@ const terkepZonak = """ + json.dumps(
 
 
 /* =========================================================
-   TÁBLÁZAT INDULÁSKORI POZÍCIÓ
+   TÁBLÁZAT GÖRGETÉS
    =========================================================
 
-   Az összes időoszlop benne van a HTML-ben.
-
-   A táblázat induláskor automatikusan
-   a legújabb időpontokhoz görget.
-
-   A vízszintes csúszkával minden korábbi
-   időpont elérhető.
+   - Függőlegesen egyszerre kb. 10 sor látszik.
+   - A függőleges görgetősáv bal oldalon van.
+   - Vízszintesen egyszerre 18 időoszlop látszik.
+   - Induláskor a legutolsó 18 időoszlop látszik.
 
 */
+
+const tablaKeret = document.getElementById(
+    "tabla-keret"
+);
 
 const tablaAblak = document.getElementById(
     "tabla-ablak"
 );
 
+const tabla = tablaAblak
+    ? tablaAblak.querySelector("table")
+    : null;
 
-function tablaJobbraGorgetese() {
 
-    if (!tablaAblak) {
+function tablaBeallitasa() {
+
+    if (!tablaKeret || !tablaAblak || !tabla) {
         return;
     }
+
+    const oszlopok = tabla.querySelectorAll(
+        "thead th"
+    );
+
+    const idopontOszlopok = tabla.querySelectorAll(
+        "thead th.idopont"
+    );
+
+    if (idopontOszlopok.length > 0) {
+
+        let fixSzelesseg = 0;
+
+        for (let i = 0; i < Math.min(6, oszlopok.length); i++) {
+
+            fixSzelesseg += oszlopok[i].getBoundingClientRect().width;
+
+        }
+
+        const egyIdopontSzelesseg =
+            idopontOszlopok[0].getBoundingClientRect().width;
+
+        const kivantSzelesseg =
+            fixSzelesseg
+            + egyIdopontSzelesseg * 18
+            + 2;
+
+        const maximumSzelesseg =
+            window.innerWidth - 30;
+
+        tablaAblak.style.width = Math.min(
+            kivantSzelesseg,
+            maximumSzelesseg
+        ) + "px";
+
+    }
+
+    /* A legutolsó 18 időoszlop legyen induláskor látható. */
 
     tablaAblak.scrollLeft =
         tablaAblak.scrollWidth;
@@ -3373,7 +3441,13 @@ function tablaJobbraGorgetese() {
 
 window.addEventListener(
     "load",
-    tablaJobbraGorgetese
+    tablaBeallitasa
+);
+
+
+window.addEventListener(
+    "resize",
+    tablaBeallitasa
 );
 
 
