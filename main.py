@@ -3607,6 +3607,11 @@ td.ellenorzes {
     font-weight: bold;
 }
 
+.riport-ures {
+    background: white;
+    color: #000000;
+}
+
 /* =========================================================
    TÉRKÉP
    A teljes táblázati blokk alatt, külön sorban.
@@ -3986,25 +3991,22 @@ ArrivaBus hidegtárolás
 </div>
 
 """)
-
     # --------------------------------------------------------
-    # HIDEGTÁROLÁSI RIPORT OSZLOP
+    # HIDEGTÁROLÁSI RIPORT OSZLOP – HTML
+    # Az XLS export logikájához nem nyúlunk.
     # --------------------------------------------------------
 
-    if hidegtarolas_riport:
+    riport_eredmenyek = {
+        (
+            str(sor.get("viszonylat", "")).strip(),
+            str(sor.get("forda", "")).strip()
+        ): sor.get("eredmény", "")
+        for sor in hidegtarolas_riport.get("eredmenyek", [])
+    } if hidegtarolas_riport else {}
 
-        riport_eredmenyek = {
-            (
-                str(sor.get("viszonylat", "")).strip(),
-                str(sor.get("forda", "")).strip()
-            ): sor.get("eredmény", "ELTÉRÉS TÖRTÉNT")
-            for sor in hidegtarolas_riport.get(
-                "eredmenyek",
-                []
-            )
-        }
+    napi_poziciok = napi_adatok.get("pozicio_tortenet", [])
 
-        html.append("""
+    html.append("""
 <div class="riport-resz">
 
 <table class="riport-tablazat">
@@ -4016,38 +4018,87 @@ ArrivaBus hidegtárolás
 <tbody>
 """)
 
-        for _, sor in rendezett_sorok:
+    budapest_tz = ZoneInfo("Europe/Budapest")
+    html_most = datetime.now(budapest_tz)
+    html_ma = html_most.date()
 
-            kulcs = (
-                str(sor["viszonylat"]).strip(),
-                str(sor["forda"]).strip()
-            )
+    for _, sor in rendezett_sorok:
 
-            eredmeny = riport_eredmenyek.get(
-                kulcs,
-                "ELTÉRÉS TÖRTÉNT"
-            )
+        kulcs = (
+            str(sor["viszonylat"]).strip(),
+            str(sor["forda"]).strip()
+        )
 
-            osztaly = (
-                "riport-ok"
-                if eredmeny == "RENDBEN TÁROLT"
-                else "riport-eltérés"
-            )
+        riport_eredmeny = riport_eredmenyek.get(kulcs, "")
 
-            html.append(
-                f'<tr><td class="{osztaly}">'
-                f'{escape(eredmeny)}'
-                f'</td></tr>'
-            )
+        # A 70%-os siker azonnal megjelenhet.
+        if riport_eredmeny == "RENDBEN TÁROLT":
+            eredmeny = "RENDBEN TÁROLT"
+            osztaly = "riport-ok"
+        else:
+            # A forda végének meghatározása.
+            try:
+                kezdes = sor.get("kezdés")
+                vegzes = sor.get("végzés")
 
-        html.append("""
+                if pd.isna(kezdes) or pd.isna(vegzes):
+                    forda_vege = None
+                else:
+                    forda_kezdete = datetime.combine(
+                        html_ma, kezdes, tzinfo=budapest_tz
+                    )
+                    forda_vege = datetime.combine(
+                        html_ma, vegzes, tzinfo=budapest_tz
+                    )
+
+                    if forda_vege < forda_kezdete:
+                        forda_vege += timedelta(days=1)
+
+            except (TypeError, ValueError):
+                forda_vege = None
+
+            # Csak a már befejezett fordánál számít az OK/NEM.
+            van_ok_vagy_nem = False
+
+            if forda_vege is not None and html_most >= forda_vege:
+                for rekord in napi_poziciok:
+                    if str(rekord.get("viszonylat", "")).strip() != kulcs[0]:
+                        continue
+                    if str(rekord.get("forda", "")).strip() != kulcs[1]:
+                        continue
+
+                    allapot = str(rekord.get("ellenőrzés", "")).strip().upper()
+                    if allapot in ("OK", "NEM"):
+                        van_ok_vagy_nem = True
+                        break
+
+            if (
+                forda_vege is not None
+                and html_most >= forda_vege
+                and van_ok_vagy_nem
+            ):
+                eredmeny = "ELTÉRÉS TÖRTÉNT"
+                osztaly = "riport-eltérés"
+            else:
+                eredmeny = ""
+                osztaly = "riport-ures"
+
+        html.append(
+            f'<tr><td class="{osztaly}">' 
+            f'{escape(eredmeny)}'
+            f'</td></tr>'
+        )
+
+    html.append("""
 </tbody>
 </table>
 
 </div>
 
 </div>
+""")
 
+    html.append("""
 </div>
 
 
