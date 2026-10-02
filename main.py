@@ -4037,7 +4037,7 @@ ArrivaBus hidegtárolás
             try:
                 kezdes_dt_html = datetime.strptime(
                     str(sor["kezdés"]),
-                    "%H:%M:%S"
+                    "%H:%M"
                 ).time()
 
                 idopont_dt_html = datetime.strptime(
@@ -4055,7 +4055,7 @@ ArrivaBus hidegtárolás
                 )
                 vegzes_dt_html = datetime.strptime(
                     str(sor["végzés"]),
-                    "%H:%M:%S"
+                    "%H:%M"
                 ).time()
                 vegzes_perc = (
                     vegzes_dt_html.hour * 60
