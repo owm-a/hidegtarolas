@@ -98,7 +98,7 @@ def torol_nem_regisztralt_bkk_extensionok(szoveg):
 # A BKK-ból érkező valódi GPS timestamp-eket NEM módosítjuk.
 
 TESZT_MOD = True
-TESZT_IDO_ELTOLAS_ORA = -3
+TESZT_IDO_ELTOLAS_ORA = -2
 
 
 def budapesti_most():
@@ -3132,14 +3132,40 @@ def html_export():
 
 
     # --------------------------------------------------------
-    # TESZT MÓD – AKTUÁLIS BKK POZÍCIÓK
+    # TESZT MÓD – A VIZSGÁLT FORDÁK JÁRMŰVEI
     # --------------------------------------------------------
-    # Tesztben közvetlenül a legutóbbi BKK VehiclePositions
-    # lekérés rendszámos járműveit rajzoljuk ki.
-    # A forda időablaka és a korábbi pozíciótörténet itt nem
-    # szűri ki a járműveket. Éles módban az eredeti logika marad.
+    # Tesztben sem az összes BKK-járművet rajzoljuk ki.
+    # Csak azok a rendszámok jelenjenek meg, amelyek a
+    # figyelt_fordak valamelyikéhez vannak hozzárendelve.
+    # A pozíció viszont mindig az aktuális BKK VehiclePositions.
 
     if TESZT_MOD:
+
+        vizsgalt_rendszamok = set()
+
+        for _, forda_sor_map in figyelt_fordak.iterrows():
+
+            viszonylat_map = str(
+                forda_sor_map.get("viszonylat", "")
+            ).strip()
+
+            forda_map = str(
+                forda_sor_map.get("forda", "")
+            ).strip()
+
+            kulcs_map = f"{viszonylat_map}|{forda_map}"
+
+            forda_adat_map = forda_rendszamok.get(
+                kulcs_map,
+                {}
+            )
+
+            rendszam_map = str(
+                forda_adat_map.get("rendszám", "")
+            ).strip().upper()
+
+            if rendszam_map:
+                vizsgalt_rendszamok.add(rendszam_map)
 
         for _, jarmu in jarmuvek.iterrows():
 
@@ -3148,6 +3174,11 @@ def html_export():
             ).strip().upper()
 
             if not rendszam:
+                continue
+
+            # Tesztben csak a vizsgált fordákhoz tartozó
+            # rendszámok jelenjenek meg a térképen.
+            if rendszam not in vizsgalt_rendszamok:
                 continue
 
             try:
