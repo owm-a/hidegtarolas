@@ -385,9 +385,9 @@ HELYSZINEK = {
     "kobanya_also": {
         "kulcsszo": "Kőbánya alsó",
         "lat_min": 47.482374761566106,
-        "lat_max": 47.48497049937554,
+        "lat_max": 47.481184273725006,
         "lon_min": 19.126160600151543,
-        "lon_max": 19.131138742642598
+        "lon_max": 19.131117750923572
     },
 
     "kobanya_kispest": {
