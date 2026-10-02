@@ -56,7 +56,7 @@ jobs:
       - name: Program futtatása
         env:
           BKK_API_KEY: ${{ secrets.BKK_API_KEY }}
-        run: python main.py
+        run: python -u main.py
 
       # ==================================================
       # 7. EREDMÉNYEK MENTÉSE
