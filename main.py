@@ -4,6 +4,7 @@
 
 # =========================================================
 # BKK FORDA → RENDSZÁM → POZÍCIÓ
+# VehiclePositions forrás: TXT (GTFS-RT text formátum)
 # GitHub Actions verzió
 # =========================================================
 
@@ -37,6 +38,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from google.transit import gtfs_realtime_pb2
+from google.protobuf import text_format
 
 print("Modulok betöltve.")
 
@@ -1017,7 +1019,7 @@ print(
 
 url = (
     "https://go.bkk.hu/api/query/v1/ws/"
-    "gtfs-rt/full/VehiclePositions.pb"
+    "gtfs-rt/full/VehiclePositions.txt"
 )
 
 response = requests.get(
@@ -1052,8 +1054,9 @@ print(
 
 feed = gtfs_realtime_pb2.FeedMessage()
 
-feed.ParseFromString(
-    response.content
+text_format.Parse(
+    response.text,
+    feed
 )
 
 
@@ -1477,13 +1480,13 @@ print("Pozíciólekérdezés időpontja:", idopont)
 
 
 # ============================================================
-# 2. FRISS VehiclePositions.pb lekérése
+# 2. FRISS VehiclePositions.txt lekérése
 #    Legfeljebb 3 próbálkozás
 # ============================================================
 
 url = (
     "https://go.bkk.hu/api/query/v1/ws/"
-    "gtfs-rt/full/VehiclePositions.pb"
+    "gtfs-rt/full/VehiclePositions.txt"
 )
 
 feed = None
@@ -1525,21 +1528,22 @@ for probalkozas in (
             )
 
         # ----------------------------------------------------
-        # Protobuf feldolgozás
+        # TXT / protobuf text formátum feldolgozása
         # ----------------------------------------------------
 
         feed_teszt = (
             gtfs_realtime_pb2.FeedMessage()
         )
 
-        feed_teszt.ParseFromString(
-            response.content
+        text_format.Parse(
+            response.text,
+            feed_teszt
         )
 
         # Ha idáig eljutottunk, az adat érvényes
         feed = feed_teszt
 
-        print("Érvényes GTFS-RT adat érkezett.")
+        print("Érvényes GTFS-RT TXT adat érkezett.")
 
         break
 
