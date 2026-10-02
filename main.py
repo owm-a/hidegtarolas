@@ -662,6 +662,11 @@ print(
     talalt_munkalap
 )
 
+# SZ-VV munkalapon nincs aznapi feldolgozás.
+if str(talalt_munkalap).strip().upper() == "SZ-VV":
+    print("Az aktuális munkalap SZ-VV, a program leáll.")
+    raise SystemExit(0)
+
 
 # =========================================================
 # 9/g. MUNKALAP BEOLVASÁSA
@@ -3643,6 +3648,12 @@ td.ellenorzes {
 .riport-ures {
     background: white;
     color: #000000;
+}
+
+.ellenorzes.sarga {
+    background: #ffd966;
+    color: #000000;
+    font-weight: bold;
 }
 
 /* =========================================================
