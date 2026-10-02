@@ -1593,7 +1593,9 @@ for probalkozas in (
         )
 
         text_format.Parse(
-            response.text,
+            torol_nem_regisztralt_bkk_extensionok(
+                response.text
+            ),
             feed_teszt
         )
 
