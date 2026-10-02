@@ -392,10 +392,10 @@ HELYSZINEK = {
 
     "kobanya_kispest": {
         "kulcsszo": "Kőbánya-Kispest",
-        "lat_min": 47.46170217328866,
-        "lat_max": 47.46269954567189,
-        "lon_min": 19.15013411602212,
-        "lon_max": 19.151115563166837
+        "lat_min": 47.46056181065333,
+        "lat_max": 47.46311789175215,
+        "lon_min": 19.148986720880558,
+        "lon_max": 19.152668092551284
     },
 
     "mexikoi_ut": {
@@ -3048,8 +3048,37 @@ def html_export():
             if not (
                 kezdés
                 and végzés
-                and kezdés <= utolso_lekkerdezes <= végzés
             ):
+                continue
+
+            # A térképen a forda kezdése előtti 15 percben is
+            # jelenjen meg a jármű, sárga PIN-nel.
+            try:
+                kezdés_dt_map = datetime.strptime(
+                    kezdés,
+                    "%H:%M:%S"
+                )
+                végzés_dt_map = datetime.strptime(
+                    végzés,
+                    "%H:%M:%S"
+                )
+                lekérdezés_dt_map = datetime.strptime(
+                    utolso_lekkerdezes,
+                    "%H:%M:%S"
+                )
+
+                ellenőrzési_kezdés_map = (
+                    kezdés_dt_map - timedelta(minutes=15)
+                )
+
+                if not (
+                    ellenőrzési_kezdés_map
+                    <= lekérdezés_dt_map
+                    <= végzés_dt_map
+                ):
+                    continue
+
+            except (ValueError, TypeError):
                 continue
 
 
@@ -3124,6 +3153,29 @@ def html_export():
                     "-"
                 )
             ).strip().upper()
+
+            # A tényleges kezdés előtti 15 percben a PIN sárga,
+            # függetlenül attól, hogy az ellenőrzés OK vagy NEM.
+            try:
+                kezdés_dt_map = datetime.strptime(
+                    kezdés,
+                    "%H:%M:%S"
+                )
+                lekérdezés_dt_map = datetime.strptime(
+                    utolso_lekkerdezes,
+                    "%H:%M:%S"
+                )
+
+                if (
+                    kezdés_dt_map - timedelta(minutes=15)
+                    <= lekérdezés_dt_map
+                    < kezdés_dt_map
+                    and statusz in ("OK", "NEM")
+                ):
+                    statusz = "SÁRGA"
+
+            except (ValueError, TypeError):
+                pass
 
             if helyszin is not None:
                 helyszin_nev = helyszin.get(
@@ -3669,6 +3721,13 @@ td.ellenorzes {
 }
 
 
+.vehicle-pin.yellow {
+
+    background: #ffd966;
+
+}
+
+
 .vehicle-pin.gray {
 
     background: #777777;
@@ -3915,17 +3974,52 @@ ArrivaBus hidegtárolás
             )
 
 
-            if eredmeny == "OK":
+            # A tényleges kezdés előtti 15 percben az OK/NEM
+            # cella sárga hátteret kap.
+            osztaly = None
+
+            try:
+                kezdes_dt_html = datetime.strptime(
+                    str(sor["kezdés"]),
+                    "%H:%M:%S"
+                ).time()
+
+                idopont_dt_html = datetime.strptime(
+                    idopont,
+                    "%H:%M"
+                ).time()
+
+                kezdes_perc = (
+                    kezdes_dt_html.hour * 60
+                    + kezdes_dt_html.minute
+                )
+                idopont_perc = (
+                    idopont_dt_html.hour * 60
+                    + idopont_dt_html.minute
+                )
+
+                if (
+                    eredmeny in ("OK", "NEM")
+                    and kezdes_perc - 15
+                    <= idopont_perc
+                    < kezdes_perc
+                ):
+                    osztaly = "sarga"
+
+            except (ValueError, TypeError, KeyError):
+                pass
+
+            if osztaly is None and eredmeny == "OK":
 
                 osztaly = "ok"
 
 
-            elif eredmeny == "NEM":
+            elif osztaly is None and eredmeny == "NEM":
 
                 osztaly = "nem"
 
 
-            else:
+            elif osztaly is None:
 
                 osztaly = "nincs"
 
@@ -4219,6 +4313,9 @@ function jarmuIkon(statusz) {
     }
     else if (statusz === "NEM") {
         osztaly = "red";
+    }
+    else if (statusz === "SÁRGA") {
+        osztaly = "yellow";
     }
 
     return L.divIcon({
