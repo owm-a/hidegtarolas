@@ -3169,7 +3169,7 @@ def html_export():
                 if (
                     kezdés_dt_map - timedelta(minutes=15)
                     <= lekérdezés_dt_map
-                    < kezdés_dt_map
+                    <= kezdés_dt_map
                     and statusz in ("OK", "NEM")
                 ):
                     statusz = "SÁRGA"
@@ -4002,7 +4002,7 @@ ArrivaBus hidegtárolás
                     eredmeny in ("OK", "NEM")
                     and kezdes_perc - 15
                     <= idopont_perc
-                    < kezdes_perc
+                    <= kezdes_perc
                 ):
                     osztaly = "sarga"
 
