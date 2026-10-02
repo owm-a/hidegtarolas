@@ -103,7 +103,7 @@ TESZT_IDO_ELTOLAS_ORA = -2
 
 def budapesti_most():
     """A program által használt aktuális budapesti idő."""
-    valos_ido = budapesti_most()
+    valos_ido = datetime.now(ZoneInfo("Europe/Budapest"))
 
     if TESZT_MOD:
         return valos_ido + timedelta(hours=TESZT_IDO_ELTOLAS_ORA)
