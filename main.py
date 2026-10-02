@@ -384,11 +384,11 @@ HELYSZINEK = {
 
     "kobanya_also": {
         "kulcsszo": "Kőbánya alsó",
-        "lat_min": 47.482374761566106,
-        "lat_max": 47.481184273725006,
-        "lon_min": 19.126160600151543,
-        "lon_max": 19.131117750923572
-    },
+        "lat_min": 47.480344536874036,
+        "lat_max": 47.48496905192861,
+        "lon_min": 19.12579241045692,
+        "lon_max": 19.13233189188759
+    },   
 
     "kobanya_kispest": {
         "kulcsszo": "Kőbánya-Kispest",
@@ -3116,45 +3116,26 @@ def html_export():
             )
 
 
+            # A térkép ugyanazt az ellenőrzési eredményt használja,
+            # amely az aktuális GPS-rekordból keletkezett.
+            statusz = str(
+                rekord.get(
+                    "ellenőrzés",
+                    "-"
+                )
+            ).strip().upper()
+
             if helyszin is not None:
-
-                benne_van = (
-
-                    helyszin["lat_min"]
-                    <= latitude
-                    <= helyszin["lat_max"]
-
-                    and
-
-                    helyszin["lon_min"]
-                    <= longitude
-                    <= helyszin["lon_max"]
-
-                )
-
-
-                statusz = (
-                    "OK"
-                    if benne_van
-                    else "NEM"
-                )
-
-
                 helyszin_nev = helyszin.get(
                     "kulcsszo",
                     helyszin_kulcs
                 )
-
             else:
-
-                statusz = "-"
-
                 helyszin_nev = (
                     helyszin_kulcs
                     if helyszin_kulcs
                     else "Nincs kijelölt geozóna"
                 )
-
 
             terkep_jarmuvek[rendszam] = {
 
