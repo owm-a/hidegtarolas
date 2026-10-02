@@ -377,8 +377,8 @@ HELYSZINEK = {
     "csepel_szent_imre": {
         "kulcsszo": "Csepel, Szent Imre tér",
         "lat_min": 47.429951,
-        "lat_max": 47.432414,
-        "lon_min": 19.069806,
+        "lat_max": 47.43243232977707,
+        "lon_min": 19.06724687678164,
         "lon_max": 19.071954
     },
 
@@ -479,8 +479,8 @@ def forda_aktiv_e(kezdés, végzés, időpont):
     except (ValueError, TypeError):
         return False
 
-    ellenőrzési_kezdés = kezdés_dt - timedelta(minutes=5)
-    ellenőrzési_végzés = végzés_dt + timedelta(minutes=10)
+    ellenőrzési_kezdés = kezdés_dt - timedelta(minutes=15)
+    ellenőrzési_végzés = végzés_dt + timedelta(minutes=20)
 
     return ellenőrzési_kezdés <= időpont_dt <= ellenőrzési_végzés
 
