@@ -4180,12 +4180,17 @@ ArrivaBus hidegtárolás
 
         riport_eredmeny = riport_eredmenyek.get(kulcs, "")
 
-        # A 70%-os siker azonnal megjelenhet.
-        if riport_eredmeny == "RENDBEN TÁROLT":
-            eredmeny = "RENDBEN TÁROLT"
-            osztaly = "riport-ok"
+        # ----------------------------------------------------
+        # A HTML az Excel-riporttól függetlenül is mutatja az
+        # eredményt, amint az adott forda ténylegesen befejeződött.
+        # Ugyanazt a közös 70%-os függvényt használjuk, mint az XLS
+        # exportnál, így a két eredmény logikája azonos.
+        # ----------------------------------------------------
+
+        if riport_eredmeny in ("RENDBEN TÁROLT", "ELTÉRÉS TÖRTÉNT"):
+            eredmeny = riport_eredmeny
+
         else:
-            # A forda végének meghatározása.
             try:
                 kezdes = sor.get("kezdés")
                 vegzes = sor.get("végzés")
@@ -4206,31 +4211,22 @@ ArrivaBus hidegtárolás
             except (TypeError, ValueError):
                 forda_vege = None
 
-            # Csak a már befejezett fordánál számít az OK/NEM.
-            van_ok_vagy_nem = False
-
+            # A HTML-ben már a forda saját végzési ideje után
+            # kiszámoljuk az eredményt, nem kell megvárni a 16:30-at.
             if forda_vege is not None and html_most >= forda_vege:
-                for rekord in napi_poziciok:
-                    if str(rekord.get("viszonylat", "")).strip() != kulcs[0]:
-                        continue
-                    if str(rekord.get("forda", "")).strip() != kulcs[1]:
-                        continue
-
-                    allapot = str(rekord.get("ellenőrzés", "")).strip().upper()
-                    if allapot in ("OK", "NEM"):
-                        van_ok_vagy_nem = True
-                        break
-
-            if (
-                forda_vege is not None
-                and html_most >= forda_vege
-                and van_ok_vagy_nem
-            ):
-                eredmeny = "ELTÉRÉS TÖRTÉNT"
-                osztaly = "riport-eltérés"
+                eredmeny = hidegtarolas_riport_eredmeny(
+                    sor,
+                    napi_poziciok
+                )
             else:
                 eredmeny = ""
-                osztaly = "riport-ures"
+
+        if eredmeny == "RENDBEN TÁROLT":
+            osztaly = "riport-ok"
+        elif eredmeny == "ELTÉRÉS TÖRTÉNT":
+            osztaly = "riport-eltérés"
+        else:
+            osztaly = "riport-ures"
 
         html.append(
             f'<tr><td class="{osztaly}">' 
