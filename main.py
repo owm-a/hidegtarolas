@@ -1005,7 +1005,7 @@ azonositas_idoszak = (
 pozicio_idoszak = (
     time(8, 0)
     <= fazis_ideje
-    <= time(16, 30)
+    <= time(17, 00)
 )
 
 print()
