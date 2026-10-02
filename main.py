@@ -906,15 +906,15 @@ fazis_ideje = datetime.now(
 ).time()
 
 azonositas_idoszak = (
-    time(7, 0)
+    time(7, 00)
     <= fazis_ideje
-    <= time(8, 30)
+    <= time(13, 30)
 )
 
 pozicio_idoszak = (
     time(8, 0)
     <= fazis_ideje
-    <= time(17, 0)
+    <= time(16, 30)
 )
 
 print()
@@ -926,14 +926,14 @@ print(
 if azonositas_idoszak:
 
     print(
-        "Aktív fázis: 07:00–08:30 "
+        "Aktív fázis: 07:00–13:30 "
         "forda → rendszám"
     )
 
 elif pozicio_idoszak:
 
     print(
-        "Aktív fázis: 08:00–17:00 "
+        "Aktív fázis: 08:00–16:30 "
         "rendszám → pozíció"
     )
 
