@@ -2605,19 +2605,19 @@ def keszit_hidegtarolas_riport():
     Az Excelbe ugyanaz a nap csak egyszer kerül be.
     """
 
-    budapesti_most = budapesti_most()
+    most = budapesti_most()
 
     # 16:30 előtt még nincs hidegtárolási riport,
     # de a HTML exportnak ettől még le kell futnia.
     # Ilyenkor egy üres riportstruktúrát adunk vissza,
     # így a mai oldal elkészülhet a nap folyamán gyűjtött adatokból.
-    if budapesti_most.time() < time(16, 30):
+    if most.time() < time(16, 30):
         return {
             "datum": MAI_NAP,
             "kesz": False,
             "excel_kesz": False,
             "keszult": "-",
-            "utolso_futas": budapesti_most.strftime("%Y-%m-%d %H:%M:%S"),
+            "utolso_futas": most.strftime("%Y-%m-%d %H:%M:%S"),
             "vizsgalt_fordak": 0,
             "eredmenyek": []
         }
@@ -2673,7 +2673,7 @@ def keszit_hidegtarolas_riport():
             "eredmény": eredmeny
         })
 
-    aktualis_futas_idopont = budapesti_most.strftime(
+    aktualis_futas_idopont = most.strftime(
         "%Y-%m-%d %H:%M:%S"
     )
 
