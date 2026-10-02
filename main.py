@@ -2496,13 +2496,24 @@ def keszit_hidegtarolas_riport():
         ZoneInfo("Europe/Budapest")
     )
 
+    # 16:30 előtt még nincs hidegtárolási riport,
+    # de a HTML exportnak ettől még le kell futnia.
+    # Ilyenkor egy üres riportstruktúrát adunk vissza,
+    # így a mai oldal elkészülhet a nap folyamán gyűjtött adatokból.
     if budapesti_most.time() < time(16, 30):
-        return None
+        return {
+            "datum": MAI_NAP,
+            "kesz": False,
+            "excel_kesz": False,
+            "keszult": "-",
+            "utolso_futas": budapesti_most.strftime("%Y-%m-%d %H:%M:%S"),
+            "vizsgalt_fordak": 0,
+            "eredmenyek": []
+        }
 
     korabbi_riport = napi_adatok.get(
-        "hidegtarolas_riport",
-        {}
-    )
+        "hidegtarolas_riport"
+    ) or {}
 
     # A napi pozíciótörténetet itt is be kell tölteni.
     # Ez a változó a korábbi pozíciólekérési blokkban lokális,
