@@ -1634,7 +1634,9 @@ else:
         jarmuvek.append({
             "rendszám": rendszam,
             "latitude": v.position.latitude,
-            "longitude": v.position.longitude
+            "longitude": v.position.longitude,
+            "timestamp": v.timestamp,
+            "gps_timestamp": v.timestamp
         })
 
 
