@@ -2358,6 +2358,27 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
     kezdés = forda_sor.get("kezdés")
     végzés = forda_sor.get("végzés")
 
+    # Az Excelből érkező sorokban a mezők idő objektumok,
+    # a HTML sorokban viszont HH:MM szövegek lehetnek.
+    # A közös függvény mindkettőt kezelje.
+    try:
+        if isinstance(kezdés, str):
+            kezdés = datetime.strptime(kezdés[:8], "%H:%M:%S").time()
+    except ValueError:
+        try:
+            kezdés = datetime.strptime(kezdés[:5], "%H:%M").time()
+        except ValueError:
+            return "ELTÉRÉS TÖRTÉNT"
+
+    try:
+        if isinstance(végzés, str):
+            végzés = datetime.strptime(végzés[:8], "%H:%M:%S").time()
+    except ValueError:
+        try:
+            végzés = datetime.strptime(végzés[:5], "%H:%M").time()
+        except ValueError:
+            return "ELTÉRÉS TÖRTÉNT"
+
     if pd.isna(kezdés) or pd.isna(végzés):
         return "ELTÉRÉS TÖRTÉNT"
 
@@ -4198,6 +4219,19 @@ ArrivaBus hidegtárolás
                 if pd.isna(kezdes) or pd.isna(vegzes):
                     forda_vege = None
                 else:
+                    # A HTML sorokban a kezdés/végzés HH:MM szöveg.
+                    if isinstance(kezdes, str):
+                        try:
+                            kezdes = datetime.strptime(kezdes[:8], "%H:%M:%S").time()
+                        except ValueError:
+                            kezdes = datetime.strptime(kezdes[:5], "%H:%M").time()
+
+                    if isinstance(vegzes, str):
+                        try:
+                            vegzes = datetime.strptime(vegzes[:8], "%H:%M:%S").time()
+                        except ValueError:
+                            vegzes = datetime.strptime(vegzes[:5], "%H:%M").time()
+
                     forda_kezdete = datetime.combine(
                         html_ma, kezdes, tzinfo=budapest_tz
                     )
