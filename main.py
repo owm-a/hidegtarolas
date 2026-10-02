@@ -1753,7 +1753,16 @@ else:
                 f"{rt['longitude']}"
             )
 
-            pozicio_frissitve = idopont
+            # A ténylegesen friss RT GPS-adat időpontja.
+            # A BKK GTFS-RT timestamp Unix időbélyeg.
+            try:
+                rt_timestamp = int(rt["timestamp"])
+                pozicio_frissitve = datetime.fromtimestamp(
+                    rt_timestamp,
+                    tz=ZoneInfo("Europe/Budapest")
+                ).strftime("%H:%M")
+            except (ValueError, TypeError, OverflowError):
+                pozicio_frissitve = idopont[:5]
 
             print(
                 f"{forda_kulcs}: "
@@ -3089,10 +3098,14 @@ def html_export():
                     kezdés_dt_map - timedelta(minutes=15)
                 )
 
+                ellenőrzési_végzés_map = (
+                    végzés_dt_map + timedelta(minutes=20)
+                )
+
                 if not (
                     ellenőrzési_kezdés_map
                     <= lekérdezés_dt_map
-                    <= végzés_dt_map
+                    <= ellenőrzési_végzés_map
                 ):
                     continue
 
@@ -3184,10 +3197,20 @@ def html_export():
                     "%H:%M:%S"
                 )
 
-                if (
+                prestart_sarga = (
                     kezdés_dt_map - timedelta(minutes=15)
                     <= lekérdezés_dt_map
-                    <= kezdés_dt_map
+                    < kezdés_dt_map
+                )
+
+                postend_sarga = (
+                    végzés_dt_map
+                    <= lekérdezés_dt_map
+                    <= végzés_dt_map + timedelta(minutes=20)
+                )
+
+                if (
+                    (prestart_sarga or postend_sarga)
                     and statusz in ("OK", "NEM")
                 ):
                     statusz = "SÁRGA"
@@ -4028,12 +4051,30 @@ ArrivaBus hidegtárolás
                     idopont_dt_html.hour * 60
                     + idopont_dt_html.minute
                 )
+                vegzes_dt_html = datetime.strptime(
+                    str(sor["végzés"]),
+                    "%H:%M:%S"
+                ).time()
+                vegzes_perc = (
+                    vegzes_dt_html.hour * 60
+                    + vegzes_dt_html.minute
+                )
+
+                prestart_sarga = (
+                    kezdes_perc - 15
+                    <= idopont_perc
+                    < kezdes_perc
+                )
+
+                postend_sarga = (
+                    vegzes_perc
+                    <= idopont_perc
+                    <= vegzes_perc + 20
+                )
 
                 if (
                     eredmeny in ("OK", "NEM")
-                    and kezdes_perc - 15
-                    <= idopont_perc
-                    <= kezdes_perc
+                    and (prestart_sarga or postend_sarga)
                 ):
                     osztaly = "sarga"
 
