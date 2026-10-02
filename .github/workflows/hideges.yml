@@ -74,7 +74,7 @@ jobs:
             while read -r cache_id; do
               if [ -n "$cache_id" ]; then
                 echo "Régi GTFS cache törlése: $cache_id"
-                gh cache delete "$cache_id" --confirm
+                yes | gh cache delete "$cache_id"
               fi
             done
 
