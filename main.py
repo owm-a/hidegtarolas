@@ -98,7 +98,7 @@ def torol_nem_regisztralt_bkk_extensionok(szoveg):
 # A BKK-ból érkező valódi GPS timestamp-eket NEM módosítjuk.
 
 TESZT_MOD = True
-TESZT_IDO_ELTOLAS_ORA = -2
+TESZT_IDO_ELTOLAS_ORA = -5
 
 
 def budapesti_most():
