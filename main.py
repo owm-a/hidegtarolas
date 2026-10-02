@@ -4,6 +4,7 @@
 
 # =========================================================
 # BKK FORDA → RENDSZÁM → POZÍCIÓ
+# VehiclePositions forrás: TXT (GTFS-RT text formátum)
 # GitHub Actions verzió
 # =========================================================
 
@@ -29,6 +30,7 @@ print("API-kulcs betöltve.")
 # =========================================================
 
 import requests
+import re
 import pandas as pd
 import zipfile
 import io
@@ -37,6 +39,77 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from google.transit import gtfs_realtime_pb2
+from google.protobuf import text_format
+
+
+def torol_nem_regisztralt_bkk_extensionok(szoveg):
+    """
+    A BKK VehiclePositions.txt tartalmazhat olyan egyedi protobuf
+    extension mezőket (pl. [realcity.vehicle]), amelyeket a standard
+    gtfs_realtime_pb2 modul nem regisztrál. Ezeket a downstream
+    feldolgozás nem használja, ezért csak a text-format parse előtt
+    eltávolítjuk őket.
+    """
+
+    extension = "[realcity.vehicle]"
+
+    while True:
+
+        kezdet = szoveg.find(extension)
+
+        if kezdet == -1:
+            break
+
+        kapocs = szoveg.find("{", kezdet)
+
+        if kapocs == -1:
+            szoveg = szoveg[:kezdet] + szoveg[kezdet + len(extension):]
+            continue
+
+        melyseg = 0
+        vege = None
+
+        for i in range(kapocs, len(szoveg)):
+
+            if szoveg[i] == "{":
+                melyseg += 1
+
+            elif szoveg[i] == "}":
+                melyseg -= 1
+
+                if melyseg == 0:
+                    vege = i + 1
+                    break
+
+        if vege is None:
+            # Hibás/csonka extension esetén a maradékot is eldobjuk.
+            szoveg = szoveg[:kezdet]
+            break
+
+        szoveg = szoveg[:kezdet] + szoveg[vege:]
+
+    return szoveg
+
+# =========================================================
+# TESZTIDŐ
+# =========================================================
+# True esetén a program aktuális ideje a megadott óraszámmal
+# eltolva kerül felhasználásra.
+# A BKK-ból érkező valódi GPS timestamp-eket NEM módosítjuk.
+
+TESZT_MOD = True
+TESZT_IDO_ELTOLAS_ORA = -3
+
+
+def budapesti_most():
+    """A program által használt aktuális budapesti idő."""
+    valos_ido = datetime.now(ZoneInfo("Europe/Budapest"))
+
+    if TESZT_MOD:
+        return valos_ido + timedelta(hours=TESZT_IDO_ELTOLAS_ORA)
+
+    return valos_ido
+
 
 print("Modulok betöltve.")
 
@@ -89,9 +162,7 @@ os.makedirs(
 # 3/b. AKTUÁLIS BUDAPESTI DÁTUM
 # =========================================================
 
-budapesti_datum = datetime.now(
-    ZoneInfo("Europe/Budapest")
-).strftime("%Y-%m-%d")
+budapesti_datum = budapesti_most().strftime("%Y-%m-%d")
 
 
 # =========================================================
@@ -276,9 +347,7 @@ print(
 # 5. MAI NAPHOZ TARTOZÓ GTFS TRIP-EK
 # =========================================================
 
-mai_datum = datetime.now(
-    ZoneInfo("Europe/Budapest")
-).strftime("%Y%m%d")
+mai_datum = budapesti_most().strftime("%Y%m%d")
 
 
 # ---------------------------------------------------------
@@ -526,9 +595,7 @@ def ido_konvertalasa(ertek):
 # 9/b. AKTUÁLIS BUDAPESTI DÁTUM
 # =========================================================
 
-most = datetime.now(
-    ZoneInfo("Europe/Budapest")
-)
+most = budapesti_most()
 
 ev = most.strftime("%Y")
 honap = most.strftime("%m")
@@ -901,9 +968,7 @@ import json
 # 10/a. AKTUÁLIS FÁZIS
 # =========================================================
 
-fazis_ideje = datetime.now(
-    ZoneInfo("Europe/Budapest")
-).time()
+fazis_ideje = budapesti_most().time()
 
 azonositas_idoszak = (
     time(7, 00)
@@ -948,9 +1013,7 @@ else:
 
 NAPI_ADATOK_FAJL = "napi_adatok.json"
 
-MAI_NAP = datetime.now(
-    ZoneInfo("Europe/Budapest")
-).strftime("%Y-%m-%d")
+MAI_NAP = budapesti_most().strftime("%Y-%m-%d")
 
 
 # =========================================================
@@ -1017,7 +1080,7 @@ print(
 
 url = (
     "https://go.bkk.hu/api/query/v1/ws/"
-    "gtfs-rt/full/VehiclePositions.pb"
+    "gtfs-rt/full/VehiclePositions.txt"
 )
 
 response = requests.get(
@@ -1052,8 +1115,9 @@ print(
 
 feed = gtfs_realtime_pb2.FeedMessage()
 
-feed.ParseFromString(
-    response.content
+text_format.Parse(
+    torol_nem_regisztralt_bkk_extensionok(response.text),
+    feed
 )
 
 
@@ -1130,9 +1194,7 @@ print(
 # 10/g. AKTUÁLIS IDŐ
 # =========================================================
 
-idopont = datetime.now(
-    ZoneInfo("Europe/Budapest")
-).strftime("%H:%M:%S")
+idopont = budapesti_most().strftime("%H:%M:%S")
 
 
 print()
@@ -1467,9 +1529,7 @@ print("\n=== 10:00–14:00 pozíciólekérés ===")
 # 1. Aktuális budapesti idő
 # ============================================================
 
-most = datetime.now(
-    ZoneInfo("Europe/Budapest")
-)
+most = budapesti_most()
 
 idopont = most.strftime("%H:%M:%S")
 
@@ -1477,13 +1537,13 @@ print("Pozíciólekérdezés időpontja:", idopont)
 
 
 # ============================================================
-# 2. FRISS VehiclePositions.pb lekérése
+# 2. FRISS VehiclePositions.txt lekérése
 #    Legfeljebb 3 próbálkozás
 # ============================================================
 
 url = (
     "https://go.bkk.hu/api/query/v1/ws/"
-    "gtfs-rt/full/VehiclePositions.pb"
+    "gtfs-rt/full/VehiclePositions.txt"
 )
 
 feed = None
@@ -1525,21 +1585,24 @@ for probalkozas in (
             )
 
         # ----------------------------------------------------
-        # Protobuf feldolgozás
+        # TXT / protobuf text formátum feldolgozása
         # ----------------------------------------------------
 
         feed_teszt = (
             gtfs_realtime_pb2.FeedMessage()
         )
 
-        feed_teszt.ParseFromString(
-            response.content
+        text_format.Parse(
+            torol_nem_regisztralt_bkk_extensionok(
+                response.text
+            ),
+            feed_teszt
         )
 
         # Ha idáig eljutottunk, az adat érvényes
         feed = feed_teszt
 
-        print("Érvényes GTFS-RT adat érkezett.")
+        print("Érvényes GTFS-RT TXT adat érkezett.")
 
         break
 
@@ -2383,7 +2446,7 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
         return "ELTÉRÉS TÖRTÉNT"
 
     budapest_tz = ZoneInfo("Europe/Budapest")
-    budapest_now = datetime.now(budapest_tz)
+    budapest_now = budapesti_most()
     mai_datum = budapest_now.date()
 
     kezdés_dt = datetime.combine(
@@ -2542,21 +2605,19 @@ def keszit_hidegtarolas_riport():
     Az Excelbe ugyanaz a nap csak egyszer kerül be.
     """
 
-    budapesti_most = datetime.now(
-        ZoneInfo("Europe/Budapest")
-    )
+    most = budapesti_most()
 
     # 16:30 előtt még nincs hidegtárolási riport,
     # de a HTML exportnak ettől még le kell futnia.
     # Ilyenkor egy üres riportstruktúrát adunk vissza,
     # így a mai oldal elkészülhet a nap folyamán gyűjtött adatokból.
-    if budapesti_most.time() < time(16, 30):
+    if most.time() < time(16, 30):
         return {
             "datum": MAI_NAP,
             "kesz": False,
             "excel_kesz": False,
             "keszult": "-",
-            "utolso_futas": budapesti_most.strftime("%Y-%m-%d %H:%M:%S"),
+            "utolso_futas": most.strftime("%Y-%m-%d %H:%M:%S"),
             "vizsgalt_fordak": 0,
             "eredmenyek": []
         }
@@ -2612,7 +2673,7 @@ def keszit_hidegtarolas_riport():
             "eredmény": eredmeny
         })
 
-    aktualis_futas_idopont = budapesti_most.strftime(
+    aktualis_futas_idopont = most.strftime(
         "%Y-%m-%d %H:%M:%S"
     )
 
@@ -2757,9 +2818,7 @@ def keszit_hidegtarolas_riport():
         )
 
         # A "Riport készült" időpontja az XLS export befejezési ideje.
-        riport_idopont = datetime.now(
-            ZoneInfo("Europe/Budapest")
-        ).strftime("%Y-%m-%d %H:%M:%S")
+        riport_idopont = budapesti_most().strftime("%Y-%m-%d %H:%M:%S")
 
     if excel_mar_mentve:
         # Ha a mai XLS már korábban elkészült, annak ideje maradjon.
@@ -3072,223 +3131,305 @@ def html_export():
     terkep_jarmuvek = {}
 
 
-    if utolso_lekkerdezes != "-":
+    # --------------------------------------------------------
+    # TESZT MÓD – AKTUÁLIS BKK POZÍCIÓK
+    # --------------------------------------------------------
+    # Tesztben közvetlenül a legutóbbi BKK VehiclePositions
+    # lekérés rendszámos járműveit rajzoljuk ki.
+    # A forda időablaka és a korábbi pozíciótörténet itt nem
+    # szűri ki a járműveket. Éles módban az eredeti logika marad.
 
-        for rekord in pozicio_tortenet:
+    if TESZT_MOD:
+
+        for _, jarmu in jarmuvek.iterrows():
 
             rendszam = str(
-                rekord.get("rendszám", "")
+                jarmu.get("rendszám", "")
             ).strip().upper()
-
 
             if not rendszam:
                 continue
 
-
-            kezdés = str(
-                rekord.get("kezdés", "")
-            ).strip()
-
-
-            végzés = str(
-                rekord.get("végzés", "")
-            ).strip()
-
-
-            if not (
-                kezdés
-                and végzés
-            ):
+            try:
+                latitude = float(jarmu["latitude"])
+                longitude = float(jarmu["longitude"])
+            except (ValueError, TypeError, KeyError):
                 continue
 
-            # A térképen a forda kezdése előtti 15 percben is
-            # jelenjen meg a jármű, sárga PIN-nel.
+            if latitude == 0 or longitude == 0:
+                continue
+
+            elozo_rekord = None
+
+            for rekord in reversed(pozicio_tortenet):
+                if (
+                    str(rekord.get("rendszám", ""))
+                    .strip()
+                    .upper()
+                    == rendszam
+                ):
+                    elozo_rekord = rekord
+                    break
+
+            if elozo_rekord is not None:
+                statusz = str(
+                    elozo_rekord.get("ellenőrzés", "-")
+                ).strip().upper()
+                viszonylat = str(
+                    elozo_rekord.get("viszonylat", "")
+                )
+                forda = str(
+                    elozo_rekord.get("forda", "")
+                )
+                helyszin_nev = str(
+                    elozo_rekord.get("helyszín", "")
+                )
+            else:
+                statusz = "-"
+                viszonylat = ""
+                forda = ""
+                helyszin_nev = ""
+
             try:
-                kezdés_dt_map = datetime.strptime(
-                    kezdés,
-                    "%H:%M:%S"
-                )
-                végzés_dt_map = datetime.strptime(
-                    végzés,
-                    "%H:%M:%S"
-                )
-                lekérdezés_dt_map = datetime.strptime(
-                    utolso_lekkerdezes,
-                    "%H:%M:%S"
-                )
+                timestamp = int(jarmu.get("timestamp", 0))
+                pozicio_frissitve = datetime.fromtimestamp(
+                    timestamp,
+                    tz=ZoneInfo("Europe/Budapest")
+                ).strftime("%H:%M:%S")
+            except (ValueError, TypeError, OverflowError):
+                pozicio_frissitve = ""
 
-                ellenőrzési_kezdés_map = (
-                    kezdés_dt_map - timedelta(minutes=15)
-                )
+            terkep_jarmuvek[rendszam] = {
+                "rendszam": rendszam,
+                "viszonylat": viszonylat,
+                "forda": forda,
+                "helyszin": helyszin_nev,
+                "statusz": statusz,
+                "latitude": latitude,
+                "longitude": longitude,
+                "frissitve": utolso_lekkerdezes,
+                "pozicio_frissitve": pozicio_frissitve
+            }
 
-                ellenőrzési_végzés_map = (
-                    végzés_dt_map + timedelta(minutes=20)
-                )
+    else:
+
+        if utolso_lekkerdezes != "-":
+
+            for rekord in pozicio_tortenet:
+
+                rendszam = str(
+                    rekord.get("rendszám", "")
+                ).strip().upper()
+
+
+                if not rendszam:
+                    continue
+
+
+                kezdés = str(
+                    rekord.get("kezdés", "")
+                ).strip()
+
+
+                végzés = str(
+                    rekord.get("végzés", "")
+                ).strip()
+
 
                 if not (
-                    ellenőrzési_kezdés_map
-                    <= lekérdezés_dt_map
-                    <= ellenőrzési_végzés_map
+                    kezdés
+                    and végzés
                 ):
                     continue
 
-            except (ValueError, TypeError):
-                continue
-
-
-            frissitve = str(
-                rekord.get("frissítve", "")
-            ).strip()
-
-
-            pozicio = str(
-                rekord.get("pozíció", "")
-            ).strip()
-
-
-            if not pozicio:
-                continue
-
-
-            try:
-
-                latitude_szoveg, longitude_szoveg = (
-                    pozicio.split(",", 1)
-                )
-
-                latitude = float(
-                    latitude_szoveg.strip()
-                )
-
-                longitude = float(
-                    longitude_szoveg.strip()
-                )
-
-            except (ValueError, TypeError):
-
-                continue
-
-
-            elozo = terkep_jarmuvek.get(
-                rendszam
-            )
-
-
-            if (
-                elozo is not None
-                and str(
-                    elozo.get(
-                        "frissitve",
-                        ""
+                # A térképen a forda kezdése előtti 15 percben is
+                # jelenjen meg a jármű, sárga PIN-nel.
+                try:
+                    kezdés_dt_map = datetime.strptime(
+                        kezdés,
+                        "%H:%M:%S"
                     )
-                ) >= frissitve
-            ):
-                continue
+                    végzés_dt_map = datetime.strptime(
+                        végzés,
+                        "%H:%M:%S"
+                    )
+                    lekérdezés_dt_map = datetime.strptime(
+                        utolso_lekkerdezes,
+                        "%H:%M:%S"
+                    )
+
+                    ellenőrzési_kezdés_map = (
+                        kezdés_dt_map - timedelta(minutes=15)
+                    )
+
+                    ellenőrzési_végzés_map = (
+                        végzés_dt_map + timedelta(minutes=20)
+                    )
+
+                    if not (
+                        ellenőrzési_kezdés_map
+                        <= lekérdezés_dt_map
+                        <= ellenőrzési_végzés_map
+                    ):
+                        continue
+
+                except (ValueError, TypeError):
+                    continue
 
 
-            helyszin_kulcs = str(
-                rekord.get(
-                    "helyszín",
-                    ""
+                frissitve = str(
+                    rekord.get("frissítve", "")
+                ).strip()
+
+
+                pozicio = str(
+                    rekord.get("pozíció", "")
+                ).strip()
+
+
+                if not pozicio:
+                    continue
+
+
+                try:
+
+                    latitude_szoveg, longitude_szoveg = (
+                        pozicio.split(",", 1)
+                    )
+
+                    latitude = float(
+                        latitude_szoveg.strip()
+                    )
+
+                    longitude = float(
+                        longitude_szoveg.strip()
+                    )
+
+                except (ValueError, TypeError):
+
+                    continue
+
+
+                elozo = terkep_jarmuvek.get(
+                    rendszam
                 )
-            ).strip()
 
-
-            helyszin = HELYSZINEK.get(
-                helyszin_kulcs
-            )
-
-
-            # A térkép ugyanazt az ellenőrzési eredményt használja,
-            # amely az aktuális GPS-rekordból keletkezett.
-            statusz = str(
-                rekord.get(
-                    "ellenőrzés",
-                    "-"
-                )
-            ).strip().upper()
-
-            # A tényleges kezdés előtti 15 percben a PIN sárga,
-            # függetlenül attól, hogy az ellenőrzés OK vagy NEM.
-            try:
-                kezdés_dt_map = datetime.strptime(
-                    kezdés,
-                    "%H:%M:%S"
-                )
-                lekérdezés_dt_map = datetime.strptime(
-                    utolso_lekkerdezes,
-                    "%H:%M:%S"
-                )
-
-                prestart_sarga = (
-                    kezdés_dt_map - timedelta(minutes=15)
-                    <= lekérdezés_dt_map
-                    < kezdés_dt_map
-                )
-
-                postend_sarga = (
-                    végzés_dt_map
-                    <= lekérdezés_dt_map
-                    <= végzés_dt_map + timedelta(minutes=20)
-                )
 
                 if (
-                    (prestart_sarga or postend_sarga)
-                    and statusz in ("OK", "NEM")
+                    elozo is not None
+                    and str(
+                        elozo.get(
+                            "frissitve",
+                            ""
+                        )
+                    ) >= frissitve
                 ):
-                    statusz = "SÁRGA"
+                    continue
 
-            except (ValueError, TypeError):
-                pass
 
-            if helyszin is not None:
-                helyszin_nev = helyszin.get(
-                    "kulcsszo",
-                    helyszin_kulcs
-                )
-            else:
-                helyszin_nev = (
-                    helyszin_kulcs
-                    if helyszin_kulcs
-                    else "Nincs kijelölt geozóna"
-                )
-
-            terkep_jarmuvek[rendszam] = {
-
-                "rendszam": rendszam,
-
-                "viszonylat": str(
+                helyszin_kulcs = str(
                     rekord.get(
-                        "viszonylat",
-                        ""
-                    )
-                ),
-
-                "forda": str(
-                    rekord.get(
-                        "forda",
-                        ""
-                    )
-                ),
-
-                "helyszin": helyszin_nev,
-
-                "statusz": statusz,
-
-                "latitude": latitude,
-
-                "longitude": longitude,
-
-                "frissitve": frissitve,
-
-                "pozicio_frissitve": str(
-                    rekord.get(
-                        "pozicio_frissitve",
+                        "helyszín",
                         ""
                     )
                 ).strip()
 
-            }
+
+                helyszin = HELYSZINEK.get(
+                    helyszin_kulcs
+                )
+
+
+                # A térkép ugyanazt az ellenőrzési eredményt használja,
+                # amely az aktuális GPS-rekordból keletkezett.
+                statusz = str(
+                    rekord.get(
+                        "ellenőrzés",
+                        "-"
+                    )
+                ).strip().upper()
+
+                # A tényleges kezdés előtti 15 percben a PIN sárga,
+                # függetlenül attól, hogy az ellenőrzés OK vagy NEM.
+                try:
+                    kezdés_dt_map = datetime.strptime(
+                        kezdés,
+                        "%H:%M:%S"
+                    )
+                    lekérdezés_dt_map = datetime.strptime(
+                        utolso_lekkerdezes,
+                        "%H:%M:%S"
+                    )
+
+                    prestart_sarga = (
+                        kezdés_dt_map - timedelta(minutes=15)
+                        <= lekérdezés_dt_map
+                        < kezdés_dt_map
+                    )
+
+                    postend_sarga = (
+                        végzés_dt_map
+                        <= lekérdezés_dt_map
+                        <= végzés_dt_map + timedelta(minutes=20)
+                    )
+
+                    if (
+                        (prestart_sarga or postend_sarga)
+                        and statusz in ("OK", "NEM")
+                    ):
+                        statusz = "SÁRGA"
+
+                except (ValueError, TypeError):
+                    pass
+
+                if helyszin is not None:
+                    helyszin_nev = helyszin.get(
+                        "kulcsszo",
+                        helyszin_kulcs
+                    )
+                else:
+                    helyszin_nev = (
+                        helyszin_kulcs
+                        if helyszin_kulcs
+                        else "Nincs kijelölt geozóna"
+                    )
+
+                terkep_jarmuvek[rendszam] = {
+
+                    "rendszam": rendszam,
+
+                    "viszonylat": str(
+                        rekord.get(
+                            "viszonylat",
+                            ""
+                        )
+                    ),
+
+                    "forda": str(
+                        rekord.get(
+                            "forda",
+                            ""
+                        )
+                    ),
+
+                    "helyszin": helyszin_nev,
+
+                    "statusz": statusz,
+
+                    "latitude": latitude,
+
+                    "longitude": longitude,
+
+                    "frissitve": frissitve,
+
+                    "pozicio_frissitve": str(
+                        rekord.get(
+                            "pozicio_frissitve",
+                            ""
+                        )
+                    ).strip()
+
+                }
 
 
     terkep_jarmuvek_lista = list(
@@ -4189,7 +4330,7 @@ ArrivaBus hidegtárolás
 """)
 
     budapest_tz = ZoneInfo("Europe/Budapest")
-    html_most = datetime.now(budapest_tz)
+    html_most = budapesti_most()
     html_ma = html_most.date()
 
     for _, sor in rendezett_sorok:
