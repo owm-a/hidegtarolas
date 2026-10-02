@@ -19043,5 +19043,162 @@
       "ellenőrzés": "-",
       "frissítve": "14:36:09"
     }
-  ]
+  ],
+  "hidegtarolas_riport": {
+    "datum": "2026-10-02",
+    "kesz": true,
+    "excel_kesz": true,
+    "keszult": "2026-10-02 16:39:23",
+    "utolso_futas": "-",
+    "vizsgalt_fordak": 21,
+    "eredmenyek": [
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "0960",
+        "forda": "59",
+        "rendszám": "AAHY878",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "1340",
+        "forda": "57",
+        "rendszám": "AAHY812",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "0710",
+        "forda": "24",
+        "rendszám": "PDN624",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "0710",
+        "forda": "25",
+        "rendszám": "PDN625",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "0710",
+        "forda": "23",
+        "rendszám": "PDN623",
+        "eredmény": "RENDBEN TÁROLT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "1480",
+        "forda": "23",
+        "rendszám": "AOJM873",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "1510",
+        "forda": "39",
+        "rendszám": "AOGF659",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "0350",
+        "forda": "34",
+        "rendszám": "SGY807",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "1510",
+        "forda": "22",
+        "rendszám": "AOGF671",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "1510",
+        "forda": "23",
+        "rendszám": "AOGF672",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "1510",
+        "forda": "46",
+        "rendszám": "AOIM014",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "1821",
+        "forda": "24",
+        "rendszám": "PDN622",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "1840",
+        "forda": "13",
+        "rendszám": "SGY813",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "1480",
+        "forda": "22",
+        "rendszám": "AOJM872",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "1820",
+        "forda": "21",
+        "rendszám": "PDN609",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "0250",
+        "forda": "58",
+        "rendszám": "AAHY824",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "2250",
+        "forda": "60",
+        "rendszám": "AAHY805",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "1821",
+        "forda": "23",
+        "rendszám": "PDN621",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "0360",
+        "forda": "21",
+        "rendszám": "AOIM009",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "0360",
+        "forda": "23",
+        "rendszám": "AOIM011",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      },
+      {
+        "dátum": "2026-10-02",
+        "viszonylat": "0360",
+        "forda": "22",
+        "rendszám": "AOIM010",
+        "eredmény": "ELTÉRÉS TÖRTÉNT"
+      }
+    ]
+  }
 }
