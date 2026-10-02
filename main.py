@@ -4,7 +4,6 @@
 
 # =========================================================
 # BKK FORDA → RENDSZÁM → POZÍCIÓ
-# VehiclePositions forrás: TXT (GTFS-RT text formátum)
 # GitHub Actions verzió
 # =========================================================
 
@@ -30,7 +29,6 @@ print("API-kulcs betöltve.")
 # =========================================================
 
 import requests
-import re
 import pandas as pd
 import zipfile
 import io
@@ -39,77 +37,6 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from google.transit import gtfs_realtime_pb2
-from google.protobuf import text_format
-
-
-def torol_nem_regisztralt_bkk_extensionok(szoveg):
-    """
-    A BKK VehiclePositions.txt tartalmazhat olyan egyedi protobuf
-    extension mezőket (pl. [realcity.vehicle]), amelyeket a standard
-    gtfs_realtime_pb2 modul nem regisztrál. Ezeket a downstream
-    feldolgozás nem használja, ezért csak a text-format parse előtt
-    eltávolítjuk őket.
-    """
-
-    extension = "[realcity.vehicle]"
-
-    while True:
-
-        kezdet = szoveg.find(extension)
-
-        if kezdet == -1:
-            break
-
-        kapocs = szoveg.find("{", kezdet)
-
-        if kapocs == -1:
-            szoveg = szoveg[:kezdet] + szoveg[kezdet + len(extension):]
-            continue
-
-        melyseg = 0
-        vege = None
-
-        for i in range(kapocs, len(szoveg)):
-
-            if szoveg[i] == "{":
-                melyseg += 1
-
-            elif szoveg[i] == "}":
-                melyseg -= 1
-
-                if melyseg == 0:
-                    vege = i + 1
-                    break
-
-        if vege is None:
-            # Hibás/csonka extension esetén a maradékot is eldobjuk.
-            szoveg = szoveg[:kezdet]
-            break
-
-        szoveg = szoveg[:kezdet] + szoveg[vege:]
-
-    return szoveg
-
-# =========================================================
-# TESZTIDŐ
-# =========================================================
-# True esetén a program aktuális ideje a megadott óraszámmal
-# eltolva kerül felhasználásra.
-# A BKK-ból érkező valódi GPS timestamp-eket NEM módosítjuk.
-
-TESZT_MOD = True
-TESZT_IDO_ELTOLAS_ORA = -5
-
-
-def budapesti_most():
-    """A program által használt aktuális budapesti idő."""
-    valos_ido = datetime.now(ZoneInfo("Europe/Budapest"))
-
-    if TESZT_MOD:
-        return valos_ido + timedelta(hours=TESZT_IDO_ELTOLAS_ORA)
-
-    return valos_ido
-
 
 print("Modulok betöltve.")
 
@@ -162,7 +89,9 @@ os.makedirs(
 # 3/b. AKTUÁLIS BUDAPESTI DÁTUM
 # =========================================================
 
-budapesti_datum = budapesti_most().strftime("%Y-%m-%d")
+budapesti_datum = datetime.now(
+    ZoneInfo("Europe/Budapest")
+).strftime("%Y-%m-%d")
 
 
 # =========================================================
@@ -347,7 +276,9 @@ print(
 # 5. MAI NAPHOZ TARTOZÓ GTFS TRIP-EK
 # =========================================================
 
-mai_datum = budapesti_most().strftime("%Y%m%d")
+mai_datum = datetime.now(
+    ZoneInfo("Europe/Budapest")
+).strftime("%Y%m%d")
 
 
 # ---------------------------------------------------------
@@ -595,7 +526,9 @@ def ido_konvertalasa(ertek):
 # 9/b. AKTUÁLIS BUDAPESTI DÁTUM
 # =========================================================
 
-most = budapesti_most()
+most = datetime.now(
+    ZoneInfo("Europe/Budapest")
+)
 
 ev = most.strftime("%Y")
 honap = most.strftime("%m")
@@ -968,7 +901,9 @@ import json
 # 10/a. AKTUÁLIS FÁZIS
 # =========================================================
 
-fazis_ideje = budapesti_most().time()
+fazis_ideje = datetime.now(
+    ZoneInfo("Europe/Budapest")
+).time()
 
 azonositas_idoszak = (
     time(7, 00)
@@ -1013,7 +948,9 @@ else:
 
 NAPI_ADATOK_FAJL = "napi_adatok.json"
 
-MAI_NAP = budapesti_most().strftime("%Y-%m-%d")
+MAI_NAP = datetime.now(
+    ZoneInfo("Europe/Budapest")
+).strftime("%Y-%m-%d")
 
 
 # =========================================================
@@ -1080,7 +1017,7 @@ print(
 
 url = (
     "https://go.bkk.hu/api/query/v1/ws/"
-    "gtfs-rt/full/VehiclePositions.txt"
+    "gtfs-rt/full/VehiclePositions.pb"
 )
 
 response = requests.get(
@@ -1115,9 +1052,8 @@ print(
 
 feed = gtfs_realtime_pb2.FeedMessage()
 
-text_format.Parse(
-    torol_nem_regisztralt_bkk_extensionok(response.text),
-    feed
+feed.ParseFromString(
+    response.content
 )
 
 
@@ -1194,7 +1130,9 @@ print(
 # 10/g. AKTUÁLIS IDŐ
 # =========================================================
 
-idopont = budapesti_most().strftime("%H:%M:%S")
+idopont = datetime.now(
+    ZoneInfo("Europe/Budapest")
+).strftime("%H:%M:%S")
 
 
 print()
@@ -1529,7 +1467,9 @@ print("\n=== 10:00–14:00 pozíciólekérés ===")
 # 1. Aktuális budapesti idő
 # ============================================================
 
-most = budapesti_most()
+most = datetime.now(
+    ZoneInfo("Europe/Budapest")
+)
 
 idopont = most.strftime("%H:%M:%S")
 
@@ -1537,13 +1477,13 @@ print("Pozíciólekérdezés időpontja:", idopont)
 
 
 # ============================================================
-# 2. FRISS VehiclePositions.txt lekérése
+# 2. FRISS VehiclePositions.pb lekérése
 #    Legfeljebb 3 próbálkozás
 # ============================================================
 
 url = (
     "https://go.bkk.hu/api/query/v1/ws/"
-    "gtfs-rt/full/VehiclePositions.txt"
+    "gtfs-rt/full/VehiclePositions.pb"
 )
 
 feed = None
@@ -1585,24 +1525,21 @@ for probalkozas in (
             )
 
         # ----------------------------------------------------
-        # TXT / protobuf text formátum feldolgozása
+        # Protobuf feldolgozás
         # ----------------------------------------------------
 
         feed_teszt = (
             gtfs_realtime_pb2.FeedMessage()
         )
 
-        text_format.Parse(
-            torol_nem_regisztralt_bkk_extensionok(
-                response.text
-            ),
-            feed_teszt
+        feed_teszt.ParseFromString(
+            response.content
         )
 
         # Ha idáig eljutottunk, az adat érvényes
         feed = feed_teszt
 
-        print("Érvényes GTFS-RT TXT adat érkezett.")
+        print("Érvényes GTFS-RT adat érkezett.")
 
         break
 
@@ -2446,7 +2383,7 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
         return "ELTÉRÉS TÖRTÉNT"
 
     budapest_tz = ZoneInfo("Europe/Budapest")
-    budapest_now = budapesti_most()
+    budapest_now = datetime.now(budapest_tz)
     mai_datum = budapest_now.date()
 
     kezdés_dt = datetime.combine(
@@ -2605,19 +2542,21 @@ def keszit_hidegtarolas_riport():
     Az Excelbe ugyanaz a nap csak egyszer kerül be.
     """
 
-    most = budapesti_most()
+    budapesti_most = datetime.now(
+        ZoneInfo("Europe/Budapest")
+    )
 
     # 16:30 előtt még nincs hidegtárolási riport,
     # de a HTML exportnak ettől még le kell futnia.
     # Ilyenkor egy üres riportstruktúrát adunk vissza,
     # így a mai oldal elkészülhet a nap folyamán gyűjtött adatokból.
-    if most.time() < time(16, 30):
+    if budapesti_most.time() < time(16, 30):
         return {
             "datum": MAI_NAP,
             "kesz": False,
             "excel_kesz": False,
             "keszult": "-",
-            "utolso_futas": most.strftime("%Y-%m-%d %H:%M:%S"),
+            "utolso_futas": budapesti_most.strftime("%Y-%m-%d %H:%M:%S"),
             "vizsgalt_fordak": 0,
             "eredmenyek": []
         }
@@ -2673,7 +2612,7 @@ def keszit_hidegtarolas_riport():
             "eredmény": eredmeny
         })
 
-    aktualis_futas_idopont = most.strftime(
+    aktualis_futas_idopont = budapesti_most.strftime(
         "%Y-%m-%d %H:%M:%S"
     )
 
@@ -2818,7 +2757,9 @@ def keszit_hidegtarolas_riport():
         )
 
         # A "Riport készült" időpontja az XLS export befejezési ideje.
-        riport_idopont = budapesti_most().strftime("%Y-%m-%d %H:%M:%S")
+        riport_idopont = datetime.now(
+            ZoneInfo("Europe/Budapest")
+        ).strftime("%Y-%m-%d %H:%M:%S")
 
     if excel_mar_mentve:
         # Ha a mai XLS már korábban elkészült, annak ideje maradjon.
@@ -4248,7 +4189,7 @@ ArrivaBus hidegtárolás
 """)
 
     budapest_tz = ZoneInfo("Europe/Budapest")
-    html_most = budapesti_most()
+    html_most = datetime.now(budapest_tz)
     html_ma = html_most.date()
 
     for _, sor in rendezett_sorok:
