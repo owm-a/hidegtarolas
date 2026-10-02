@@ -1098,7 +1098,9 @@ for entity in feed.entity:
 
         "megálló": v.stop_id,
 
-        "timestamp": v.timestamp
+        "timestamp": v.timestamp,
+
+        "gps_timestamp": v.timestamp
 
     })
 
@@ -1686,9 +1688,12 @@ else:
         # → utolsó ismert pozíció használata
         # ----------------------------------------------------
 
+        pozicio_frissitve = None
+
         if len(talalat) == 0:
 
             elozo_pozicio = None
+            elozo_pozicio_frissitve = None
 
             # Visszafelé keresünk, így az első találat
             # automatikusan az utolsó ismert pozíció.
@@ -1705,6 +1710,9 @@ else:
                 ):
                     elozo_pozicio = elozo.get(
                         "pozíció"
+                    )
+                    elozo_pozicio_frissitve = elozo.get(
+                        "pozicio_frissitve"
                     )
                     break
 
@@ -1723,6 +1731,7 @@ else:
 
             # Utolsó ismert pozíció használata
             pozicio = elozo_pozicio
+            pozicio_frissitve = elozo_pozicio_frissitve
 
             print(
                 f"{forda_kulcs}: "
@@ -1743,6 +1752,8 @@ else:
                 f"{rt['latitude']}, "
                 f"{rt['longitude']}"
             )
+
+            pozicio_frissitve = idopont
 
             print(
                 f"{forda_kulcs}: "
@@ -1850,6 +1861,8 @@ else:
             "rendszám": rendszam,
 
             "pozíció": pozicio,
+
+            "pozicio_frissitve": pozicio_frissitve,
 
             "ellenőrzés": ellenorzes,
 
@@ -3220,7 +3233,14 @@ def html_export():
 
                 "longitude": longitude,
 
-                "frissitve": frissitve
+                "frissitve": frissitve,
+
+                "pozicio_frissitve": str(
+                    rekord.get(
+                        "pozicio_frissitve",
+                        ""
+                    )
+                ).strip()
 
             }
 
@@ -3651,8 +3671,8 @@ td.ellenorzes {
 }
 
 .ellenorzes.sarga {
-    background: #ffd966;
-    color: #000000;
+    background: #ffd966 !important;
+    color: #000000 !important;
     font-weight: bold;
 }
 
@@ -4438,8 +4458,11 @@ terkepJarmuvek.forEach(function(jarmu) {
         + statuszSzoveg
         + "<br>"
 
-        + "<b>Utolsó ismert pozíció:</b> "
-        + escapeHtml(jarmu.frissitve)
+        + "<b>Utolsó friss GPS-pozíció:</b> "
+        + escapeHtml(
+            jarmu.pozicio_frissitve
+            || jarmu.frissitve
+        )
         + "<br>"
 
         + "<b>GPS:</b> "
