@@ -984,8 +984,9 @@ print(
 )
 
 # =========================================================
-# 10. FORDA → RENDSZÁM
-# 07:00–08:30 AZONOSÍTÁSI FÁZIS
+# =========================================================
+# 10. FORDA → RENDSZÁM + JÁRMŰ ID
+# 07:00–13:30 AZONOSÍTÁSI FÁZIS
 # =========================================================
 
 import json
@@ -997,15 +998,15 @@ import json
 fazis_ideje = budapesti_most().time()
 
 azonositas_idoszak = (
-    time(7, 00)
+    time(7, 0)
     <= fazis_ideje
     <= time(13, 30)
 )
 
 pozicio_idoszak = (
-    time(8, 0)
-    <= fazis_ideje
-    <= time(17, 00)
+    time(13, 30)
+    < fazis_ideje
+    <= time(17, 0)
 )
 
 print()
@@ -1015,26 +1016,23 @@ print(
 )
 
 if azonositas_idoszak:
-
     print(
         "Aktív fázis: 07:00–13:30 "
-        "forda → rendszám"
+        "forda → rendszám + jármű ID"
     )
-
 elif pozicio_idoszak:
-
     print(
-        "Aktív fázis: 08:00–16:30 "
-        "rendszám → pozíció"
+        "Aktív fázis: 08:00–17:00 "
+        "jármű ID → FUTÁR pozíció"
     )
-
 else:
-
     print(
         "Jelenleg nincs aktív adatgyűjtési fázis."
     )
+
+
 # =========================================================
-# 10/a. NAPI ADATFÁJL
+# 10/b. NAPI ADATFÁJL
 # =========================================================
 
 NAPI_ADATOK_FAJL = "napi_adatok.json"
@@ -1043,30 +1041,21 @@ MAI_NAP = budapesti_most().strftime("%Y-%m-%d")
 
 
 # =========================================================
-# 10/b. KORÁBBI NAPI ADATOK BETÖLTÉSE
+# 10/c. KORÁBBI NAPI ADATOK BETÖLTÉSE
 # =========================================================
 
 if os.path.exists(NAPI_ADATOK_FAJL):
-
     with open(
         NAPI_ADATOK_FAJL,
         "r",
         encoding="utf-8"
     ) as f:
-
         napi_adatok = json.load(f)
-
 else:
-
     napi_adatok = {}
 
 
-# ---------------------------------------------------------
-# Ha új nap van, új napi adatállomány indul
-# ---------------------------------------------------------
-
 if napi_adatok.get("datum") != MAI_NAP:
-
     napi_adatok = {
         "datum": MAI_NAP,
         "forda_rendszamok": {},
@@ -1075,7 +1064,7 @@ if napi_adatok.get("datum") != MAI_NAP:
 
 
 # =========================================================
-# 10/c. FORDA → RENDSZÁM ADATOK
+# 10/d. FORDA → RENDSZÁM + JÁRMŰ ID ADATOK
 # =========================================================
 
 forda_rendszamok = napi_adatok.get(
@@ -1083,25 +1072,27 @@ forda_rendszamok = napi_adatok.get(
     {}
 )
 
-
 print(
     "Napi adatfájl:",
     NAPI_ADATOK_FAJL
 )
-
 print(
     "Napi dátum:",
     MAI_NAP
 )
-
 print(
-    "Korábban mentett forda → rendszám párok:",
+    "Korábban mentett forda → rendszám + ID kapcsolatok:",
     len(forda_rendszamok)
 )
 
 
 # =========================================================
-# 10/d. AKTUÁLIS VEHICLEPOSITIONS LEKÉRÉSE
+# 10/e. GTFS-RT AZONOSÍTÁSI ADAT LEKÉRÉSE
+#
+# Fontos:
+# A GTFS-RT itt NEM pozícióforrásként szolgál.
+# Csak az aktív trip alapján azonosítjuk a járművet,
+# és elmentjük a rendszám + jármű ID párost.
 # =========================================================
 
 url = (
@@ -1116,28 +1107,21 @@ response = requests.get(
 )
 
 if response.status_code != 200:
-
     raise Exception(
         f"GTFS-RT lekérési hiba. "
         f"HTTP státusz: {response.status_code}"
     )
 
-
 print(
     "GTFS-RT HTTP státusz:",
     response.status_code
 )
-
 print(
     "Kapott adatmennyiség:",
     len(response.content),
     "byte"
 )
 
-
-# =========================================================
-# 10/e. GTFS-RT FELDOLGOZÁSA
-# =========================================================
 
 feed = gtfs_realtime_pb2.FeedMessage()
 
@@ -1146,19 +1130,17 @@ text_format.Parse(
     feed
 )
 
-
 print(
-    "Járművek száma:",
+    "GTFS-RT entitások száma:",
     len(feed.entity)
 )
 
 
 # =========================================================
-# 10/f. AKTUÁLIS RT JÁRMŰVEK
+# 10/f. GTFS-RT JÁRMŰVEK
 # =========================================================
 
 jarmuvek = []
-
 
 for entity in feed.entity:
 
@@ -1167,52 +1149,35 @@ for entity in feed.entity:
 
     v = entity.vehicle
 
+    rendszam = str(
+        v.vehicle.license_plate
+    ).strip().upper()
+
+    jarmu_id = str(
+        v.vehicle.id
+    ).strip()
+
+    trip_id = str(
+        v.trip.trip_id
+    ).strip()
+
+    if not jarmu_id or not trip_id:
+        continue
+
     jarmuvek.append({
-
-        "rendszám": (
-            str(v.vehicle.license_plate)
-            .strip()
-        ),
-
-        "jármű_id": v.vehicle.id,
-
-        "trip_id": v.trip.trip_id,
-
+        "rendszám": rendszam,
+        "jármű_id": jarmu_id,
+        "trip_id": trip_id,
         "route_id": v.trip.route_id,
-
-        "direction_id": v.trip.direction_id,
-
-        "latitude": v.position.latitude,
-
-        "longitude": v.position.longitude,
-
-        "megálló": v.stop_id,
-
-        "timestamp": v.timestamp,
-
-        "gps_timestamp": v.timestamp
-
+        "direction_id": v.trip.direction_id
     })
 
 
-jarmuvek = pd.DataFrame(
-    jarmuvek
-)
-
+jarmuvek = pd.DataFrame(jarmuvek)
 
 print(
-    "RT járművek:",
+    "GTFS-RT trip + jármű ID kapcsolatok:",
     len(jarmuvek)
-)
-
-print(
-    "Rendszámmal rendelkező járművek:",
-    jarmuvek["rendszám"]
-    .fillna("")
-    .astype(str)
-    .str.strip()
-    .ne("")
-    .sum()
 )
 
 
@@ -1222,10 +1187,9 @@ print(
 
 idopont = budapesti_most().strftime("%H:%M:%S")
 
-
 print()
 print(
-    "RT feldolgozás időpontja:",
+    "GTFS-RT azonosítás időpontja:",
     idopont
 )
 
@@ -1248,7 +1212,6 @@ mai_service_ids = set(
 
 sikeres_frissitesek = 0
 
-
 for _, forda_sor in (
     figyelt_fordak.iterrows()
     if azonositas_idoszak
@@ -1263,9 +1226,7 @@ for _, forda_sor in (
         forda_sor["forda"]
     ).strip()
 
-    forda_kulcs = (
-        f"{viszonylat}|{forda}"
-    )
+    forda_kulcs = f"{viszonylat}|{forda}"
 
 
     # -----------------------------------------------------
@@ -1289,7 +1250,6 @@ for _, forda_sor in (
         )
     ].copy()
 
-
     if len(forda_trips) == 0:
         continue
 
@@ -1299,8 +1259,7 @@ for _, forda_sor in (
     # -----------------------------------------------------
 
     forda_trip_ids = set(
-        forda_trips["trip_id"]
-        .astype(str)
+        forda_trips["trip_id"].astype(str)
     )
 
 
@@ -1314,7 +1273,6 @@ for _, forda_sor in (
         .isin(forda_trip_ids)
     ].copy()
 
-
     if len(forda_stop_times) == 0:
         continue
 
@@ -1325,10 +1283,7 @@ for _, forda_sor in (
 
     forda_idok = (
         forda_stop_times
-        .groupby(
-            "trip_id",
-            sort=False
-        )
+        .groupby("trip_id", sort=False)
         .agg(
             kezdet=("departure_time", "min"),
             vége=("arrival_time", "max")
@@ -1358,89 +1313,94 @@ for _, forda_sor in (
         (forda_idok["vége"] >= idopont)
     ].copy()
 
-
     if len(aktiv_trip) == 0:
         continue
 
 
     # -----------------------------------------------------
-    # Aktív trip → RT jármű
+    # Aktív trip → GTFS-RT jármű
     # -----------------------------------------------------
 
     keresett_trip_ids = set(
-        aktiv_trip["trip_id"]
-        .astype(str)
+        aktiv_trip["trip_id"].astype(str)
     )
 
-
     rt_talalatok = jarmuvek[
-        jarmuvek["trip_id"]
-        .astype(str)
+        jarmuvek["trip_id"].astype(str)
         .isin(keresett_trip_ids)
     ].copy()
 
-
     if len(rt_talalatok) == 0:
+        print(
+            f"{forda_kulcs}: nincs GTFS-RT találat, "
+            f"korábbi rendszám + ID megmarad."
+        )
         continue
 
 
     # -----------------------------------------------------
     # SIKERES TALÁLAT
     #
-    # Csak sikeres találat esetén írjuk felül
-    # a korábbi rendszámot.
+    # A GTFS-RT adja a rendszámot ÉS a jármű ID-t.
+    # Csak érvényes páros esetén írjuk felül a mentett adatot.
     # -----------------------------------------------------
 
     for _, rt in rt_talalatok.iterrows():
 
         rendszam = str(
             rt["rendszám"]
+        ).strip().upper()
+
+        jarmu_id = str(
+            rt["jármű_id"]
         ).strip()
 
-
-        if rendszam == "":
+        if not rendszam or not jarmu_id:
             continue
 
+        elozo = forda_rendszamok.get(
+            forda_kulcs,
+            {}
+        )
 
-        # -------------------------------------------------
-        # Sikeres rendszámmentés
-        # -------------------------------------------------
+        if (
+            str(elozo.get("rendszám", "")).strip().upper()
+            == rendszam
+            and
+            str(elozo.get("jármű_id", "")).strip()
+            == jarmu_id
+        ):
+            print(
+                f"{forda_kulcs}: változatlan azonosítás → "
+                f"{rendszam} / BKK_{jarmu_id}"
+            )
+        else:
+            print(
+                f"{forda_kulcs}: új azonosítás → "
+                f"{rendszam} / BKK_{jarmu_id}"
+            )
 
         forda_rendszamok[forda_kulcs] = {
-
             "viszonylat": viszonylat,
-
             "forda": forda,
-
             "kezdés": (
                 forda_sor["kezdés"].strftime("%H:%M:%S")
                 if pd.notna(forda_sor["kezdés"])
                 else None
             ),
-
             "végzés": (
                 forda_sor["végzés"].strftime("%H:%M:%S")
                 if pd.notna(forda_sor["végzés"])
                 else None
             ),
-
-            "hely": str(
-                forda_sor["hely"]
-            ),
-
-            "helyszín": str(
-                forda_sor["helyszín"]
-            ),
-
+            "hely": str(forda_sor["hely"]),
+            "helyszín": str(forda_sor["helyszín"]),
             "rendszám": rendszam,
-
+            "jármű_id": jarmu_id,
             "frissítve": idopont
-
         }
 
-
         sikeres_frissitesek += 1
-
         break
 
 
@@ -1449,18 +1409,13 @@ for _, forda_sor in (
 # =========================================================
 
 napi_adatok["datum"] = MAI_NAP
-
-napi_adatok["forda_rendszamok"] = (
-    forda_rendszamok
-)
-
+napi_adatok["forda_rendszamok"] = forda_rendszamok
 
 with open(
     NAPI_ADATOK_FAJL,
     "w",
     encoding="utf-8"
 ) as f:
-
     json.dump(
         napi_adatok,
         f,
@@ -1476,16 +1431,14 @@ with open(
 print()
 print(
     "Sikeres új/megújított "
-    "forda → rendszám találatok:",
+    "forda → rendszám + jármű ID találatok:",
     sikeres_frissitesek
 )
-
 print(
     "Összes mentett "
-    "forda → rendszám kapcsolat:",
+    "forda → rendszám + jármű ID kapcsolat:",
     len(forda_rendszamok)
 )
-
 
 if len(forda_rendszamok) > 0:
 
@@ -1493,312 +1446,305 @@ if len(forda_rendszamok) > 0:
         list(forda_rendszamok.values())
     )
 
+    oszlopok = [
+        "viszonylat",
+        "forda",
+        "kezdés",
+        "végzés",
+        "hely",
+        "helyszín",
+        "rendszám",
+        "jármű_id",
+        "frissítve"
+    ]
+
     rt_fordak = rt_fordak[
-        [
-            "viszonylat",
-            "forda",
-            "kezdés",
-            "végzés",
-            "hely",
-            "helyszín",
-            "rendszám",
-            "frissítve"
-        ]
+        [x for x in oszlopok if x in rt_fordak.columns]
     ]
 
     rt_fordak = rt_fordak.sort_values(
-        by=[
-            "viszonylat",
-            "forda"
-        ]
+        by=["viszonylat", "forda"]
     ).reset_index(drop=True)
-
 
     print()
     print(
-        "Mentett forda → rendszám párok:"
+        "Mentett forda → rendszám + jármű ID kapcsolatok:"
     )
-
     print(
-        rt_fordak.to_string(
-            index=False
-        )
+        rt_fordak.to_string(index=False)
     )
 
 else:
-
     rt_fordak = pd.DataFrame()
-
     print()
     print(
         "Még nincs sikeresen azonosított "
-        "forda → rendszám kapcsolat."
+        "forda → rendszám + jármű ID kapcsolat."
     )
-
 # ============================================================
-# 10:00–14:00
-# RENDSZÁM → AKTUÁLIS POZÍCIÓ
-# MINDEN SIKERES LEKÉRDEZÉS KÜLÖN REKORD
+# 08:00–17:00
+# JÁRMŰ ID → FUTÁR AKTUÁLIS POZÍCIÓ
+#
+# Azonosítás: GTFS-RT
+# Pozíció: FUTÁR vehicles-for-location
+# Megjelenített adat: rendszám
 # ============================================================
 
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import requests
-import pandas as pd
-import time as time_module
 
 
-print("\n=== 10:00–14:00 pozíciólekérés ===")
-
-
-# ============================================================
-# 1. Aktuális budapesti idő
-# ============================================================
+print("\n=== FUTÁR pozíciólekérés ===")
 
 most = budapesti_most()
-
 idopont = most.strftime("%H:%M:%S")
 
-print("Pozíciólekérdezés időpontja:", idopont)
-
-
-# ============================================================
-# 2. FRISS VehiclePositions.txt lekérése
-#    Legfeljebb 3 próbálkozás
-# ============================================================
-
-url = (
-    "https://go.bkk.hu/api/query/v1/ws/"
-    "gtfs-rt/full/VehiclePositions.txt"
+print(
+    "Pozíciólekérdezés időpontja:",
+    idopont
 )
 
-feed = None
 
-for probalkozas in (
-    range(1, 4)
-    if pozicio_idoszak
-    else []
-):
+# ============================================================
+# 1. POZÍCIÓTÖRTÉNET BETÖLTÉSE
+# ============================================================
 
-    print(
-        f"VehiclePositions lekérés "
-        f"({probalkozas}/3)..."
-    )
+pozicio_tortenet = napi_adatok.get(
+    "pozicio_tortenet",
+    []
+)
 
-    try:
-
-        response = requests.get(
-            url,
-            params={"key": API_KEY},
-            timeout=30
-        )
-
-        print(
-            "HTTP státusz:",
-            response.status_code
-        )
-
-        print(
-            "Kapott adatmennyiség:",
-            len(response.content),
-            "byte"
-        )
-
-        if response.status_code != 200:
-            raise Exception(
-                f"HTTP hiba: "
-                f"{response.status_code}"
-            )
-
-        # ----------------------------------------------------
-        # TXT / protobuf text formátum feldolgozása
-        # ----------------------------------------------------
-
-        feed_teszt = (
-            gtfs_realtime_pb2.FeedMessage()
-        )
-
-        text_format.Parse(
-            torol_nem_regisztralt_bkk_extensionok(
-                response.text
-            ),
-            feed_teszt
-        )
-
-        # Ha idáig eljutottunk, az adat érvényes
-        feed = feed_teszt
-
-        print("Érvényes GTFS-RT TXT adat érkezett.")
-
-        break
-
-    except Exception as e:
-
-        print(
-            f"VehiclePositions hiba: {e}"
-        )
-
-        if probalkozas < 3:
-
-            print(
-                "Újrapróbálkozás 2 másodperc múlva..."
-            )
-
-            time_module.sleep(2)
-
-        else:
-
-            print(
-                "A 3 próbálkozás mind sikertelen."
-            )
+uj_poziciok = 0
 
 
 # ============================================================
-# 3. Ha egyik lekérés sem sikerült
+# 2. FUTÁR vehicles-for-location LEKÉRÉSE
+#
+# Egyetlen lekérésből megkapjuk a körzetben lévő járműveket.
+# A routeId / tripId hiánya nem probléma: nekünk a
+# vehicleId + location kell.
 # ============================================================
 
-if feed is None:
+FUTAR_URL = (
+    "https://go.bkk.hu/api/query/v1/ws/otp/api/where/"
+    "vehicles-for-location.json"
+)
 
-    print(
-        "Nincs feldolgozható VehiclePositions adat."
-    )
+FUTAR_LAT = 47.4979
+FUTAR_LON = 19.0402
+FUTAR_RADIUS = 15000
 
-    # Nincs új pozíciórekord,
-    # de a korábban mentett adatok megmaradnak.
+futar_jarmuvek = {}
+futar_sikeres = False
 
-    napi_adatok["pozicio_tortenet"] = (
-        napi_adatok.get(
-            "pozicio_tortenet",
-            []
-        )
-    )
+if pozicio_idoszak:
 
-    with open(
-        NAPI_ADATOK_FAJL,
-        "w",
-        encoding="utf-8"
-    ) as f:
+    for probalkozas in range(1, 4):
 
-        json.dump(
-            napi_adatok,
-            f,
-            ensure_ascii=False,
-            indent=2
+        print(
+            f"FUTÁR vehicles-for-location lekérés "
+            f"({probalkozas}/3)..."
         )
 
-    print(
-        "A korábbi pozíciótörténet változatlanul mentve."
-    )
+        try:
+            response = requests.get(
+                FUTAR_URL,
+                params={
+                    "key": API_KEY,
+                    "lat": FUTAR_LAT,
+                    "lon": FUTAR_LON,
+                    "radius": FUTAR_RADIUS
+                },
+                timeout=30
+            )
+
+            print(
+                "HTTP státusz:",
+                response.status_code
+            )
+
+            if response.status_code != 200:
+                raise Exception(
+                    f"HTTP hiba: {response.status_code}"
+                )
+
+            adat = response.json()
+
+            lista = (
+                adat.get("data", {})
+                .get("list", [])
+            )
+
+            for jarmu in lista:
+
+                vehicle_id = str(
+                    jarmu.get("vehicleId", "")
+                ).strip()
+
+                if not vehicle_id:
+                    continue
+
+                futar_jarmuvek[vehicle_id] = jarmu
+
+            futar_sikeres = True
+
+            print(
+                "FUTÁR járművek száma:",
+                len(futar_jarmuvek)
+            )
+
+            break
+
+        except Exception as e:
+
+            print(
+                "FUTÁR lekérési hiba:",
+                e
+            )
 
 else:
-
-    # ========================================================
-    # 4. Aktuális rendszámok és pozíciók
-    # ========================================================
-
-    jarmuvek = []
-
-    for entity in feed.entity:
-
-        if not entity.HasField("vehicle"):
-            continue
-
-        v = entity.vehicle
-
-        rendszam = (
-            str(v.vehicle.license_plate)
-            .strip()
-            .upper()
-        )
-
-        if not rendszam:
-            continue
-
-        # Csak olyan jármű kell,
-        # amelyhez van pozícióadat.
-
-        if not v.HasField("position"):
-            continue
-
-        jarmuvek.append({
-            "rendszám": rendszam,
-            "latitude": v.position.latitude,
-            "longitude": v.position.longitude,
-            "timestamp": v.timestamp,
-            "gps_timestamp": v.timestamp
-        })
-
-
-    jarmuvek = pd.DataFrame(
-        jarmuvek
-    )
-
     print(
-        "Rendszámmal rendelkező "
-        "RT-járművek:",
-        len(jarmuvek)
+        "A pozíciólekérési időszak jelenleg nem aktív."
     )
 
 
-    # ========================================================
-    # 5. Pozíciótörténet betöltése a napi JSON-ból
-    # ========================================================
+# ============================================================
+# 3. SEGÉDFÜGGVÉNY: FUTÁR FRISSÍTÉSI IDŐ
+# ============================================================
 
-    pozicio_tortenet = (
-        napi_adatok.get(
-            "pozicio_tortenet",
-            []
-        )
-    )
+def futar_idopont(last_update):
 
+    if last_update in (None, "", 0):
+        return None
 
-    # ========================================================
-    # 6. A rögzített rendszámok keresése
-    # ========================================================
+    try:
+        ertek = int(float(last_update))
 
-    uj_poziciok = 0
+        # Másodperc vagy milliszekundum kezelése.
+        if ertek > 100_000_000_000:
+            ertek //= 1000
 
-    for forda_kulcs, adat in (
-        forda_rendszamok.items()
+        return datetime.fromtimestamp(
+            ertek,
+            tz=ZoneInfo("Europe/Budapest")
+        ).strftime("%H:%M")
+
+    except (
+        ValueError,
+        TypeError,
+        OverflowError,
+        OSError
     ):
+        return None
 
-        rendszam = (
-            str(adat["rendszám"])
-            .strip()
-            .upper()
+
+# ============================================================
+# 4. MENTETT FORDÁK POZÍCIÓJÁNAK FRISSÍTÉSE
+# ============================================================
+
+if pozicio_idoszak:
+
+    for forda_kulcs, adat in forda_rendszamok.items():
+
+        rendszam = str(
+            adat.get("rendszám", "")
+        ).strip().upper()
+
+        jarmu_id = str(
+            adat.get("jármű_id", "")
+        ).strip()
+
+        if not rendszam or not jarmu_id:
+            print(
+                f"{forda_kulcs}: nincs mentett rendszám + jármű ID, "
+                f"pozíció nem kérhető."
+            )
+            continue
+
+        # A GTFS-RT-ben kapott ID-t a FUTÁR BKK_<id> formában használja.
+        futar_id = jarmu_id
+        if not futar_id.upper().startswith("BKK_"):
+            futar_id = f"BKK_{futar_id}"
+
+        jarmu = futar_jarmuvek.get(
+            futar_id
         )
 
-        talalat = jarmuvek[
-            jarmuvek["rendszám"] == rendszam
-        ]
-
-
-        # ----------------------------------------------------
-        # Nincs aktuális RT találat
-        #
-        # → utolsó ismert pozíció használata
-        # ----------------------------------------------------
-
+        pozicio = None
         pozicio_frissitve = None
 
-        if len(talalat) == 0:
+        # ----------------------------------------------------
+        # Aktuális FUTÁR pozíció
+        # ----------------------------------------------------
+
+        if jarmu is not None:
+
+            location = jarmu.get(
+                "location"
+            ) or {}
+
+            try:
+                latitude = float(
+                    location.get("lat")
+                )
+                longitude = float(
+                    location.get("lon")
+                )
+
+                pozicio = (
+                    f"{latitude}, {longitude}"
+                )
+
+                pozicio_frissitve = futar_idopont(
+                    jarmu.get("lastUpdateTime")
+                )
+
+                if not pozicio_frissitve:
+                    pozicio_frissitve = idopont[:5]
+
+                futar_rendszam = str(
+                    jarmu.get("licensePlate", "")
+                ).strip().upper()
+
+                if (
+                    futar_rendszam
+                    and futar_rendszam != rendszam
+                ):
+                    print(
+                        f"FIGYELEM {forda_kulcs}: mentett rendszám "
+                        f"{rendszam}, FUTÁR rendszám {futar_rendszam}"
+                    )
+
+                print(
+                    f"{forda_kulcs}: {rendszam} / {futar_id} → "
+                    f"{pozicio}"
+                )
+
+            except (
+                ValueError,
+                TypeError
+            ):
+                pozicio = None
+
+
+        # ----------------------------------------------------
+        # Nincs aktuális FUTÁR találat → utolsó ismert pozíció
+        # ----------------------------------------------------
+
+        if pozicio is None:
 
             elozo_pozicio = None
             elozo_pozicio_frissitve = None
 
-            # Visszafelé keresünk, így az első találat
-            # automatikusan az utolsó ismert pozíció.
+            # Elsődlegesen jármű ID alapján keresünk.
             for elozo in reversed(pozicio_tortenet):
 
-                if (
-                    str(
-                        elozo.get(
-                            "rendszám",
-                            ""
-                        )
-                    ).strip().upper()
-                    == rendszam
-                ):
+                elozo_id = str(
+                    elozo.get("jármű_id", "")
+                ).strip()
+
+                if elozo_id and elozo_id == jarmu_id:
                     elozo_pozicio = elozo.get(
                         "pozíció"
                     )
@@ -1807,57 +1753,40 @@ else:
                     )
                     break
 
+            # Régi, jármű ID nélküli rekordokhoz rendszám alapján
+            # visszafelé keresünk kompatibilitás miatt.
+            if elozo_pozicio is None:
 
-            # Ha még soha nem volt pozíció ehhez a járműhöz
+                for elozo in reversed(pozicio_tortenet):
+
+                    elozo_rendszam = str(
+                        elozo.get("rendszám", "")
+                    ).strip().upper()
+
+                    if elozo_rendszam == rendszam:
+                        elozo_pozicio = elozo.get(
+                            "pozíció"
+                        )
+                        elozo_pozicio_frissitve = elozo.get(
+                            "pozicio_frissitve"
+                        )
+                        break
+
             if elozo_pozicio is None:
 
                 print(
-                    f"{forda_kulcs}: "
-                    f"{rendszam} – nincs RT találat, "
-                    f"korábbi pozíció sincs"
+                    f"{forda_kulcs}: {rendszam} / {futar_id} – "
+                    f"nincs FUTÁR találat, korábbi pozíció sincs"
                 )
 
                 continue
 
-
-            # Utolsó ismert pozíció használata
             pozicio = elozo_pozicio
             pozicio_frissitve = elozo_pozicio_frissitve
 
             print(
-                f"{forda_kulcs}: "
-                f"{rendszam} – nincs RT találat, "
-                f"utolsó ismert pozíció: {pozicio}"
-            )
-
-
-        # ----------------------------------------------------
-        # Van aktuális RT találat
-        # ----------------------------------------------------
-
-        else:
-
-            rt = talalat.iloc[0]
-
-            pozicio = (
-                f"{rt['latitude']}, "
-                f"{rt['longitude']}"
-            )
-
-            # A ténylegesen friss RT GPS-adat időpontja.
-            # A BKK GTFS-RT timestamp Unix időbélyeg.
-            try:
-                rt_timestamp = int(rt["timestamp"])
-                pozicio_frissitve = datetime.fromtimestamp(
-                    rt_timestamp,
-                    tz=ZoneInfo("Europe/Budapest")
-                ).strftime("%H:%M")
-            except (ValueError, TypeError, OverflowError):
-                pozicio_frissitve = idopont[:5]
-
-            print(
-                f"{forda_kulcs}: "
-                f"{rendszam} → "
+                f"{forda_kulcs}: {rendszam} / {futar_id} – "
+                f"nincs aktuális FUTÁR adat, utolsó ismert pozíció: "
                 f"{pozicio}"
             )
 
@@ -1868,31 +1797,19 @@ else:
 
         ellenorzes = "-"
 
-        # Csak akkor ellenőrizzük a helyszínt,
-        # ha a forda az adott időpontban aktív
-
-        if not forda_aktiv_e(
+        if forda_aktiv_e(
             adat["kezdés"],
             adat["végzés"],
             idopont
         ):
 
-            ellenorzes = "-"
-
-        else:
-
             helyszin_kulcs = str(
-                adat.get(
-                    "helyszín",
-                    ""
-                )
+                adat.get("helyszín", "")
             ).strip()
-
 
             if helyszin_kulcs in HELYSZINEK:
 
                 try:
-
                     latitude_szoveg, longitude_szoveg = (
                         pozicio.split(",", 1)
                     )
@@ -1921,116 +1838,73 @@ else:
                         <= helyszin["lon_max"]
                     )
 
-                    if lat_benne and lon_benne:
-
-                        ellenorzes = "OK"
-
-                    else:
-
-                        ellenorzes = "NEM"
+                    ellenorzes = (
+                        "OK"
+                        if lat_benne and lon_benne
+                        else "NEM"
+                    )
 
                 except (
                     ValueError,
                     TypeError
                 ):
-
                     ellenorzes = "-"
 
 
         # ----------------------------------------------------
         # ÚJ történeti rekord
-        #
-        # Friss RT pozíció vagy utolsó ismert pozíció.
-        # Az OK/NEM eredmény is mentésre kerül.
         # ----------------------------------------------------
 
         pozicio_tortenet.append({
-
             "viszonylat": adat["viszonylat"],
-
             "forda": adat["forda"],
-
             "kezdés": adat["kezdés"],
-
             "végzés": adat["végzés"],
-
             "hely": adat["hely"],
-
             "helyszín": adat["helyszín"],
-
             "rendszám": rendszam,
-
+            "jármű_id": jarmu_id,
             "pozíció": pozicio,
-
             "pozicio_frissitve": pozicio_frissitve,
-
             "ellenőrzés": ellenorzes,
-
             "frissítve": idopont
         })
 
-
         uj_poziciok += 1
 
-        print(
-            f"{forda_kulcs}: "
-            f"{rendszam} → "
-            f"{pozicio}"
-        )
-
-
-    # ========================================================
-    # 7. JSON frissítése
-    # ========================================================
-
-    napi_adatok["datum"] = MAI_NAP
-
-    napi_adatok["forda_rendszamok"] = (
-        forda_rendszamok
-    )
-
-    napi_adatok["pozicio_tortenet"] = (
-        pozicio_tortenet
-    )
-
-
-    with open(
-        NAPI_ADATOK_FAJL,
-        "w",
-        encoding="utf-8"
-    ) as f:
-
-        json.dump(
-            napi_adatok,
-            f,
-            ensure_ascii=False,
-            indent=2
-        )
-
-
-    # ========================================================
-    # 8. Összesítés
-    # ========================================================
-
-    print()
-
-    print(
-        "Új pozíciórekordok:",
-        uj_poziciok
-    )
-
-    print(
-        "Összes pozíciórekord:",
-        len(pozicio_tortenet)
-    )
-
-    print(
-        "napi_adatok.json frissítve."
-    )
-
-#---------------------------------------------------------------------------------------------------------------
 
 # ============================================================
+# 5. NAPI ADATOK MENTÉSE
+# ============================================================
+
+napi_adatok["datum"] = MAI_NAP
+napi_adatok["forda_rendszamok"] = forda_rendszamok
+napi_adatok["pozicio_tortenet"] = pozicio_tortenet
+
+with open(
+    NAPI_ADATOK_FAJL,
+    "w",
+    encoding="utf-8"
+) as f:
+    json.dump(
+        napi_adatok,
+        f,
+        ensure_ascii=False,
+        indent=2
+    )
+
+print()
+print(
+    "Új pozíciórekordok:",
+    uj_poziciok
+)
+print(
+    "Összes pozíciórekord:",
+    len(pozicio_tortenet)
+)
+print(
+    "napi_adatok.json frissítve."
+)
 # HELYSZÍN ELLENŐRZÉS
 # ============================================================
 
@@ -5747,8 +5621,8 @@ print(
 )
 
 # =========================================================
-# 10. FORDA → RENDSZÁM
-# 07:00–08:30 AZONOSÍTÁSI FÁZIS
+# 10. FORDA → RENDSZÁM + JÁRMŰ ID
+# 07:00–13:30 AZONOSÍTÁSI FÁZIS
 # =========================================================
 
 import json
@@ -5760,15 +5634,15 @@ import json
 fazis_ideje = budapesti_most().time()
 
 azonositas_idoszak = (
-    time(7, 00)
+    time(7, 0)
     <= fazis_ideje
     <= time(13, 30)
 )
 
 pozicio_idoszak = (
-    time(8, 0)
-    <= fazis_ideje
-    <= time(16, 30)
+    time(13, 30)
+    < fazis_ideje
+    <= time(17, 0)
 )
 
 print()
@@ -5778,26 +5652,23 @@ print(
 )
 
 if azonositas_idoszak:
-
     print(
         "Aktív fázis: 07:00–13:30 "
-        "forda → rendszám"
+        "forda → rendszám + jármű ID"
     )
-
 elif pozicio_idoszak:
-
     print(
-        "Aktív fázis: 08:00–16:30 "
-        "rendszám → pozíció"
+        "Aktív fázis: 08:00–17:00 "
+        "jármű ID → FUTÁR pozíció"
     )
-
 else:
-
     print(
         "Jelenleg nincs aktív adatgyűjtési fázis."
     )
+
+
 # =========================================================
-# 10/a. NAPI ADATFÁJL
+# 10/b. NAPI ADATFÁJL
 # =========================================================
 
 NAPI_ADATOK_FAJL = "napi_adatok.json"
@@ -5806,30 +5677,21 @@ MAI_NAP = budapesti_most().strftime("%Y-%m-%d")
 
 
 # =========================================================
-# 10/b. KORÁBBI NAPI ADATOK BETÖLTÉSE
+# 10/c. KORÁBBI NAPI ADATOK BETÖLTÉSE
 # =========================================================
 
 if os.path.exists(NAPI_ADATOK_FAJL):
-
     with open(
         NAPI_ADATOK_FAJL,
         "r",
         encoding="utf-8"
     ) as f:
-
         napi_adatok = json.load(f)
-
 else:
-
     napi_adatok = {}
 
 
-# ---------------------------------------------------------
-# Ha új nap van, új napi adatállomány indul
-# ---------------------------------------------------------
-
 if napi_adatok.get("datum") != MAI_NAP:
-
     napi_adatok = {
         "datum": MAI_NAP,
         "forda_rendszamok": {},
@@ -5838,7 +5700,7 @@ if napi_adatok.get("datum") != MAI_NAP:
 
 
 # =========================================================
-# 10/c. FORDA → RENDSZÁM ADATOK
+# 10/d. FORDA → RENDSZÁM + JÁRMŰ ID ADATOK
 # =========================================================
 
 forda_rendszamok = napi_adatok.get(
@@ -5846,25 +5708,27 @@ forda_rendszamok = napi_adatok.get(
     {}
 )
 
-
 print(
     "Napi adatfájl:",
     NAPI_ADATOK_FAJL
 )
-
 print(
     "Napi dátum:",
     MAI_NAP
 )
-
 print(
-    "Korábban mentett forda → rendszám párok:",
+    "Korábban mentett forda → rendszám + ID kapcsolatok:",
     len(forda_rendszamok)
 )
 
 
 # =========================================================
-# 10/d. AKTUÁLIS VEHICLEPOSITIONS LEKÉRÉSE
+# 10/e. GTFS-RT AZONOSÍTÁSI ADAT LEKÉRÉSE
+#
+# Fontos:
+# A GTFS-RT itt NEM pozícióforrásként szolgál.
+# Csak az aktív trip alapján azonosítjuk a járművet,
+# és elmentjük a rendszám + jármű ID párost.
 # =========================================================
 
 url = (
@@ -5879,28 +5743,21 @@ response = requests.get(
 )
 
 if response.status_code != 200:
-
     raise Exception(
         f"GTFS-RT lekérési hiba. "
         f"HTTP státusz: {response.status_code}"
     )
 
-
 print(
     "GTFS-RT HTTP státusz:",
     response.status_code
 )
-
 print(
     "Kapott adatmennyiség:",
     len(response.content),
     "byte"
 )
 
-
-# =========================================================
-# 10/e. GTFS-RT FELDOLGOZÁSA
-# =========================================================
 
 feed = gtfs_realtime_pb2.FeedMessage()
 
@@ -5909,19 +5766,17 @@ text_format.Parse(
     feed
 )
 
-
 print(
-    "Járművek száma:",
+    "GTFS-RT entitások száma:",
     len(feed.entity)
 )
 
 
 # =========================================================
-# 10/f. AKTUÁLIS RT JÁRMŰVEK
+# 10/f. GTFS-RT JÁRMŰVEK
 # =========================================================
 
 jarmuvek = []
-
 
 for entity in feed.entity:
 
@@ -5930,52 +5785,35 @@ for entity in feed.entity:
 
     v = entity.vehicle
 
+    rendszam = str(
+        v.vehicle.license_plate
+    ).strip().upper()
+
+    jarmu_id = str(
+        v.vehicle.id
+    ).strip()
+
+    trip_id = str(
+        v.trip.trip_id
+    ).strip()
+
+    if not jarmu_id or not trip_id:
+        continue
+
     jarmuvek.append({
-
-        "rendszám": (
-            str(v.vehicle.license_plate)
-            .strip()
-        ),
-
-        "jármű_id": v.vehicle.id,
-
-        "trip_id": v.trip.trip_id,
-
+        "rendszám": rendszam,
+        "jármű_id": jarmu_id,
+        "trip_id": trip_id,
         "route_id": v.trip.route_id,
-
-        "direction_id": v.trip.direction_id,
-
-        "latitude": v.position.latitude,
-
-        "longitude": v.position.longitude,
-
-        "megálló": v.stop_id,
-
-        "timestamp": v.timestamp,
-
-        "gps_timestamp": v.timestamp
-
+        "direction_id": v.trip.direction_id
     })
 
 
-jarmuvek = pd.DataFrame(
-    jarmuvek
-)
-
+jarmuvek = pd.DataFrame(jarmuvek)
 
 print(
-    "RT járművek:",
+    "GTFS-RT trip + jármű ID kapcsolatok:",
     len(jarmuvek)
-)
-
-print(
-    "Rendszámmal rendelkező járművek:",
-    jarmuvek["rendszám"]
-    .fillna("")
-    .astype(str)
-    .str.strip()
-    .ne("")
-    .sum()
 )
 
 
@@ -5985,10 +5823,9 @@ print(
 
 idopont = budapesti_most().strftime("%H:%M:%S")
 
-
 print()
 print(
-    "RT feldolgozás időpontja:",
+    "GTFS-RT azonosítás időpontja:",
     idopont
 )
 
@@ -6011,7 +5848,6 @@ mai_service_ids = set(
 
 sikeres_frissitesek = 0
 
-
 for _, forda_sor in (
     figyelt_fordak.iterrows()
     if azonositas_idoszak
@@ -6026,9 +5862,7 @@ for _, forda_sor in (
         forda_sor["forda"]
     ).strip()
 
-    forda_kulcs = (
-        f"{viszonylat}|{forda}"
-    )
+    forda_kulcs = f"{viszonylat}|{forda}"
 
 
     # -----------------------------------------------------
@@ -6052,7 +5886,6 @@ for _, forda_sor in (
         )
     ].copy()
 
-
     if len(forda_trips) == 0:
         continue
 
@@ -6062,8 +5895,7 @@ for _, forda_sor in (
     # -----------------------------------------------------
 
     forda_trip_ids = set(
-        forda_trips["trip_id"]
-        .astype(str)
+        forda_trips["trip_id"].astype(str)
     )
 
 
@@ -6077,7 +5909,6 @@ for _, forda_sor in (
         .isin(forda_trip_ids)
     ].copy()
 
-
     if len(forda_stop_times) == 0:
         continue
 
@@ -6088,10 +5919,7 @@ for _, forda_sor in (
 
     forda_idok = (
         forda_stop_times
-        .groupby(
-            "trip_id",
-            sort=False
-        )
+        .groupby("trip_id", sort=False)
         .agg(
             kezdet=("departure_time", "min"),
             vége=("arrival_time", "max")
@@ -6121,89 +5949,94 @@ for _, forda_sor in (
         (forda_idok["vége"] >= idopont)
     ].copy()
 
-
     if len(aktiv_trip) == 0:
         continue
 
 
     # -----------------------------------------------------
-    # Aktív trip → RT jármű
+    # Aktív trip → GTFS-RT jármű
     # -----------------------------------------------------
 
     keresett_trip_ids = set(
-        aktiv_trip["trip_id"]
-        .astype(str)
+        aktiv_trip["trip_id"].astype(str)
     )
 
-
     rt_talalatok = jarmuvek[
-        jarmuvek["trip_id"]
-        .astype(str)
+        jarmuvek["trip_id"].astype(str)
         .isin(keresett_trip_ids)
     ].copy()
 
-
     if len(rt_talalatok) == 0:
+        print(
+            f"{forda_kulcs}: nincs GTFS-RT találat, "
+            f"korábbi rendszám + ID megmarad."
+        )
         continue
 
 
     # -----------------------------------------------------
     # SIKERES TALÁLAT
     #
-    # Csak sikeres találat esetén írjuk felül
-    # a korábbi rendszámot.
+    # A GTFS-RT adja a rendszámot ÉS a jármű ID-t.
+    # Csak érvényes páros esetén írjuk felül a mentett adatot.
     # -----------------------------------------------------
 
     for _, rt in rt_talalatok.iterrows():
 
         rendszam = str(
             rt["rendszám"]
+        ).strip().upper()
+
+        jarmu_id = str(
+            rt["jármű_id"]
         ).strip()
 
-
-        if rendszam == "":
+        if not rendszam or not jarmu_id:
             continue
 
+        elozo = forda_rendszamok.get(
+            forda_kulcs,
+            {}
+        )
 
-        # -------------------------------------------------
-        # Sikeres rendszámmentés
-        # -------------------------------------------------
+        if (
+            str(elozo.get("rendszám", "")).strip().upper()
+            == rendszam
+            and
+            str(elozo.get("jármű_id", "")).strip()
+            == jarmu_id
+        ):
+            print(
+                f"{forda_kulcs}: változatlan azonosítás → "
+                f"{rendszam} / BKK_{jarmu_id}"
+            )
+        else:
+            print(
+                f"{forda_kulcs}: új azonosítás → "
+                f"{rendszam} / BKK_{jarmu_id}"
+            )
 
         forda_rendszamok[forda_kulcs] = {
-
             "viszonylat": viszonylat,
-
             "forda": forda,
-
             "kezdés": (
                 forda_sor["kezdés"].strftime("%H:%M:%S")
                 if pd.notna(forda_sor["kezdés"])
                 else None
             ),
-
             "végzés": (
                 forda_sor["végzés"].strftime("%H:%M:%S")
                 if pd.notna(forda_sor["végzés"])
                 else None
             ),
-
-            "hely": str(
-                forda_sor["hely"]
-            ),
-
-            "helyszín": str(
-                forda_sor["helyszín"]
-            ),
-
+            "hely": str(forda_sor["hely"]),
+            "helyszín": str(forda_sor["helyszín"]),
             "rendszám": rendszam,
-
+            "jármű_id": jarmu_id,
             "frissítve": idopont
-
         }
 
-
         sikeres_frissitesek += 1
-
         break
 
 
@@ -6212,18 +6045,13 @@ for _, forda_sor in (
 # =========================================================
 
 napi_adatok["datum"] = MAI_NAP
-
-napi_adatok["forda_rendszamok"] = (
-    forda_rendszamok
-)
-
+napi_adatok["forda_rendszamok"] = forda_rendszamok
 
 with open(
     NAPI_ADATOK_FAJL,
     "w",
     encoding="utf-8"
 ) as f:
-
     json.dump(
         napi_adatok,
         f,
@@ -6239,16 +6067,14 @@ with open(
 print()
 print(
     "Sikeres új/megújított "
-    "forda → rendszám találatok:",
+    "forda → rendszám + jármű ID találatok:",
     sikeres_frissitesek
 )
-
 print(
     "Összes mentett "
-    "forda → rendszám kapcsolat:",
+    "forda → rendszám + jármű ID kapcsolat:",
     len(forda_rendszamok)
 )
-
 
 if len(forda_rendszamok) > 0:
 
@@ -6256,312 +6082,305 @@ if len(forda_rendszamok) > 0:
         list(forda_rendszamok.values())
     )
 
+    oszlopok = [
+        "viszonylat",
+        "forda",
+        "kezdés",
+        "végzés",
+        "hely",
+        "helyszín",
+        "rendszám",
+        "jármű_id",
+        "frissítve"
+    ]
+
     rt_fordak = rt_fordak[
-        [
-            "viszonylat",
-            "forda",
-            "kezdés",
-            "végzés",
-            "hely",
-            "helyszín",
-            "rendszám",
-            "frissítve"
-        ]
+        [x for x in oszlopok if x in rt_fordak.columns]
     ]
 
     rt_fordak = rt_fordak.sort_values(
-        by=[
-            "viszonylat",
-            "forda"
-        ]
+        by=["viszonylat", "forda"]
     ).reset_index(drop=True)
-
 
     print()
     print(
-        "Mentett forda → rendszám párok:"
+        "Mentett forda → rendszám + jármű ID kapcsolatok:"
     )
-
     print(
-        rt_fordak.to_string(
-            index=False
-        )
+        rt_fordak.to_string(index=False)
     )
 
 else:
-
     rt_fordak = pd.DataFrame()
-
     print()
     print(
         "Még nincs sikeresen azonosított "
-        "forda → rendszám kapcsolat."
+        "forda → rendszám + jármű ID kapcsolat."
     )
-
 # ============================================================
-# 10:00–14:00
-# RENDSZÁM → AKTUÁLIS POZÍCIÓ
-# MINDEN SIKERES LEKÉRDEZÉS KÜLÖN REKORD
+# 08:00–17:00
+# JÁRMŰ ID → FUTÁR AKTUÁLIS POZÍCIÓ
+#
+# Azonosítás: GTFS-RT
+# Pozíció: FUTÁR vehicles-for-location
+# Megjelenített adat: rendszám
 # ============================================================
 
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import requests
-import pandas as pd
-import time as time_module
 
 
-print("\n=== 10:00–14:00 pozíciólekérés ===")
-
-
-# ============================================================
-# 1. Aktuális budapesti idő
-# ============================================================
+print("\n=== FUTÁR pozíciólekérés ===")
 
 most = budapesti_most()
-
 idopont = most.strftime("%H:%M:%S")
 
-print("Pozíciólekérdezés időpontja:", idopont)
-
-
-# ============================================================
-# 2. FRISS VehiclePositions.txt lekérése
-#    Legfeljebb 3 próbálkozás
-# ============================================================
-
-url = (
-    "https://go.bkk.hu/api/query/v1/ws/"
-    "gtfs-rt/full/VehiclePositions.txt"
+print(
+    "Pozíciólekérdezés időpontja:",
+    idopont
 )
 
-feed = None
 
-for probalkozas in (
-    range(1, 4)
-    if pozicio_idoszak
-    else []
-):
+# ============================================================
+# 1. POZÍCIÓTÖRTÉNET BETÖLTÉSE
+# ============================================================
 
-    print(
-        f"VehiclePositions lekérés "
-        f"({probalkozas}/3)..."
-    )
+pozicio_tortenet = napi_adatok.get(
+    "pozicio_tortenet",
+    []
+)
 
-    try:
-
-        response = requests.get(
-            url,
-            params={"key": API_KEY},
-            timeout=30
-        )
-
-        print(
-            "HTTP státusz:",
-            response.status_code
-        )
-
-        print(
-            "Kapott adatmennyiség:",
-            len(response.content),
-            "byte"
-        )
-
-        if response.status_code != 200:
-            raise Exception(
-                f"HTTP hiba: "
-                f"{response.status_code}"
-            )
-
-        # ----------------------------------------------------
-        # TXT / protobuf text formátum feldolgozása
-        # ----------------------------------------------------
-
-        feed_teszt = (
-            gtfs_realtime_pb2.FeedMessage()
-        )
-
-        text_format.Parse(
-            torol_nem_regisztralt_bkk_extensionok(
-                response.text
-            ),
-            feed_teszt
-        )
-
-        # Ha idáig eljutottunk, az adat érvényes
-        feed = feed_teszt
-
-        print("Érvényes GTFS-RT TXT adat érkezett.")
-
-        break
-
-    except Exception as e:
-
-        print(
-            f"VehiclePositions hiba: {e}"
-        )
-
-        if probalkozas < 3:
-
-            print(
-                "Újrapróbálkozás 2 másodperc múlva..."
-            )
-
-            time_module.sleep(2)
-
-        else:
-
-            print(
-                "A 3 próbálkozás mind sikertelen."
-            )
+uj_poziciok = 0
 
 
 # ============================================================
-# 3. Ha egyik lekérés sem sikerült
+# 2. FUTÁR vehicles-for-location LEKÉRÉSE
+#
+# Egyetlen lekérésből megkapjuk a körzetben lévő járműveket.
+# A routeId / tripId hiánya nem probléma: nekünk a
+# vehicleId + location kell.
 # ============================================================
 
-if feed is None:
+FUTAR_URL = (
+    "https://go.bkk.hu/api/query/v1/ws/otp/api/where/"
+    "vehicles-for-location.json"
+)
 
-    print(
-        "Nincs feldolgozható VehiclePositions adat."
-    )
+FUTAR_LAT = 47.4979
+FUTAR_LON = 19.0402
+FUTAR_RADIUS = 15000
 
-    # Nincs új pozíciórekord,
-    # de a korábban mentett adatok megmaradnak.
+futar_jarmuvek = {}
+futar_sikeres = False
 
-    napi_adatok["pozicio_tortenet"] = (
-        napi_adatok.get(
-            "pozicio_tortenet",
-            []
-        )
-    )
+if pozicio_idoszak:
 
-    with open(
-        NAPI_ADATOK_FAJL,
-        "w",
-        encoding="utf-8"
-    ) as f:
+    for probalkozas in range(1, 4):
 
-        json.dump(
-            napi_adatok,
-            f,
-            ensure_ascii=False,
-            indent=2
+        print(
+            f"FUTÁR vehicles-for-location lekérés "
+            f"({probalkozas}/3)..."
         )
 
-    print(
-        "A korábbi pozíciótörténet változatlanul mentve."
-    )
+        try:
+            response = requests.get(
+                FUTAR_URL,
+                params={
+                    "key": API_KEY,
+                    "lat": FUTAR_LAT,
+                    "lon": FUTAR_LON,
+                    "radius": FUTAR_RADIUS
+                },
+                timeout=30
+            )
+
+            print(
+                "HTTP státusz:",
+                response.status_code
+            )
+
+            if response.status_code != 200:
+                raise Exception(
+                    f"HTTP hiba: {response.status_code}"
+                )
+
+            adat = response.json()
+
+            lista = (
+                adat.get("data", {})
+                .get("list", [])
+            )
+
+            for jarmu in lista:
+
+                vehicle_id = str(
+                    jarmu.get("vehicleId", "")
+                ).strip()
+
+                if not vehicle_id:
+                    continue
+
+                futar_jarmuvek[vehicle_id] = jarmu
+
+            futar_sikeres = True
+
+            print(
+                "FUTÁR járművek száma:",
+                len(futar_jarmuvek)
+            )
+
+            break
+
+        except Exception as e:
+
+            print(
+                "FUTÁR lekérési hiba:",
+                e
+            )
 
 else:
-
-    # ========================================================
-    # 4. Aktuális rendszámok és pozíciók
-    # ========================================================
-
-    jarmuvek = []
-
-    for entity in feed.entity:
-
-        if not entity.HasField("vehicle"):
-            continue
-
-        v = entity.vehicle
-
-        rendszam = (
-            str(v.vehicle.license_plate)
-            .strip()
-            .upper()
-        )
-
-        if not rendszam:
-            continue
-
-        # Csak olyan jármű kell,
-        # amelyhez van pozícióadat.
-
-        if not v.HasField("position"):
-            continue
-
-        jarmuvek.append({
-            "rendszám": rendszam,
-            "latitude": v.position.latitude,
-            "longitude": v.position.longitude,
-            "timestamp": v.timestamp,
-            "gps_timestamp": v.timestamp
-        })
-
-
-    jarmuvek = pd.DataFrame(
-        jarmuvek
-    )
-
     print(
-        "Rendszámmal rendelkező "
-        "RT-járművek:",
-        len(jarmuvek)
+        "A pozíciólekérési időszak jelenleg nem aktív."
     )
 
 
-    # ========================================================
-    # 5. Pozíciótörténet betöltése a napi JSON-ból
-    # ========================================================
+# ============================================================
+# 3. SEGÉDFÜGGVÉNY: FUTÁR FRISSÍTÉSI IDŐ
+# ============================================================
 
-    pozicio_tortenet = (
-        napi_adatok.get(
-            "pozicio_tortenet",
-            []
-        )
-    )
+def futar_idopont(last_update):
 
+    if last_update in (None, "", 0):
+        return None
 
-    # ========================================================
-    # 6. A rögzített rendszámok keresése
-    # ========================================================
+    try:
+        ertek = int(float(last_update))
 
-    uj_poziciok = 0
+        # Másodperc vagy milliszekundum kezelése.
+        if ertek > 100_000_000_000:
+            ertek //= 1000
 
-    for forda_kulcs, adat in (
-        forda_rendszamok.items()
+        return datetime.fromtimestamp(
+            ertek,
+            tz=ZoneInfo("Europe/Budapest")
+        ).strftime("%H:%M")
+
+    except (
+        ValueError,
+        TypeError,
+        OverflowError,
+        OSError
     ):
+        return None
 
-        rendszam = (
-            str(adat["rendszám"])
-            .strip()
-            .upper()
+
+# ============================================================
+# 4. MENTETT FORDÁK POZÍCIÓJÁNAK FRISSÍTÉSE
+# ============================================================
+
+if pozicio_idoszak:
+
+    for forda_kulcs, adat in forda_rendszamok.items():
+
+        rendszam = str(
+            adat.get("rendszám", "")
+        ).strip().upper()
+
+        jarmu_id = str(
+            adat.get("jármű_id", "")
+        ).strip()
+
+        if not rendszam or not jarmu_id:
+            print(
+                f"{forda_kulcs}: nincs mentett rendszám + jármű ID, "
+                f"pozíció nem kérhető."
+            )
+            continue
+
+        # A GTFS-RT-ben kapott ID-t a FUTÁR BKK_<id> formában használja.
+        futar_id = jarmu_id
+        if not futar_id.upper().startswith("BKK_"):
+            futar_id = f"BKK_{futar_id}"
+
+        jarmu = futar_jarmuvek.get(
+            futar_id
         )
 
-        talalat = jarmuvek[
-            jarmuvek["rendszám"] == rendszam
-        ]
-
-
-        # ----------------------------------------------------
-        # Nincs aktuális RT találat
-        #
-        # → utolsó ismert pozíció használata
-        # ----------------------------------------------------
-
+        pozicio = None
         pozicio_frissitve = None
 
-        if len(talalat) == 0:
+        # ----------------------------------------------------
+        # Aktuális FUTÁR pozíció
+        # ----------------------------------------------------
+
+        if jarmu is not None:
+
+            location = jarmu.get(
+                "location"
+            ) or {}
+
+            try:
+                latitude = float(
+                    location.get("lat")
+                )
+                longitude = float(
+                    location.get("lon")
+                )
+
+                pozicio = (
+                    f"{latitude}, {longitude}"
+                )
+
+                pozicio_frissitve = futar_idopont(
+                    jarmu.get("lastUpdateTime")
+                )
+
+                if not pozicio_frissitve:
+                    pozicio_frissitve = idopont[:5]
+
+                futar_rendszam = str(
+                    jarmu.get("licensePlate", "")
+                ).strip().upper()
+
+                if (
+                    futar_rendszam
+                    and futar_rendszam != rendszam
+                ):
+                    print(
+                        f"FIGYELEM {forda_kulcs}: mentett rendszám "
+                        f"{rendszam}, FUTÁR rendszám {futar_rendszam}"
+                    )
+
+                print(
+                    f"{forda_kulcs}: {rendszam} / {futar_id} → "
+                    f"{pozicio}"
+                )
+
+            except (
+                ValueError,
+                TypeError
+            ):
+                pozicio = None
+
+
+        # ----------------------------------------------------
+        # Nincs aktuális FUTÁR találat → utolsó ismert pozíció
+        # ----------------------------------------------------
+
+        if pozicio is None:
 
             elozo_pozicio = None
             elozo_pozicio_frissitve = None
 
-            # Visszafelé keresünk, így az első találat
-            # automatikusan az utolsó ismert pozíció.
+            # Elsődlegesen jármű ID alapján keresünk.
             for elozo in reversed(pozicio_tortenet):
 
-                if (
-                    str(
-                        elozo.get(
-                            "rendszám",
-                            ""
-                        )
-                    ).strip().upper()
-                    == rendszam
-                ):
+                elozo_id = str(
+                    elozo.get("jármű_id", "")
+                ).strip()
+
+                if elozo_id and elozo_id == jarmu_id:
                     elozo_pozicio = elozo.get(
                         "pozíció"
                     )
@@ -6570,57 +6389,40 @@ else:
                     )
                     break
 
+            # Régi, jármű ID nélküli rekordokhoz rendszám alapján
+            # visszafelé keresünk kompatibilitás miatt.
+            if elozo_pozicio is None:
 
-            # Ha még soha nem volt pozíció ehhez a járműhöz
+                for elozo in reversed(pozicio_tortenet):
+
+                    elozo_rendszam = str(
+                        elozo.get("rendszám", "")
+                    ).strip().upper()
+
+                    if elozo_rendszam == rendszam:
+                        elozo_pozicio = elozo.get(
+                            "pozíció"
+                        )
+                        elozo_pozicio_frissitve = elozo.get(
+                            "pozicio_frissitve"
+                        )
+                        break
+
             if elozo_pozicio is None:
 
                 print(
-                    f"{forda_kulcs}: "
-                    f"{rendszam} – nincs RT találat, "
-                    f"korábbi pozíció sincs"
+                    f"{forda_kulcs}: {rendszam} / {futar_id} – "
+                    f"nincs FUTÁR találat, korábbi pozíció sincs"
                 )
 
                 continue
 
-
-            # Utolsó ismert pozíció használata
             pozicio = elozo_pozicio
             pozicio_frissitve = elozo_pozicio_frissitve
 
             print(
-                f"{forda_kulcs}: "
-                f"{rendszam} – nincs RT találat, "
-                f"utolsó ismert pozíció: {pozicio}"
-            )
-
-
-        # ----------------------------------------------------
-        # Van aktuális RT találat
-        # ----------------------------------------------------
-
-        else:
-
-            rt = talalat.iloc[0]
-
-            pozicio = (
-                f"{rt['latitude']}, "
-                f"{rt['longitude']}"
-            )
-
-            # A ténylegesen friss RT GPS-adat időpontja.
-            # A BKK GTFS-RT timestamp Unix időbélyeg.
-            try:
-                rt_timestamp = int(rt["timestamp"])
-                pozicio_frissitve = datetime.fromtimestamp(
-                    rt_timestamp,
-                    tz=ZoneInfo("Europe/Budapest")
-                ).strftime("%H:%M")
-            except (ValueError, TypeError, OverflowError):
-                pozicio_frissitve = idopont[:5]
-
-            print(
-                f"{forda_kulcs}: "
-                f"{rendszam} → "
+                f"{forda_kulcs}: {rendszam} / {futar_id} – "
+                f"nincs aktuális FUTÁR adat, utolsó ismert pozíció: "
                 f"{pozicio}"
             )
 
@@ -6631,31 +6433,19 @@ else:
 
         ellenorzes = "-"
 
-        # Csak akkor ellenőrizzük a helyszínt,
-        # ha a forda az adott időpontban aktív
-
-        if not forda_aktiv_e(
+        if forda_aktiv_e(
             adat["kezdés"],
             adat["végzés"],
             idopont
         ):
 
-            ellenorzes = "-"
-
-        else:
-
             helyszin_kulcs = str(
-                adat.get(
-                    "helyszín",
-                    ""
-                )
+                adat.get("helyszín", "")
             ).strip()
-
 
             if helyszin_kulcs in HELYSZINEK:
 
                 try:
-
                     latitude_szoveg, longitude_szoveg = (
                         pozicio.split(",", 1)
                     )
@@ -6684,116 +6474,73 @@ else:
                         <= helyszin["lon_max"]
                     )
 
-                    if lat_benne and lon_benne:
-
-                        ellenorzes = "OK"
-
-                    else:
-
-                        ellenorzes = "NEM"
+                    ellenorzes = (
+                        "OK"
+                        if lat_benne and lon_benne
+                        else "NEM"
+                    )
 
                 except (
                     ValueError,
                     TypeError
                 ):
-
                     ellenorzes = "-"
 
 
         # ----------------------------------------------------
         # ÚJ történeti rekord
-        #
-        # Friss RT pozíció vagy utolsó ismert pozíció.
-        # Az OK/NEM eredmény is mentésre kerül.
         # ----------------------------------------------------
 
         pozicio_tortenet.append({
-
             "viszonylat": adat["viszonylat"],
-
             "forda": adat["forda"],
-
             "kezdés": adat["kezdés"],
-
             "végzés": adat["végzés"],
-
             "hely": adat["hely"],
-
             "helyszín": adat["helyszín"],
-
             "rendszám": rendszam,
-
+            "jármű_id": jarmu_id,
             "pozíció": pozicio,
-
             "pozicio_frissitve": pozicio_frissitve,
-
             "ellenőrzés": ellenorzes,
-
             "frissítve": idopont
         })
 
-
         uj_poziciok += 1
 
-        print(
-            f"{forda_kulcs}: "
-            f"{rendszam} → "
-            f"{pozicio}"
-        )
-
-
-    # ========================================================
-    # 7. JSON frissítése
-    # ========================================================
-
-    napi_adatok["datum"] = MAI_NAP
-
-    napi_adatok["forda_rendszamok"] = (
-        forda_rendszamok
-    )
-
-    napi_adatok["pozicio_tortenet"] = (
-        pozicio_tortenet
-    )
-
-
-    with open(
-        NAPI_ADATOK_FAJL,
-        "w",
-        encoding="utf-8"
-    ) as f:
-
-        json.dump(
-            napi_adatok,
-            f,
-            ensure_ascii=False,
-            indent=2
-        )
-
-
-    # ========================================================
-    # 8. Összesítés
-    # ========================================================
-
-    print()
-
-    print(
-        "Új pozíciórekordok:",
-        uj_poziciok
-    )
-
-    print(
-        "Összes pozíciórekord:",
-        len(pozicio_tortenet)
-    )
-
-    print(
-        "napi_adatok.json frissítve."
-    )
-
-#---------------------------------------------------------------------------------------------------------------
 
 # ============================================================
+# 5. NAPI ADATOK MENTÉSE
+# ============================================================
+
+napi_adatok["datum"] = MAI_NAP
+napi_adatok["forda_rendszamok"] = forda_rendszamok
+napi_adatok["pozicio_tortenet"] = pozicio_tortenet
+
+with open(
+    NAPI_ADATOK_FAJL,
+    "w",
+    encoding="utf-8"
+) as f:
+    json.dump(
+        napi_adatok,
+        f,
+        ensure_ascii=False,
+        indent=2
+    )
+
+print()
+print(
+    "Új pozíciórekordok:",
+    uj_poziciok
+)
+print(
+    "Összes pozíciórekord:",
+    len(pozicio_tortenet)
+)
+print(
+    "napi_adatok.json frissítve."
+)
 # HELYSZÍN ELLENŐRZÉS
 # ============================================================
 
