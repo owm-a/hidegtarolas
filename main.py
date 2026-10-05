@@ -1000,11 +1000,11 @@ fazis_ideje = budapesti_most().time()
 azonositas_idoszak = (
     time(7, 0)
     <= fazis_ideje
-    <= time(13, 30)
+    <= time(17, 0)
 )
 
 pozicio_idoszak = (
-    time(13, 30)
+    time(8, 0)
     < fazis_ideje
     <= time(17, 0)
 )
