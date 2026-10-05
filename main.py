@@ -2663,11 +2663,11 @@ def keszit_hidegtarolas_riport():
         for sor in eredmenyek:
 
             if not sor["rendszám"] and sor["forda"]:
-                export_eredmeny = "???"
+                export_eredmeny = "?"
             elif sor["eredmény"] == "RENDBEN TÁROLT":
-                export_eredmeny = "+++"
+                export_eredmeny = "I"
             else:
-                export_eredmeny = "---"
+                export_eredmeny = "N"
 
             export_ws.append([
                 sor["dátum"],
@@ -4193,9 +4193,17 @@ ArrivaBus hidegtárolás
                 eredmeny = "-"
 
 
+            megjelenitett_eredmeny = {
+                "OK": "I",
+                "NEM": "N"
+            }.get(
+                eredmeny,
+                eredmeny
+            )
+
             html.append(
                 f'<td class="ellenorzes {osztaly}">'
-                f'{escape(eredmeny)}'
+                f'{escape(megjelenitett_eredmeny)}'
                 f'</td>'
             )
 
