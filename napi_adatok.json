@@ -19,7 +19,7 @@
       "hely": "Békásmegyer, Újmegyeri tér",
       "helyszín": "bekasmegyer",
       "rendszám": "AAHY812",
-      "frissítve": "08:55:45"
+      "frissítve": "09:01:05"
     },
     "0710|24": {
       "viszonylat": "0710",
@@ -29,7 +29,7 @@
       "hely": "Csepel, Szent Imre tér",
       "helyszín": "csepel_szent_imre",
       "rendszám": "PDN624",
-      "frissítve": "08:55:45"
+      "frissítve": "09:01:05"
     },
     "0710|23": {
       "viszonylat": "0710",
@@ -39,7 +39,7 @@
       "hely": "Csepel, Szent Imre tér",
       "helyszín": "csepel_szent_imre",
       "rendszám": "PDN623",
-      "frissítve": "08:55:45"
+      "frissítve": "09:01:05"
     },
     "1510|39": {
       "viszonylat": "1510",
@@ -79,7 +79,7 @@
       "hely": "Kőbánya-Kispest M (Sibrik tároló)",
       "helyszín": "kobanya_kispest",
       "rendszám": "SGY813",
-      "frissítve": "08:55:45"
+      "frissítve": "09:01:05"
     },
     "1480|22": {
       "viszonylat": "1480",
@@ -89,7 +89,7 @@
       "hely": "Kőbánya-Kispest M (Sibrik tároló)",
       "helyszín": "kobanya_kispest",
       "rendszám": "AOJM872",
-      "frissítve": "08:55:45"
+      "frissítve": "09:01:05"
     },
     "1820|21": {
       "viszonylat": "1820",
@@ -109,7 +109,7 @@
       "hely": "Mexikói út M",
       "helyszín": "mexikoi_ut",
       "rendszám": "AAHY853",
-      "frissítve": "08:55:45"
+      "frissítve": "09:00:57"
     },
     "2250|60": {
       "viszonylat": "2250",
@@ -119,7 +119,7 @@
       "hely": "Mexikói út M",
       "helyszín": "mexikoi_ut",
       "rendszám": "AAHY805",
-      "frissítve": "08:55:45"
+      "frissítve": "09:01:05"
     },
     "0360|21": {
       "viszonylat": "0360",
@@ -139,7 +139,7 @@
       "hely": "Pestszentlőrinc vasútállomás",
       "helyszín": "pestszentlorinc",
       "rendszám": "AOIM011",
-      "frissítve": "08:55:45"
+      "frissítve": "09:01:05"
     },
     "0710|25": {
       "viszonylat": "0710",
@@ -149,7 +149,7 @@
       "hely": "Csepel, Szent Imre tér",
       "helyszín": "csepel_szent_imre",
       "rendszám": "PDN625",
-      "frissítve": "08:55:45"
+      "frissítve": "09:01:05"
     },
     "1510|46": {
       "viszonylat": "1510",
@@ -179,7 +179,7 @@
       "hely": "Pestszentlőrinc vasútállomás",
       "helyszín": "pestszentlorinc",
       "rendszám": "AOIM010",
-      "frissítve": "08:55:45"
+      "frissítve": "09:01:05"
     },
     "0350|34": {
       "viszonylat": "0350",
@@ -189,7 +189,7 @@
       "hely": "Csepel, Szent Imre tér",
       "helyszín": "csepel_szent_imre",
       "rendszám": "SGY809",
-      "frissítve": "08:55:45"
+      "frissítve": "09:01:05"
     },
     "1480|23": {
       "viszonylat": "1480",
@@ -199,7 +199,7 @@
       "hely": "Csepel, Szent Imre tér",
       "helyszín": "csepel_szent_imre",
       "rendszám": "AOJM873",
-      "frissítve": "08:55:45"
+      "frissítve": "09:01:05"
     },
     "1510|23": {
       "viszonylat": "1510",
@@ -209,7 +209,7 @@
       "hely": "Kőbánya alsó vasútállomás",
       "helyszín": "kobanya_also",
       "rendszám": "AOGF780",
-      "frissítve": "08:55:45"
+      "frissítve": "09:01:05"
     }
   },
   "pozicio_tortenet": [
@@ -6738,6 +6738,552 @@
       "pozicio_frissitve": "08:55",
       "ellenőrzés": "-",
       "frissítve": "08:55:48"
+    },
+    {
+      "viszonylat": "0960",
+      "forda": "59",
+      "kezdés": "09:06:00",
+      "végzés": "13:22:00",
+      "hely": "Békásmegyer, Újmegyeri tér",
+      "helyszín": "bekasmegyer",
+      "rendszám": "AAHY878",
+      "pozíció": "47.59758377075195, 19.05577850341797",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "NEM",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "1340",
+      "forda": "57",
+      "kezdés": "10:39:00",
+      "végzés": "15:11:00",
+      "hely": "Békásmegyer, Újmegyeri tér",
+      "helyszín": "bekasmegyer",
+      "rendszám": "AAHY812",
+      "pozíció": "47.55716323852539, 19.04615592956543",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "0710",
+      "forda": "24",
+      "kezdés": "09:21:00",
+      "végzés": "13:57:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "rendszám": "PDN624",
+      "pozíció": "47.408203125, 19.082111358642578",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "0710",
+      "forda": "23",
+      "kezdés": "10:00:00",
+      "végzés": "14:27:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "rendszám": "PDN623",
+      "pozíció": "47.432010650634766, 19.06979751586914",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "1510",
+      "forda": "39",
+      "kezdés": "12:20:00",
+      "végzés": "13:45:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "rendszám": "AOGF659",
+      "pozíció": "47.483951568603516, 19.127513885498047",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "1510",
+      "forda": "22",
+      "kezdés": "10:12:00",
+      "végzés": "13:47:00",
+      "hely": "Kőbánya alsó vasútállomás",
+      "helyszín": "kobanya_also",
+      "rendszám": "AOGF779",
+      "pozíció": "47.416221618652344, 19.09317398071289",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "1821",
+      "forda": "24",
+      "kezdés": "08:50:00",
+      "végzés": "14:28:00",
+      "hely": "Kőbánya-Kispest M (Sibrik tároló)",
+      "helyszín": "kobanya_kispest",
+      "rendszám": "PDN622",
+      "pozíció": "47.46225357055664, 19.150617599487305",
+      "pozicio_frissitve": "08:45",
+      "ellenőrzés": "OK",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "1840",
+      "forda": "13",
+      "kezdés": "09:51:00",
+      "végzés": "15:38:00",
+      "hely": "Kőbánya-Kispest M (Sibrik tároló)",
+      "helyszín": "kobanya_kispest",
+      "rendszám": "SGY813",
+      "pozíció": "47.44417190551758, 19.18730354309082",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "1480",
+      "forda": "22",
+      "kezdés": "09:52:00",
+      "végzés": "12:55:00",
+      "hely": "Kőbánya-Kispest M (Sibrik tároló)",
+      "helyszín": "kobanya_kispest",
+      "rendszám": "AOJM872",
+      "pozíció": "47.4130744934082, 19.08590316772461",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "1820",
+      "forda": "21",
+      "kezdés": "10:22:00",
+      "végzés": "15:13:00",
+      "hely": "Kőbánya-Kispest M (Sibrik tároló)",
+      "helyszín": "kobanya_kispest",
+      "rendszám": "PDN637",
+      "pozíció": "47.46230697631836, 19.15093421936035",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "0250",
+      "forda": "58",
+      "kezdés": "10:03:00",
+      "végzés": "13:52:00",
+      "hely": "Mexikói út M",
+      "helyszín": "mexikoi_ut",
+      "rendszám": "AAHY853",
+      "pozíció": "47.53528594970703, 19.103490829467773",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "2250",
+      "forda": "60",
+      "kezdés": "10:20:00",
+      "végzés": "14:02:00",
+      "hely": "Mexikói út M",
+      "helyszín": "mexikoi_ut",
+      "rendszám": "AAHY805",
+      "pozíció": "47.55072784423828, 19.1173095703125",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "0360",
+      "forda": "21",
+      "kezdés": "09:01:00",
+      "végzés": "13:50:00",
+      "hely": "Pestszentlőrinc vasútállomás",
+      "helyszín": "pestszentlorinc",
+      "rendszám": "AOIM009",
+      "pozíció": "47.45628356933594, 19.176727294921875",
+      "pozicio_frissitve": "08:55",
+      "ellenőrzés": "NEM",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "0360",
+      "forda": "23",
+      "kezdés": "09:16:00",
+      "végzés": "13:14:00",
+      "hely": "Pestszentlőrinc vasútállomás",
+      "helyszín": "pestszentlorinc",
+      "rendszám": "AOIM011",
+      "pozíció": "47.443511962890625, 19.17767906188965",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "0710",
+      "forda": "25",
+      "kezdés": "09:33:00",
+      "végzés": "13:22:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "rendszám": "PDN625",
+      "pozíció": "47.447025299072266, 19.068817138671875",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "1510",
+      "forda": "46",
+      "kezdés": "11:22:00",
+      "végzés": "14:16:00",
+      "hely": "Kőbánya alsó vasútállomás",
+      "helyszín": "kobanya_also",
+      "rendszám": "AOIM014",
+      "pozíció": "47.48362731933594, 19.127779006958008",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "1821",
+      "forda": "23",
+      "kezdés": "08:36:00",
+      "végzés": "13:51:00",
+      "hely": "Pestszentlőrinc vasútállomás",
+      "helyszín": "pestszentlorinc",
+      "rendszám": "PDN621",
+      "pozíció": "47.461692810058594, 19.151159286499023",
+      "pozicio_frissitve": "08:15",
+      "ellenőrzés": "NEM",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "0360",
+      "forda": "22",
+      "kezdés": "10:10:00",
+      "végzés": "15:07:00",
+      "hely": "Pestszentlőrinc vasútállomás",
+      "helyszín": "pestszentlorinc",
+      "rendszám": "AOIM010",
+      "pozíció": "47.43523025512695, 19.07111930847168",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "0350",
+      "forda": "34",
+      "kezdés": "12:36:00",
+      "végzés": "13:50:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "rendszám": "SGY809",
+      "pozíció": "47.42363739013672, 19.069730758666992",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "1480",
+      "forda": "23",
+      "kezdés": "11:52:00",
+      "végzés": "14:49:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "rendszám": "AOJM873",
+      "pozíció": "47.423282623291016, 19.06946563720703",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "1510",
+      "forda": "23",
+      "kezdés": "10:32:00",
+      "végzés": "14:09:00",
+      "hely": "Kőbánya alsó vasútállomás",
+      "helyszín": "kobanya_also",
+      "rendszám": "AOGF780",
+      "pozíció": "47.43539047241211, 19.08417320251465",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:00:59"
+    },
+    {
+      "viszonylat": "0960",
+      "forda": "59",
+      "kezdés": "09:06:00",
+      "végzés": "13:22:00",
+      "hely": "Békásmegyer, Újmegyeri tér",
+      "helyszín": "bekasmegyer",
+      "rendszám": "AAHY878",
+      "pozíció": "47.59744644165039, 19.05632972717285",
+      "pozicio_frissitve": "09:01",
+      "ellenőrzés": "NEM",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "1340",
+      "forda": "57",
+      "kezdés": "10:39:00",
+      "végzés": "15:11:00",
+      "hely": "Békásmegyer, Újmegyeri tér",
+      "helyszín": "bekasmegyer",
+      "rendszám": "AAHY812",
+      "pozíció": "47.55716323852539, 19.046154022216797",
+      "pozicio_frissitve": "09:01",
+      "ellenőrzés": "-",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "0710",
+      "forda": "24",
+      "kezdés": "09:21:00",
+      "végzés": "13:57:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "rendszám": "PDN624",
+      "pozíció": "47.408203125, 19.082111358642578",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "0710",
+      "forda": "23",
+      "kezdés": "10:00:00",
+      "végzés": "14:27:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "rendszám": "PDN623",
+      "pozíció": "47.432010650634766, 19.06979751586914",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "1510",
+      "forda": "39",
+      "kezdés": "12:20:00",
+      "végzés": "13:45:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "rendszám": "AOGF659",
+      "pozíció": "47.483951568603516, 19.127513885498047",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "1510",
+      "forda": "22",
+      "kezdés": "10:12:00",
+      "végzés": "13:47:00",
+      "hely": "Kőbánya alsó vasútállomás",
+      "helyszín": "kobanya_also",
+      "rendszám": "AOGF779",
+      "pozíció": "47.416221618652344, 19.09317398071289",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "1821",
+      "forda": "24",
+      "kezdés": "08:50:00",
+      "végzés": "14:28:00",
+      "hely": "Kőbánya-Kispest M (Sibrik tároló)",
+      "helyszín": "kobanya_kispest",
+      "rendszám": "PDN622",
+      "pozíció": "47.46225357055664, 19.150617599487305",
+      "pozicio_frissitve": "08:45",
+      "ellenőrzés": "OK",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "1840",
+      "forda": "13",
+      "kezdés": "09:51:00",
+      "végzés": "15:38:00",
+      "hely": "Kőbánya-Kispest M (Sibrik tároló)",
+      "helyszín": "kobanya_kispest",
+      "rendszám": "SGY813",
+      "pozíció": "47.44417190551758, 19.187299728393555",
+      "pozicio_frissitve": "09:01",
+      "ellenőrzés": "-",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "1480",
+      "forda": "22",
+      "kezdés": "09:52:00",
+      "végzés": "12:55:00",
+      "hely": "Kőbánya-Kispest M (Sibrik tároló)",
+      "helyszín": "kobanya_kispest",
+      "rendszám": "AOJM872",
+      "pozíció": "47.4130973815918, 19.085819244384766",
+      "pozicio_frissitve": "09:01",
+      "ellenőrzés": "-",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "1820",
+      "forda": "21",
+      "kezdés": "10:22:00",
+      "végzés": "15:13:00",
+      "hely": "Kőbánya-Kispest M (Sibrik tároló)",
+      "helyszín": "kobanya_kispest",
+      "rendszám": "PDN637",
+      "pozíció": "47.462650299072266, 19.150758743286133",
+      "pozicio_frissitve": "09:01",
+      "ellenőrzés": "-",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "0250",
+      "forda": "58",
+      "kezdés": "10:03:00",
+      "végzés": "13:52:00",
+      "hely": "Mexikói út M",
+      "helyszín": "mexikoi_ut",
+      "rendszám": "AAHY853",
+      "pozíció": "47.53528594970703, 19.103490829467773",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "2250",
+      "forda": "60",
+      "kezdés": "10:20:00",
+      "végzés": "14:02:00",
+      "hely": "Mexikói út M",
+      "helyszín": "mexikoi_ut",
+      "rendszám": "AAHY805",
+      "pozíció": "47.55006790161133, 19.117000579833984",
+      "pozicio_frissitve": "09:01",
+      "ellenőrzés": "-",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "0360",
+      "forda": "21",
+      "kezdés": "09:01:00",
+      "végzés": "13:50:00",
+      "hely": "Pestszentlőrinc vasútállomás",
+      "helyszín": "pestszentlorinc",
+      "rendszám": "AOIM009",
+      "pozíció": "47.45628356933594, 19.176727294921875",
+      "pozicio_frissitve": "08:55",
+      "ellenőrzés": "NEM",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "0360",
+      "forda": "23",
+      "kezdés": "09:16:00",
+      "végzés": "13:14:00",
+      "hely": "Pestszentlőrinc vasútállomás",
+      "helyszín": "pestszentlorinc",
+      "rendszám": "AOIM011",
+      "pozíció": "47.44416809082031, 19.176143646240234",
+      "pozicio_frissitve": "09:01",
+      "ellenőrzés": "NEM",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "0710",
+      "forda": "25",
+      "kezdés": "09:33:00",
+      "végzés": "13:22:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "rendszám": "PDN625",
+      "pozíció": "47.447025299072266, 19.068817138671875",
+      "pozicio_frissitve": "09:00",
+      "ellenőrzés": "-",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "1510",
+      "forda": "46",
+      "kezdés": "11:22:00",
+      "végzés": "14:16:00",
+      "hely": "Kőbánya alsó vasútállomás",
+      "helyszín": "kobanya_also",
+      "rendszám": "AOIM014",
+      "pozíció": "47.48363494873047, 19.12776756286621",
+      "pozicio_frissitve": "09:01",
+      "ellenőrzés": "-",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "1821",
+      "forda": "23",
+      "kezdés": "08:36:00",
+      "végzés": "13:51:00",
+      "hely": "Pestszentlőrinc vasútállomás",
+      "helyszín": "pestszentlorinc",
+      "rendszám": "PDN621",
+      "pozíció": "47.461692810058594, 19.151159286499023",
+      "pozicio_frissitve": "08:15",
+      "ellenőrzés": "NEM",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "0360",
+      "forda": "22",
+      "kezdés": "10:10:00",
+      "végzés": "15:07:00",
+      "hely": "Pestszentlőrinc vasútállomás",
+      "helyszín": "pestszentlorinc",
+      "rendszám": "AOIM010",
+      "pozíció": "47.43523406982422, 19.070764541625977",
+      "pozicio_frissitve": "09:01",
+      "ellenőrzés": "-",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "0350",
+      "forda": "34",
+      "kezdés": "12:36:00",
+      "végzés": "13:50:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "rendszám": "SGY809",
+      "pozíció": "47.42401885986328, 19.069839477539062",
+      "pozicio_frissitve": "09:01",
+      "ellenőrzés": "-",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "1480",
+      "forda": "23",
+      "kezdés": "11:52:00",
+      "végzés": "14:49:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "rendszám": "AOJM873",
+      "pozíció": "47.42267990112305, 19.069007873535156",
+      "pozicio_frissitve": "09:01",
+      "ellenőrzés": "-",
+      "frissítve": "09:01:07"
+    },
+    {
+      "viszonylat": "1510",
+      "forda": "23",
+      "kezdés": "10:32:00",
+      "végzés": "14:09:00",
+      "hely": "Kőbánya alsó vasútállomás",
+      "helyszín": "kobanya_also",
+      "rendszám": "AOGF780",
+      "pozíció": "47.43524169921875, 19.083784103393555",
+      "pozicio_frissitve": "09:01",
+      "ellenőrzés": "-",
+      "frissítve": "09:01:07"
     }
   ]
 }
