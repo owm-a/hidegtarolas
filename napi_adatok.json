@@ -20,7 +20,7 @@
       "helyszín": "bekasmegyer",
       "rendszám": "AAHY812",
       "jármű_id": "372",
-      "frissítve": "10:17:37"
+      "frissítve": "10:20:44"
     },
     "0710|24": {
       "viszonylat": "0710",
@@ -51,7 +51,7 @@
       "helyszín": "csepel_szent_imre",
       "rendszám": "AOGF659",
       "jármű_id": "741",
-      "frissítve": "10:17:37"
+      "frissítve": "10:20:44"
     },
     "1510|22": {
       "viszonylat": "1510",
@@ -123,7 +123,7 @@
       "helyszín": "mexikoi_ut",
       "rendszám": "AAHY805",
       "jármű_id": "365",
-      "frissítve": "10:17:37"
+      "frissítve": "10:20:44"
     },
     "0360|21": {
       "viszonylat": "0360",
@@ -163,7 +163,8 @@
       "hely": "Kőbánya alsó vasútállomás",
       "helyszín": "kobanya_also",
       "rendszám": "AOIM014",
-      "frissítve": "09:55:47"
+      "jármű_id": "934",
+      "frissítve": "10:20:44"
     },
     "1821|23": {
       "viszonylat": "1821",
@@ -205,7 +206,7 @@
       "helyszín": "csepel_szent_imre",
       "rendszám": "AOJM873",
       "jármű_id": "996",
-      "frissítve": "10:17:37"
+      "frissítve": "10:20:44"
     },
     "1510|23": {
       "viszonylat": "1510",
