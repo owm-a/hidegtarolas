@@ -3382,6 +3382,49 @@ def html_export():
 
 
     # --------------------------------------------------------
+    # GARÁZS SOROK – a megjelenítéshez közös táblába kerülnek
+    # --------------------------------------------------------
+
+    garazs_riport_eredmenyek = {
+        (str(sor.get("viszonylat", "")).strip(), str(sor.get("forda", "")).strip()): sor
+        for sor in garazstarolas_riport.get("eredmenyek", [])
+    } if garazstarolas_riport else {}
+
+    garazs_sorok = {}
+    for _, forda_sor_g in figyelt_fordak_garazs.iterrows():
+        visz_g = str(forda_sor_g.get("viszonylat", "")).strip()
+        forda_g = str(forda_sor_g.get("forda", "")).strip()
+        kulcs_g = (visz_g, forda_g)
+        garazs_sorok[kulcs_g] = {
+            "viszonylat": visz_g, "forda": forda_g,
+            "kezdés": str(forda_sor_g.get("kezdés", ""))[:5],
+            "végzés": str(forda_sor_g.get("végzés", ""))[:5],
+            "hely": str(forda_sor_g.get("hely", "")),
+            "rendszám": str(forda_rendszamok.get(forda_kulcs_adat(forda_sor_g), {}).get("rendszám", "")),
+            "forrás": "garazs", "ellenőrzés": {}
+        }
+
+    for rekord in pozicio_tortenet:
+        if str(rekord.get("forrás", "biztor")).strip() != "garazs":
+            continue
+        kulcs_g = (str(rekord.get("viszonylat", "")).strip(), str(rekord.get("forda")).strip())
+        if kulcs_g not in garazs_sorok:
+            continue
+        rendszam_g = str(rekord.get("rendszám", "")).strip()
+        if rendszam_g:
+            garazs_sorok[kulcs_g]["rendszám"] = rendszam_g
+        idopont_g = str(rekord.get("frissítve", "")).strip()[:5]
+        if idopont_g:
+            garazs_sorok[kulcs_g]["ellenőrzés"][idopont_g] = rekord.get("ellenőrzés", "-")
+
+    idopontok = sorted({
+        str(rekord.get("frissítve", ""))[:5]
+        for rekord in pozicio_tortenet
+        if rekord.get("frissítve")
+        and str(rekord.get("forrás", "biztor")).strip() in ("biztor", "garazs")
+    })
+
+    # --------------------------------------------------------
     # HTML
     # --------------------------------------------------------
 
@@ -3937,7 +3980,7 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
 .nezet-panel{display:block}.nezet-panel.hidden{display:none!important}
 .tabla-szekcio{margin-top:0;padding:12px;border-top:1px solid var(--border);overflow-x:auto}.tabla-szekcio+.tabla-szekcio{margin-top:14px}
 .tabla-szekcio-cim,.garazs-matrix-cim{color:#dbe4ee;padding:3px 4px 9px;font-size:13px;font-weight:700}.tabla-egesz{background:transparent}
-.idopont-csuszkasav{height:38px;padding:4px 8px;display:grid;grid-template-columns:minmax(170px,max-content) minmax(260px,1fr);align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px 8px 0 0}
+.idopont-csuszkasav{height:38px;padding:4px 8px;display:grid;grid-template-columns:minmax(120px,max-content) minmax(200px,1fr);align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px 8px 0 0}
 .csuszka-info{color:var(--muted);font-size:12px;font-weight:650;white-space:nowrap}.csuszka-info strong{color:var(--text)}.idopont-csuszkasav input[type=range]{width:100%;accent-color:var(--accent)}
 .alap-ablak table,.idopont-belső table,.riport-tablazat{background:var(--surface)}table{color:var(--text)}th{background:var(--surface3);color:#cbd5e1;border-color:var(--border)}td,th{border-color:var(--border)}td.alap{background:var(--surface)}
 .idopont-ablak{background:var(--surface);border-left:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}.riport-tablazat th,.riport-tablazat td{border-color:var(--border)}.riport-tablazat th{background:var(--surface3)}
@@ -3952,10 +3995,6 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
 .rendszam-link{border:0;background:transparent;color:var(--accent);font:inherit;font-weight:750;cursor:pointer;padding:2px 5px;border-radius:6px;text-decoration:underline;text-decoration-color:rgba(110,168,254,.35);text-underline-offset:2px}
 .rendszam-link:hover{background:rgba(110,168,254,.13);color:#fff;text-decoration-color:var(--accent)}
 .rendszam-link:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.idopont-timeline-jelmagy{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:11px;padding:7px 10px;background:rgba(32,39,51,.72);border:1px solid var(--border);border-top:0}
-.timeline-pelda{display:inline-flex;align-items:center;gap:5px}.timeline-pont{width:10px;height:10px;border-radius:3px;display:inline-block}.timeline-zold{background:var(--ok)}.timeline-piros{background:var(--bad)}.timeline-fekete{background:#111;border:1px solid #56606d}
-.leaflet-container{background:#11151b}.leaflet-control-zoom a{background:#202733!important;color:#e8edf3!important;border-color:#313b49!important}.leaflet-control-attribution{background:rgba(17,21,27,.82)!important;color:#aeb8c5!important}.leaflet-control-attribution a{color:#8fb9ff!important}
-.map-focus{animation:mapFocusPulse 1.2s ease-out 2}@keyframes mapFocusPulse{0%{filter:drop-shadow(0 0 0 rgba(110,168,254,0))}45%{filter:drop-shadow(0 0 12px rgba(110,168,254,.95))}100%{filter:drop-shadow(0 0 0 rgba(110,168,254,0))}}
 @media(max-width:900px){.idopont-ablak,.idopont-csuszkasav{width:var(--time-window-width,70vw)}}
 @media(max-width:600px){.idopont-ablak,.idopont-csuszkasav{width:var(--time-window-width,88vw)}.rendszam-link{padding:4px 6px}}
 
@@ -3965,13 +4004,11 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
    ========================================================= */
 .idopont-ablak,
 .idopont-csuszkasav {
-    width: min(578px, var(--time-window-width, 578px));
-    max-width: calc(100vw - 30px);
+    width: 100%;
+    max-width: 100%;
 }
 .idopont-ablak { overflow: hidden; }
-.idopont-belső table,
-.alap-ablak table,
-.riport-tablazat { table-layout: fixed; }
+.fo-tabla { table-layout: auto; width: max-content; }
 .alap-ablak th,
 .alap-ablak td,
 .idopont-belső th,
@@ -3982,8 +4019,8 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
     white-space: nowrap;
     box-sizing: border-box;
 }
-.idopont-belső th.idopont,
-.idopont-belső td.ellenorzes {
+.fo-tabla th.idopont,
+.fo-tabla td.ellenorzes {
     width: 34px;
     min-width: 34px;
     max-width: 34px;
@@ -4040,6 +4077,12 @@ ArrivaBus hidegtárolás
 
     <div class="fejlec-jobb">
         <div class="adat">
+            <b>Utolsó futás:</b> """ + escape(str(max(
+                hidegtarolas_riport.get("utolso_futas", ""),
+                garazstarolas_riport.get("utolso_futas", "")
+            ) or "-")) + """
+        </div>
+        <div class="adat">
             <b>Riport készült:</b> """ + escape(str(hidegtarolas_riport.get("keszult", "-"))) + """
         </div>
         <div class="adat">
@@ -4062,653 +4105,140 @@ ArrivaBus hidegtárolás
 <button class="nezet-gomb" data-nezet="garazs" type="button">Garázs</button>
 </div>
 
-<div id="panel-biztor" class="nezet-panel">
+<div id="panel-adatok" class="nezet-panel">
 <div class="tabla-szekcio">
-
-<!-- =========================================================
-     BAL: 6 FIX OSZLOP
-     JOBB: ÖSSZES IDŐOSZLOP, 18 LÁTHATÓ
-     ========================================================= -->
-
-<div class="tabla-egesz">
-
-
-<!-- =========================================================
-     BAL OLDALI TÁBLÁZAT
-     ========================================================= -->
-
-<div class="alap-ablak">
-
-<div class="tabla-fejlec-hely"></div>
-
-<table>
-
-<thead>
-
-<tr>
-
-<th class="viszonylat">Viszonylat</th>
-
-<th class="forda">Forda</th>
-
-<th class="kezdés">Kezdés</th>
-
-<th class="végzés">Végzés</th>
-
-<th class="hely">Hely</th>
-
-<th class="rendszam">Rendszám</th>
-
-</tr>
-
-</thead>
-
-
-<tbody>
-
-""")
-
-    # --------------------------------------------------------
-    # Bal oldali sorok
-    # --------------------------------------------------------
-
-    rendezett_sorok = sorted(
-        sorok.items(),
-        key=lambda x: (
-            x[1].get("kezdés", ""),
-            x[1].get("viszonylat", ""),
-            x[1].get("forda", "")
-        )
-    )
-
-
-    for _, sor in rendezett_sorok:
-
-        html.append("<tr>")
-
-        html.append(
-            f'<td class="alap viszonylat">'
-            f'{escape(sor["viszonylat"])}'
-            f'</td>'
-        )
-
-        html.append(
-            f'<td class="alap forda">'
-            f'{escape(sor["forda"])}'
-            f'</td>'
-        )
-
-        html.append(
-            f'<td class="alap kezdés">'
-            f'{escape(sor["kezdés"])}'
-            f'</td>'
-        )
-
-        html.append(
-            f'<td class="alap végzés">'
-            f'{escape(sor["végzés"])}'
-            f'</td>'
-        )
-
-        html.append(
-            f'<td class="alap hely">'
-            f'{escape(sor["hely"])}'
-            f'</td>'
-        )
-
-        rendszam_html = escape(sor["rendszám"])
-        if str(sor["rendszám"]).strip():
-            rendszam_html = (
-                f'<button type="button" class="rendszam-link" '
-                f'data-rendszam="{escape(sor["rendszám"])}" '
-                f'title="Jármű megjelenítése a térképen">'
-                f'{escape(sor["rendszám"])}'
-                f'</button>'
-            )
-
-        html.append(
-            f'<td class="alap rendszam">'
-            f'{rendszam_html}'
-            f'</td>'
-        )
-
-        html.append("</tr>")
-
-
-    html.append("""
-</tbody>
-
-</table>
-
-</div>
-
-
-<!-- =========================================================
-     JOBB OLDALI IDŐTÁBLA
-     ========================================================= -->
-
-<div class="idopont-resz">
-
 <div class="idopont-csuszkasav">
-
-<div class="csuszka-info"><strong>Végállomáson tároló:</strong> """ + str(megtalalt_jarmuvek) + "/" + str(excel_fordak_szama) + """ <span class="timeline-pelda"><span class="timeline-pont timeline-zold"></span>rendben</span><span class="timeline-pelda"><span class="timeline-pont timeline-piros"></span>eltérés</span><span class="timeline-pelda"><span class="timeline-pont timeline-fekete"></span>±15 perc</span></div>
-
-<input
-    type="range"
-    id="idopont-csuszka"
-    min="0"
-    max="0"
-    value="0"
-    step="1"
->
-
+  <div class="csuszka-info"><strong id="aktiv-sorok-szoveg">Végállomás</strong></div>
+  <input type="range" id="fo-idopont-csuszka" min="0" max="1000" value="1000" step="1" aria-label="Időpont görgetése">
 </div>
+<div class="tabla-scroll" id="fo-tabla-scroll">
+<table class="fo-tabla">
+<thead><tr>
+<th class="tipus sticky-left">T</th><th class="viszonylat sticky-left">Viszonylat</th><th class="forda sticky-left">Forda</th><th class="kezdés sticky-left">Kezdés</th><th class="végzés sticky-left">Végzés</th><th class="hely sticky-left">Hely</th><th class="rendszam sticky-left">Rendszám</th>
+    for time_index, idopont in enumerate(idopontok):
+        html.append(f'<th class="idopont" data-time-index="{time_index}">{escape(idopont)}</th>')
 
-<div
-    class="idopont-ablak"
-    id="idopont-ablak"
->
+    html.append("<th class=\"tarolas sticky-right\">Tárolás helye</th></tr></thead><tbody>")
 
-<div
-    class="idopont-belső"
-    id="idopont-belső"
->
+    osszes_sor = []
+    osszes_sor.extend({**v, "forrás":"biztor", "kulcs":k} for k,v in sorok.items())
+    osszes_sor.extend({**v, "forrás":"garazs", "kulcs":k} for k,v in garazs_sorok.items())
+    osszes_sor.sort(key=lambda x: (x.get("kezdés", ""), 0 if x.get("forrás") == "biztor" else 1, x.get("viszonylat", ""), x.get("forda", "")))
 
-<table>
+    for sor in osszes_sor:
+        forras = sor.get("forrás", "biztor")
+        tipus = "V" if forras == "biztor" else "G"
+        html.append(f'<tr class="{\"biztor-sor\" if forras == \"biztor\" else \"garazs-sor\"}" data-forras="{forras}">')
+        html.append(f'<td class="tipus sticky-left">{tipus}</td>')
+        html.append(f'<td class="viszonylat sticky-left">{escape(sor["viszonylat"])}</td>')
+        html.append(f'<td class="forda sticky-left">{escape(sor["forda"])}</td>')
+        html.append(f'<td class="kezdés sticky-left">{escape(sor["kezdés"])}</td>')
+        html.append(f'<td class="végzés sticky-left">{escape(sor["végzés"])}</td>')
+        html.append(f'<td class="hely sticky-left">{escape(sor["hely"])}</td>')
+        rs = str(sor.get("rendszám", "")).strip()
+        if rs:
+            rs_html = f'<button type="button" class="rendszam-link" data-rendszam="{escape(rs)}" title="Jármű megjelenítése a térképen">{escape(rs)}</button>'
+        else:
+            rs_html = ""
+        html.append(f'<td class="rendszam sticky-left">{rs_html}</td>')
 
-<thead>
-
-<tr>
-
-""")
-
-    # --------------------------------------------------------
-    # MINDEN időoszlop
-    # --------------------------------------------------------
-
-    for idopont in idopontok:
-
-        html.append(
-            f'<th class="idopont">'
-            f'{escape(idopont)}'
-            f'</th>'
-        )
-
-
-    html.append("""
-</tr>
-
-</thead>
-
-
-<tbody>
-
-""")
-
-
-    # --------------------------------------------------------
-    # Időeredmények
-    # --------------------------------------------------------
-
-    for _, sor in rendezett_sorok:
-
-        html.append("<tr>")
-
-        for idopont in idopontok:
-
-            eredmeny = sor["ellenőrzés"].get(
-                idopont,
-                "-"
-            )
-
-
-            # A kezdés előtti 15 percben és a végzés utáni 15 percben
-            # az I/N mindig fekete legyen. A tényleges kezdéstől a
-            # végzésig marad a zöld/piros színezés.
-            #
-            # Ez itt szándékosan felülírja az OK/NEM alapú osztályozást,
-            # mert különben egy későbbi általános .ok/.nem szabály újra
-            # zöldre/pirosra színezné a 15 perces ablakot.
+        for time_index, idopont in enumerate(idopontok):
+            eredmeny = sor.get("ellenőrzés", {}).get(idopont, "-")
+            megj = {"OK":"I", "NEM":"N"}.get(eredmeny, "-")
             osztaly = "nincs"
-
             try:
-                idopont_dt = datetime.strptime(idopont, "%H:%M")
-                kezdes_dt = datetime.strptime(
-                    str(sor.get("kezdés", "")),
-                    "%H:%M:%S"
-                )
-                vegzes_dt = datetime.strptime(
-                    str(sor.get("végzés", "")),
-                    "%H:%M:%S"
-                )
-
-                ellenorzes_kezdete = kezdes_dt - timedelta(minutes=15)
-                ellenorzes_vege = vegzes_dt + timedelta(minutes=15)
-
-                # A megjelenítés sorrendje szándékosan:
-                # 1. ±15 perces ellenőrzési ablak = mindig fekete I/N
-                # 2. tényleges kezdés–végzés = OK zöld / NEM piros
-                # A számítási/logikai eredmény ettől nem változik.
-                if (
-                    ellenorzes_kezdete <= idopont_dt < kezdes_dt
-                    or vegzes_dt < idopont_dt <= ellenorzes_vege
-                ):
+                t = datetime.strptime(idopont, "%H:%M")
+                k = datetime.strptime(sor["kezdés"], "%H:%M")
+                v = datetime.strptime(sor["végzés"], "%H:%M")
+                if k - timedelta(minutes=15) <= t < k or v < t <= v + timedelta(minutes=15):
                     osztaly = "nincs"
-
-                elif kezdes_dt <= idopont_dt <= vegzes_dt:
-                    if eredmeny == "OK":
-                        osztaly = "ok"
-                    elif eredmeny == "NEM":
-                        osztaly = "nem"
-                    else:
-                        eredmeny = "-"
-
-                else:
-                    eredmeny = "-"
-
-            except (ValueError, TypeError):
-                if eredmeny == "OK":
-                    osztaly = "ok"
-                elif eredmeny == "NEM":
-                    osztaly = "nem"
-                else:
-                    osztaly = "nincs"
-                    eredmeny = "-"
-
-
-            megjelenitett_eredmeny = {
-                "OK": "I",
-                "NEM": "N"
-            }.get(
-                eredmeny,
-                eredmeny
-            )
-
-            html.append(
-                f'<td class="ellenorzes {osztaly}"'
-                + (' style="background:#000000;color:white;"' if osztaly == "nincs" else '')
-                + f'>{escape(megjelenitett_eredmeny)}</td>'
-            )
-
-
-        html.append("</tr>")
-
-
-    html.append("""
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</div>
-
-""")
-
-    # --------------------------------------------------------
-    # HIDEGTÁROLÁSI RIPORT OSZLOP – HTML
-    # A döntés a 70%-os ponton véglegesen elmentett adatból jön.
-    # --------------------------------------------------------
-
-    riport_eredmenyek = {
-        (
-            str(sor.get("viszonylat", "")).strip(),
-            str(sor.get("forda", "")).strip()
-        ): sor
-        for sor in hidegtarolas_riport.get("eredmenyek", [])
-    } if hidegtarolas_riport else {}
-
-    html.append("""
-<div class="riport-resz">
-
-<div class="tabla-fejlec-hely"></div>
-
-<table class="riport-tablazat">
-<thead>
-<tr>
-    <th>Tárolás helye</th>
-</tr>
-</thead>
-<tbody>
-""")
-
-    for _, sor in rendezett_sorok:
-        kulcs = (
-            str(sor["viszonylat"]).strip(),
-            str(sor["forda"]).strip()
-        )
-
-        riport_sor = riport_eredmenyek.get(kulcs, {})
-        eredmeny = str(riport_sor.get("eredmény", "")).strip()
-        tarolas_helye = str(riport_sor.get("tárolás helye", "")).strip()
-
-        # HTML-ben nincs "Nincs adat": adat hiányában maradjon üres.
-        if tarolas_helye in ("Nincs adat", "-"):
-            tarolas_helye = ""
-
-        if (
-            tarolas_helye
-            and eredmeny == "RENDBEN TÁROLT"
-        ):
-            osztaly = "riport-ok"
-        elif (
-            tarolas_helye
-            and eredmeny == "ELTÉRÉS TÖRTÉNT"
-        ):
-            osztaly = "riport-eltérés"
-        else:
-            osztaly = "riport-ures"
-
-        html.append(
-            f'<tr>'
-            f'<td class="{osztaly}">{escape(tarolas_helye)}</td>'
-            f'</tr>'
-        )
-
-    html.append("""
-</tbody>
-</table>
-
-</div>
-
-</div>
-
-</div>
-""")
-
-    html.append("""
-</div>
-
-<div id="panel-garazs" class="nezet-panel">
-
-""")
-
-    # --------------------------------------------------------
-    # MÁSODIK (GARÁZSMENET / JBK) MÁTRIX
-    # --------------------------------------------------------
-
-    garazs_riport_eredmenyek = {
-        (str(sor.get("viszonylat", "")).strip(), str(sor.get("forda", "")).strip()): sor
-        for sor in garazstarolas_riport.get("eredmenyek", [])
-    } if garazstarolas_riport else {}
-
-    garazs_sorok = {}
-    for _, forda_sor_g in figyelt_fordak_garazs.iterrows():
-        visz_g = str(forda_sor_g.get("viszonylat", "")).strip()
-        forda_g = str(forda_sor_g.get("forda", "")).strip()
-        kulcs_g = (visz_g, forda_g)
-        garazs_sorok[kulcs_g] = {
-            "viszonylat": visz_g,
-            "forda": forda_g,
-            "kezdés": str(forda_sor_g.get("kezdés", ""))[:5],
-            "végzés": str(forda_sor_g.get("végzés", ""))[:5],
-            "hely": str(forda_sor_g.get("hely", "")),
-            "rendszám": str(forda_rendszamok.get(forda_kulcs_adat(forda_sor_g), {}).get("rendszám", "")),
-            "ellenőrzés": {}
-        }
-
-    for rekord in pozicio_tortenet:
-        if str(rekord.get("forrás", "biztor")).strip() != "garazs":
-            continue
-        kulcs_g = (str(rekord.get("viszonylat", "")).strip(), str(rekord.get("forda", "")).strip())
-        if kulcs_g not in garazs_sorok:
-            continue
-        idopont_g = str(rekord.get("frissítve", ""))[:5]
-        if idopont_g:
-            garazs_sorok[kulcs_g]["ellenőrzés"][idopont_g] = rekord.get("ellenőrzés", "-")
-
-    # A garázsos mátrix ugyanazt a közös időtengelyt használja, mint a BIZTOR.
-    # Így akkor is megjelennek az időoszlopok, ha a garázsos fordáknál
-    # még nincs saját RT/pozíció rekord.
-    garazs_sajat_idopontok = {
-        str(rekord.get("frissítve", ""))[:5]
-        for rekord in pozicio_tortenet
-        if str(rekord.get("forrás", "biztor")).strip() == "garazs" and rekord.get("frissítve")
-    }
-    garazs_idopontok = sorted(set(idopontok) | garazs_sajat_idopontok)
-
-    html.append("""
-<div class="tabla-szekcio">
-<div class="tabla-egesz">
-<div class="alap-ablak">
-<div class="tabla-fejlec-hely"></div>
-<table><thead><tr>
-<th class="viszonylat">Viszonylat</th><th class="forda">Forda</th><th class="kezdés">Kezdés</th><th class="végzés">Végzés</th><th class="hely">Hely</th><th class="rendszam">Rendszám</th>
-</tr></thead><tbody>
-""")
-
-    garazs_rendezett = sorted(garazs_sorok.items(), key=lambda x: (x[1].get("kezdés", ""), x[1].get("viszonylat", ""), x[1].get("forda", "")))
-    for _, sor_g in garazs_rendezett:
-        html.append(
-            f'<tr><td class="alap viszonylat">{escape(sor_g["viszonylat"])}</td>'
-            f'<td class="alap forda">{escape(sor_g["forda"])}</td>'
-            f'<td class="alap kezdés">{escape(sor_g["kezdés"])}</td>'
-            f'<td class="alap végzés">{escape(sor_g["végzés"])}</td>'
-            f'<td class="alap hely">{escape(sor_g["hely"])}</td>'
-            f'<td class="alap rendszam">'
-            f'{("<button type=\"button\" class=\"rendszam-link\" data-rendszam=\"" + escape(sor_g["rendszám"]) + "\" title=\"Jármű megjelenítése a térképen\">" + escape(sor_g["rendszám"]) + "</button>") if str(sor_g["rendszám"]).strip() else ""}'
-            f'</td></tr>'
-        )
-
-    html.append("""
-</tbody></table></div>
-<div class="idopont-resz">
-<div class="idopont-csuszkasav">
-<div class="csuszka-info"><strong>Garázsban tároló:</strong> """ + str(sum(1 for k in garazs_sorok if garazs_sorok[k]["rendszám"])) + "/" + str(len(figyelt_fordak_garazs)) + """ <span class="timeline-pelda"><span class="timeline-pont timeline-zold"></span>rendben</span><span class="timeline-pelda"><span class="timeline-pont timeline-piros"></span>eltérés</span><span class="timeline-pelda"><span class="timeline-pont timeline-fekete"></span>±15 perc</span></div>
-<input type="range" id="garazs-idopont-csuszka" min="0" max="1000" value="1000" step="1">
-</div>
-<div class="idopont-ablak" id="garazs-idopont-ablak">
-<div class="idopont-belső" id="garazs-idopont-belső">
-<table><thead><tr>
-""")
-
-    for idopont_g in garazs_idopontok:
-        html.append(f'<th class="idopont">{escape(idopont_g)}</th>')
-
-    html.append("</tr></thead><tbody>")
-
-    for _, sor_g in garazs_rendezett:
-        html.append("<tr>")
-        for idopont_g in garazs_idopontok:
-            eredmeny_g = sor_g["ellenőrzés"].get(idopont_g, "-")
-            osztaly_g = "nincs"
-            megj_g = {"OK": "I", "NEM": "N"}.get(eredmeny_g, "-")
-
-            # A garázs mátrix időszínezése pontosan ugyanaz, mint
-            # a fő (BIZTOR) mátrixé:
-            # - kezdés előtt 15 perc: fekete I/N
-            # - kezdéstől végzésig: OK = zöld, NEM = piros
-            # - végzés után 15 perc: fekete I/N
-            try:
-                t = datetime.strptime(idopont_g, "%H:%M")
-                k = datetime.strptime(sor_g["kezdés"], "%H:%M")
-                v = datetime.strptime(sor_g["végzés"], "%H:%M")
-                ellenorzes_kezdete = k - timedelta(minutes=15)
-                ellenorzes_vege = v + timedelta(minutes=15)
-
-                # A garázs mátrixban is elsőbbséget kap a ±15 perces
-                # ellenőrzési ablak: ott mindig fekete I/N.
-                if (
-                    ellenorzes_kezdete <= t < k
-                    or v < t <= ellenorzes_vege
-                ):
-                    osztaly_g = "nincs"
-
                 elif k <= t <= v:
-                    if eredmeny_g == "OK":
-                        osztaly_g = "ok"
-                    elif eredmeny_g == "NEM":
-                        osztaly_g = "nem"
-                    else:
-                        megj_g = "-"
-
+                    if eredmeny == "OK": osztaly = "ok"
+                    elif eredmeny == "NEM": osztaly = "nem"
+                    else: megj = "-"
                 else:
-                    megj_g = "-"
+                    megj = "-"
             except (ValueError, TypeError):
-                if eredmeny_g == "OK":
-                    osztaly_g = "ok"
-                elif eredmeny_g == "NEM":
-                    osztaly_g = "nem"
-                else:
-                    osztaly_g = "nincs"
-                    megj_g = "-"
+                if eredmeny == "OK": osztaly = "ok"
+                elif eredmeny == "NEM": osztaly = "nem"
+                else: megj = "-"
+            style = ' style="background:#000000;color:white;"' if osztaly == "nincs" and megj in ("I", "N") else ""
+            html.append(f'<td class="ellenorzes {osztaly}" data-time-index="{time_index}"{style}>{escape(megj)}</td>')
 
-            html.append(
-                f'<td class="ellenorzes {osztaly_g}"'
-                + (' style="background:#000000;color:white;"' if osztaly_g == "nincs" else '')
-                + f'>{escape(megj_g)}</td>'
-            )
-        html.append("</tr>")
+        riport_map = riport_eredmenyek if forras == "biztor" else garazs_riport_eredmenyek
+        rr = riport_map.get(sor["kulcs"], {})
+        eredmeny_riport = str(rr.get("eredmény", "")).strip()
+        tarolas = str(rr.get("tárolás helye", "")).strip()
+        if tarolas in ("Nincs adat", "-"): tarolas = ""
+        rcls = "riport-ok" if tarolas and eredmeny_riport == "RENDBEN TÁROLT" else ("riport-eltérés" if tarolas and eredmeny_riport == "ELTÉRÉS TÖRTÉNT" else "riport-ures")
+        html.append(f'<td class="tarolas sticky-right {rcls}">{escape(tarolas)}</td></tr>')
 
-    html.append("""
-</tbody></table></div>
-</div>
-</div>
-<div class="riport-resz">
-<div class="tabla-fejlec-hely"></div>
-<table class="riport-tablazat"><thead><tr><th>Tárolás helye</th></tr></thead><tbody>
-""")
+    html.append("</tbody></table></div></div></div>")
 
-    for _, sor_g in garazs_rendezett:
-        rs = garazs_riport_eredmenyek.get((sor_g["viszonylat"], sor_g["forda"]), {})
-        e = str(rs.get("eredmény", "")).strip()
-        h = str(rs.get("tárolás helye", "")).strip()
-
-        van_tarolas_adat = (
-            h
-            and h not in ("Nincs adat", "-")
-        )
-
-        if van_tarolas_adat and e == "RENDBEN TÁROLT":
-            cls = "riport-ok"
-        elif van_tarolas_adat and e == "ELTÉRÉS TÖRTÉNT":
-            cls = "riport-eltérés"
-        else:
-            cls = "riport-ures"
-
-        html.append(
-            f'<tr><td class="{cls}">{escape(h)}</td></tr>'
-        )
-
-    html.append("""
-</tbody></table>
-</div>
-</div>
-
-""")
-
-    html.append("""
-</div>
-
-
-<script>
-
-/*
-   Az időtábla NEM használ böngészős vízszintes görgetősávot.
-
-   A második táblázatban minden időoszlop benne van,
-   de egyszerre csak dinamikusan meghatározott időablak látszik.
-
-   A külön csúszka mozgatja az időtáblát.
-*/
-
-const idopontAblak =
-    document.getElementById("idopont-ablak");
-
-const idopontBelso =
-    document.getElementById("idopont-belső");
-
-const idopontCsuszka =
-    document.getElementById("idopont-csuszka");
-
-
-function frissitIdopontCsuszkat() {
-
-    if (!idopontAblak || !idopontBelso || !idopontCsuszka) return;
-
-    /* A látható időoszlopok száma automatikusan igazodik a kijelzőhöz. */
-    /*
-       Legfeljebb 17 időoszlop legyen egyszerre látható.
-       A tényleges szélességet a bal oldali fix oszlopok és a
-       Tárolás helye oszlop is figyelembe veszi, így asztali nézetben
-       nem lóg ki jobbra a riport.
-    */
-    const root = document.querySelector('.tabla-szekcio');
-    const tablaEgesz = root ? root.querySelector('.tabla-egesz') : null;
-    const alap = root ? root.querySelector('.alap-ablak') : null;
-    const riport = root ? root.querySelector('.riport-resz') : null;
-    const w = window.innerWidth;
-    const fixedLeft = alap ? alap.getBoundingClientRect().width : 0;
-    const storageWidth = riport ? riport.getBoundingClientRect().width : 145;
-    const available = Math.max(260, w - fixedLeft - storageWidth - 34);
-    const timeWidth = Math.min(578, available);
-
-    document.documentElement.style.setProperty("--time-window-width", timeWidth + "px");
-    if (idopontAblak) idopontAblak.style.width = timeWidth + "px";
-    if (idopontCsuszka) idopontCsuszka.parentElement.style.width = timeWidth + "px";
-
-    const maxScroll = Math.max(0, idopontBelso.scrollWidth - idopontAblak.clientWidth);
-    idopontCsuszka.min = "0";
-    idopontCsuszka.max = "1000";
-    idopontCsuszka.value = "1000";
-    idopontCsuszka.oninput = function() {
-        idopontAblak.scrollLeft = maxScroll * (Number(this.value) / 1000);
-    };
-    idopontAblak.scrollLeft = maxScroll;
-}
-
-
-window.addEventListener(
-    "load",
-    frissitIdopontCsuszkat
-);
-
-
-window.addEventListener(
-    "resize",
-    frissitIdopontCsuszkat
-);
-
-</script>
-
-""")
+    html.append(""")
 
     html.append("""
 <script>
 (function(){
- const g=document.querySelectorAll('.nezet-gomb');
- const b=document.getElementById('panel-biztor');
- const r=document.getElementById('panel-garazs');
- function setView(v){
-   b.classList.toggle('hidden',v==='garazs');
-   r.classList.toggle('hidden',v==='biztor');
-   g.forEach(x=>x.classList.toggle('active',x.dataset.nezet===v));
-   try{localStorage.setItem('arrivabus-nezet',v)}catch(e){}
-   window.dispatchEvent(new Event('resize'));
+ const buttons=document.querySelectorAll('.nezet-gomb');
+ const table=document.querySelector('.fo-tabla');
+ const scroll=document.getElementById('fo-tabla-scroll');
+ const slider=document.getElementById('fo-idopont-csuszka');
+ const label=document.getElementById('aktiv-sorok-szoveg');
+ const timeHeaders=table ? Array.from(table.querySelectorAll('thead th.idopont')) : [];
+ const timeCells=table ? Array.from(table.querySelectorAll('tbody td.ellenorzes')) : [];
+ const totalTimes=timeHeaders.length;
+ let visibleCount=17;
+
+ function setTimeWindow(){
+   if(!table || !scroll || !totalTimes) return;
+   const allRows=table.querySelectorAll('tr');
+   let fixed=0;
+   const headCells=table.querySelectorAll('thead th');
+   headCells.forEach((th,i)=>{
+     if(i < 7 || i === headCells.length-1) fixed += th.getBoundingClientRect().width;
+   });
+   const available=Math.max(204, scroll.clientWidth-fixed-8);
+   visibleCount=Math.max(6, Math.min(17, Math.floor(available/34)));
+   visibleCount=Math.min(visibleCount,totalTimes);
+   slider.max=String(Math.max(0,totalTimes-visibleCount));
+   let start=Math.min(Number(slider.value)||0, Math.max(0,totalTimes-visibleCount));
+   slider.value=String(start);
+   timeHeaders.forEach((el,i)=>el.style.display=(i>=start && i<start+visibleCount)?'':'none');
+   timeCells.forEach(el=>{
+     const i=Number(el.dataset.timeIndex);
+     el.style.display=(i>=start && i<start+visibleCount)?'':'none';
+   });
+   table.style.width='max-content';
  }
- g.forEach(x=>x.addEventListener('click',()=>setView(x.dataset.nezet)));
- let v='biztor';
- setView(v);
+
+ function setView(v){
+   buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===v));
+   table?.querySelectorAll('tbody tr').forEach(tr=>{
+     tr.style.display=(v==='mindketto'||tr.dataset.forras===v)?'':'none';
+   });
+   if(label) label.textContent=v==='biztor'?'Végállomás':v==='garazs'?'Garázs':'Összes';
+   requestAnimationFrame(setTimeWindow);
+ }
+
+ buttons.forEach(b=>b.addEventListener('click',()=>setView(b.dataset.nezet)));
+ slider?.addEventListener('input',setTimeWindow);
+ window.addEventListener('resize',()=>requestAnimationFrame(setTimeWindow));
+ setView('biztor');
 })();
 </script>
-""")
-
-    html.append("""
-</div>
-</div>
 
 """)
 
-    html.append("""
+    html.append(r'''
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 
-const terkepJarmuvek = """ + json.dumps(terkep_jarmuvek_lista, ensure_ascii=False) + r""";
+const terkepJarmuvek = __JARMUVEK__;
 
-const terkepZonak = """ + json.dumps(terkep_zonak, ensure_ascii=False) + r""";
+const terkepZonak = __ZONAK__;
+
 
 
 const map = L.map(
@@ -4975,7 +4505,8 @@ window.addEventListener("load", frissitGarazsCsuszkat);
 
 </html>
 
-""")
+'''.replace("__JARMUVEK__", json.dumps(terkep_jarmuvek_lista, ensure_ascii=False)).replace("__ZONAK__", json.dumps(terkep_zonak, ensure_ascii=False)))
+
 
 
 
