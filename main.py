@@ -3508,6 +3508,9 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .fix-tabla th.rendszam,.fix-tabla td.rendszam{width:1%;white-space:nowrap}
 .fix-tabla th.viszonylat,.fix-tabla th.forda,.fix-tabla th.rendszam{padding-left:5px;padding-right:5px}
 .fix-tabla th.viszonylat .rendez-gomb,.fix-tabla th.forda .rendez-gomb,.fix-tabla th.rendszam .rendez-gomb{margin-left:4px}
+/* A kezdés/végzés oszlop szélességét kizárólag a fejléc tartalma határozza meg. */
+.fix-tabla th.kezdés,.fix-tabla td.kezdés{width:78px;min-width:78px;max-width:78px}
+.fix-tabla th.végzés,.fix-tabla td.végzés{width:80px;min-width:80px;max-width:80px}
 .ido-tabla{width:max-content;min-width:100%}.ido-tabla th,.ido-tabla td{width:42px;min-width:42px;max-width:42px;padding:1px;text-align:center}
 .fix-tabla tbody tr,.ido-tabla tbody tr,.storage-tabla tbody tr{height:24px}
 .fix-tabla tbody td,.ido-tabla tbody td,.storage-tabla tbody td{height:24px;line-height:18px;box-sizing:border-box;overflow:hidden}
@@ -3729,6 +3732,57 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   let currentView='biztor';
   let sortState={col:null,dir:1};
 
+  function syncTableRows(){
+    /*
+       A három táblázat sorait csak akkor igazítjuk újra, amikor a
+       láthatóság vagy a sorrend ténylegesen megváltozik. A csúszka és
+       az egyszerű layout-frissítés nem hívja ezt, így nem kényszerítünk
+       felesleges DOM-méréseket minden mozdulatnál.
+    */
+    const fixRows=Array.from(fixTbody.querySelectorAll('tr'));
+    const idoRows=new Map(Array.from(idoTbody.querySelectorAll('tr')).map(r=>[r.dataset.rowId,r]));
+    const storageRows=new Map(Array.from(storageTbody.querySelectorAll('tr')).map(r=>[r.dataset.rowId,r]));
+
+    fixRows.forEach(fixRow=>{
+      const id=fixRow.dataset.rowId;
+      const ido=idoRows.get(id);
+      const storage=storageRows.get(id);
+      const rows=[fixRow,ido,storage].filter(r=>r && getComputedStyle(r).display!=='none');
+      if(!rows.length) return;
+
+      rows.forEach(r=>{
+        r.style.height='';
+        Array.from(r.cells).forEach(td=>td.style.height='');
+      });
+
+      let h=0;
+      rows.forEach(r=>{h=Math.max(h,r.getBoundingClientRect().height);});
+      if(h>0){
+        const px=Math.ceil(h)+'px';
+        rows.forEach(r=>{
+          r.style.height=px;
+          Array.from(r.cells).forEach(td=>td.style.height=px);
+        });
+      }
+    });
+  }
+
+  function syncHeaderRows(){
+    /* A két fejlécsor is legyen pontosan azonos magasságú a három táblában. */
+    const tables=[fixAblak.querySelector('table'),idoAblak.querySelector('table'),storageAblak.querySelector('table')];
+    for(let i=0;i<2;i++){
+      const rows=tables.map(t=>t && t.tHead ? t.tHead.rows[i] : null).filter(Boolean);
+      if(!rows.length) continue;
+      rows.forEach(r=>{r.style.height='';Array.from(r.cells).forEach(td=>td.style.height='');});
+      let h=0;
+      rows.forEach(r=>{h=Math.max(h,r.getBoundingClientRect().height);});
+      if(h>0){
+        const px=Math.ceil(h)+'px';
+        rows.forEach(r=>{r.style.height=px;Array.from(r.cells).forEach(td=>td.style.height=px);});
+      }
+    }
+  }
+
   function setLayout(){
     const leftWidth=fixAblak.querySelector('table').getBoundingClientRect().width;
     const storageWidth=storageAblak.querySelector('table').getBoundingClientRect().width;
@@ -3772,7 +3826,10 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
       const parts=rowParts(fixRow.dataset.rowId);
       [parts.fix,parts.ido,parts.storage].forEach(r=>{if(r) r.style.display=ok?'':'none';});
     });
-    requestAnimationFrame(setLayout);
+    requestAnimationFrame(()=>{
+      syncTableRows();
+      setLayout();
+    });
   }
 
   function applyFilters(){
@@ -3833,7 +3890,10 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
         if(r) parent.appendChild(r);
       });
     });
-    requestAnimationFrame(setLayout);
+    requestAnimationFrame(()=>{
+      syncTableRows();
+      setLayout();
+    });
   }
 
   let sliderFrame=0;
@@ -3851,6 +3911,8 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   window.addEventListener('resize',()=>requestAnimationFrame(setLayout));
   allRows().forEach(r=>r.dataset.filterMatch='1');
   applyView('biztor');
+  syncHeaderRows();
+  syncTableRows();
   setLayout();
 })();
 
