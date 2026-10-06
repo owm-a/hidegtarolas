@@ -2722,13 +2722,17 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             else:
                 export_eredmeny = "N"
 
+            export_tarolas_helye = str(sor.get("tárolás helye", "")).strip()
+            if not export_tarolas_helye or export_tarolas_helye == "-":
+                export_tarolas_helye = "Nincs adat"
+
             export_ws.append([
                 sor["dátum"],
                 sor["viszonylat"],
                 sor["forda"],
                 sor["rendszám"],
                 export_eredmeny,
-                sor["tárolás helye"]
+                export_tarolas_helye
             ])
 
             eredmeny_cella = export_ws.cell(export_ws.max_row, 5)
@@ -2939,15 +2943,13 @@ def html_export():
     # A 18 oszlopos megjelenítést a HTML/CSS/JS kezeli.
     # --------------------------------------------------------
 
+    # Az időoszlopok a ténylegesen eltárolt FUTÁR/pozíciólekérdezések
+    # időpontjaiból készülnek. Ezért egy már lefutott, visszamenőlegesen
+    # eltárolt 15 perces rekord is a megfelelő fekete ablakba kerül.
     idopontok = sorted(
         {
-            rekord.get(
-                "frissítve",
-                ""
-            )[:5]
-
+            rekord.get("frissítve", "")[:5]
             for rekord in pozicio_tortenet
-
             if str(rekord.get("forrás", "biztor")).strip() == "biztor"
             and rekord.get("frissítve")
         }
@@ -4214,58 +4216,37 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
             )
 
 
-            # A kezdés előtti 15 percben és a végzés utáni 15 percben
-            # az I/N mindig fekete legyen. A tényleges kezdéstől a
-            # végzésig marad a zöld/piros színezés.
-            #
-            # Ez itt szándékosan felülírja az OK/NEM alapú osztályozást,
-            # mert különben egy későbbi általános .ok/.nem szabály újra
-            # zöldre/pirosra színezné a 15 perces ablakot.
+            # MEGJELENÍTÉSI LOGIKA (a számítási logikától függetlenül):
+            # - kezdés -15 perc ... kezdés: fekete I/N
+            # - kezdés ... végzés: OK = zöld I, NEM = piros N
+            # - végzés ... végzés +15 perc: fekete I/N
+            # A fekete ablak akkor is visszamenőleg kirajzolódik, ha az
+            # adott futás már bekerült a pozíciótörténetbe.
             osztaly = "nincs"
 
             try:
                 idopont_dt = datetime.strptime(idopont, "%H:%M")
-                kezdes_dt = datetime.strptime(
-                    str(sor.get("kezdés", "")),
-                    "%H:%M:%S"
-                )
-                vegzes_dt = datetime.strptime(
-                    str(sor.get("végzés", "")),
-                    "%H:%M:%S"
-                )
+                kezdes_dt = datetime.strptime(str(sor.get("kezdés", "")), "%H:%M:%S")
+                vegzes_dt = datetime.strptime(str(sor.get("végzés", "")), "%H:%M:%S")
 
                 ellenorzes_kezdete = kezdes_dt - timedelta(minutes=15)
                 ellenorzes_vege = vegzes_dt + timedelta(minutes=15)
 
-                # A megjelenítés sorrendje szándékosan:
-                # 1. ±15 perces ellenőrzési ablak = mindig fekete I/N
-                # 2. tényleges kezdés–végzés = OK zöld / NEM piros
-                # A számítási/logikai eredmény ettől nem változik.
-                if (
-                    ellenorzes_kezdete <= idopont_dt < kezdes_dt
-                    or vegzes_dt < idopont_dt <= ellenorzes_vege
-                ):
-                    osztaly = "nincs"
-
-                elif kezdes_dt <= idopont_dt <= vegzes_dt:
-                    if eredmeny == "OK":
-                        osztaly = "ok"
-                    elif eredmeny == "NEM":
-                        osztaly = "nem"
+                if eredmeny in ("OK", "NEM"):
+                    if ellenorzes_kezdete <= idopont_dt < kezdes_dt:
+                        osztaly = "nincs"
+                    elif kezdes_dt <= idopont_dt <= vegzes_dt:
+                        osztaly = "ok" if eredmeny == "OK" else "nem"
+                    elif vegzes_dt < idopont_dt <= ellenorzes_vege:
+                        osztaly = "nincs"
                     else:
                         eredmeny = "-"
-
                 else:
                     eredmeny = "-"
 
             except (ValueError, TypeError):
-                if eredmeny == "OK":
-                    osztaly = "ok"
-                elif eredmeny == "NEM":
-                    osztaly = "nem"
-                else:
-                    osztaly = "nincs"
-                    eredmeny = "-"
+                eredmeny = "-"
+                osztaly = "nincs"
 
 
             megjelenitett_eredmeny = {
@@ -4320,7 +4301,6 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
 <table class="riport-tablazat">
 <thead>
 <tr>
-    <th>Eredmény</th>
     <th>Tárolás helye</th>
 </tr>
 </thead>
@@ -4337,17 +4317,23 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
         eredmeny = str(riport_sor.get("eredmény", "")).strip()
         tarolas_helye = str(riport_sor.get("tárolás helye", "")).strip()
 
-        if eredmeny == "RENDBEN TÁROLT":
-            osztaly = "riport-ok"
-        elif eredmeny == "ELTÉRÉS TÖRTÉNT":
-            osztaly = "riport-eltérés"
-        else:
+        # A HTML-ben csak a tárolási hely látszik.
+        # Ha nincs tényleges helyadat, üres marad és nem kap színt.
+        if tarolas_helye in ("Nincs adat", "-"):
+            tarolas_megjelenites = ""
             osztaly = "riport-ures"
+        else:
+            tarolas_megjelenites = tarolas_helye
+            if eredmeny == "RENDBEN TÁROLT":
+                osztaly = "riport-ok"
+            elif eredmeny == "ELTÉRÉS TÖRTÉNT":
+                osztaly = "riport-eltérés"
+            else:
+                osztaly = "riport-ures"
 
         html.append(
             f'<tr>'
-            f'<td class="{osztaly}">{escape(eredmeny)}</td>'
-            f'<td>{escape(tarolas_helye)}</td>'
+            f'<td class="{osztaly}">{escape(tarolas_megjelenites)}</td>'
             f'</tr>'
         )
 
@@ -4452,11 +4438,10 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
             osztaly_g = "nincs"
             megj_g = {"OK": "I", "NEM": "N"}.get(eredmeny_g, "-")
 
-            # A garázs mátrix időszínezése pontosan ugyanaz, mint
-            # a fő (BIZTOR) mátrixé:
-            # - kezdés előtt 15 perc: fekete I/N
-            # - kezdéstől végzésig: OK = zöld, NEM = piros
-            # - végzés után 15 perc: fekete I/N
+            # A garázs mátrix ugyanazt a megjelenítési logikát használja:
+            # - kezdés -15 ... kezdés: fekete I/N
+            # - kezdés ... végzés: zöld/piros I/N
+            # - végzés ... +15: fekete I/N
             try:
                 t = datetime.strptime(idopont_g, "%H:%M")
                 k = datetime.strptime(sor_g["kezdés"], "%H:%M")
@@ -4464,32 +4449,20 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
                 ellenorzes_kezdete = k - timedelta(minutes=15)
                 ellenorzes_vege = v + timedelta(minutes=15)
 
-                # A garázs mátrixban is elsőbbséget kap a ±15 perces
-                # ellenőrzési ablak: ott mindig fekete I/N.
-                if (
-                    ellenorzes_kezdete <= t < k
-                    or v < t <= ellenorzes_vege
-                ):
-                    osztaly_g = "nincs"
-
-                elif k <= t <= v:
-                    if eredmeny_g == "OK":
-                        osztaly_g = "ok"
-                    elif eredmeny_g == "NEM":
-                        osztaly_g = "nem"
+                if eredmeny_g in ("OK", "NEM"):
+                    if ellenorzes_kezdete <= t < k:
+                        osztaly_g = "nincs"
+                    elif k <= t <= v:
+                        osztaly_g = "ok" if eredmeny_g == "OK" else "nem"
+                    elif v < t <= ellenorzes_vege:
+                        osztaly_g = "nincs"
                     else:
                         megj_g = "-"
-
                 else:
                     megj_g = "-"
             except (ValueError, TypeError):
-                if eredmeny_g == "OK":
-                    osztaly_g = "ok"
-                elif eredmeny_g == "NEM":
-                    osztaly_g = "nem"
-                else:
-                    osztaly_g = "nincs"
-                    megj_g = "-"
+                megj_g = "-"
+                osztaly_g = "nincs"
 
             html.append(
                 f'<td class="ellenorzes {osztaly_g}"'
