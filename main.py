@@ -3922,6 +3922,28 @@ td.ellenorzes {
 
 }
 
+
+
+/* MODERN RESPONSIVE DASHBOARD */
+:root{--bg:#11151b;--surface:#181e26;--surface2:#202733;--surface3:#252d39;--border:#313b49;--text:#e8edf3;--muted:#9ca8b7;--accent:#6ea8fe;--accent2:#4f8ff7;--ok:#16a765;--bad:#e05252;--dark:#2c333d;--shadow:0 10px 30px rgba(0,0,0,.20);--radius:12px}
+html{background:var(--bg)}
+body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,168,254,.07),transparent 28%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.fejlec,.tabla-szekcio{background:rgba(24,30,38,.96);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.fejlec{padding:16px 18px;margin-bottom:14px}.cim{color:#f3f6fa;font-size:23px;letter-spacing:-.02em;margin-bottom:12px}.adat{color:var(--muted)}.adat b{color:var(--text);font-weight:600}
+#geozona-terkep{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:14px}
+.nezet-valaszto{display:flex;align-items:center;gap:6px;margin:0 0 14px;padding:4px;width:fit-content;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.16)}
+.nezet-gomb{border:0;border-radius:7px;padding:8px 13px;background:transparent;color:var(--muted);font:inherit;font-size:13px;font-weight:650;cursor:pointer;transition:.16s}
+.nezet-gomb:hover{color:var(--text);background:var(--surface3)}.nezet-gomb.active{color:white;background:linear-gradient(135deg,var(--accent2),#6b7ff0);box-shadow:0 4px 12px rgba(79,143,247,.24)}.nezet-gomb:active{transform:translateY(1px)}
+.nezet-panel{display:block}.nezet-panel.hidden{display:none!important}
+.tabla-szekcio{margin-top:0;padding:12px;border-top:1px solid var(--border);overflow-x:auto}.tabla-szekcio+.tabla-szekcio{margin-top:14px}
+.tabla-szekcio-cim,.garazs-matrix-cim{color:#dbe4ee;padding:3px 4px 9px;font-size:13px;font-weight:700}.tabla-egesz{background:transparent}
+.idopont-csuszkasav{height:38px;padding:4px 8px;display:grid;grid-template-columns:minmax(170px,max-content) minmax(260px,1fr);align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px 8px 0 0}
+.csuszka-info{color:var(--muted);font-size:12px;font-weight:650;white-space:nowrap}.csuszka-info strong{color:var(--text)}.idopont-csuszkasav input[type=range]{width:100%;accent-color:var(--accent)}
+.alap-ablak table,.idopont-belső table,.riport-tablazat{background:var(--surface)}table{color:var(--text)}th{background:var(--surface3);color:#cbd5e1;border-color:var(--border)}td,th{border-color:var(--border)}td.alap{background:var(--surface)}
+.idopont-ablak{background:var(--surface);border-left:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}.riport-tablazat th,.riport-tablazat td{border-color:var(--border)}.riport-tablazat th{background:var(--surface3)}
+.ok,.riport-ok{background:var(--ok)!important}.nem,.riport-eltérés{background:var(--bad)!important}.nincs{background:var(--dark)!important;color:#f1f5f9!important}.ellenorzes.sarga{background:#a98935!important;color:white!important}.riport-ures{background:transparent!important;color:var(--muted)}.vehicle-pin.gray{background:#687384}
+@media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-adatok{display:block}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:7px}#geozona-terkep{height:42vh;min-height:280px}.nezet-valaszto{width:100%}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}.tabla-egesz{min-width:max-content}}
+@media(max-width:600px){.cim{font-size:20px}.adat{font-size:12px}#geozona-terkep{height:38vh;min-height:250px}.idopont-csuszkasav{grid-template-columns:1fr;height:auto;gap:2px;padding:6px 8px}.csuszka-info{font-size:11px}.tabla-szekcio{overflow-x:auto}}
 </style>
 
 
@@ -3982,13 +4004,14 @@ ArrivaBus hidegtárolás
 
 <div id="geozona-terkep"></div>
 
-
-<div class="tabla-szekcio">
-
-<div class="tabla-szekcio-cim">
-Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" + str(excel_fordak_szama) + """
+<div class="nezet-valaszto" role="tablist" aria-label="Megjelenítés">
+<button class="nezet-gomb active" data-nezet="mindketto" type="button">Mindkettő</button>
+<button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás</button>
+<button class="nezet-gomb" data-nezet="garazs" type="button">Garázs</button>
 </div>
 
+<div id="panel-biztor" class="nezet-panel">
+<div class="tabla-szekcio">
 
 <!-- =========================================================
      BAL: 6 FIX OSZLOP
@@ -4105,6 +4128,8 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
 <div class="idopont-resz">
 
 <div class="idopont-csuszkasav">
+
+<div class="csuszka-info"><strong>Végállomáson tároló:</strong> """ + str(megtalalt_jarmuvek) + "/" + str(excel_fordak_szama) + """</div>
 
 <input
     type="range"
@@ -4331,6 +4356,13 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
 </div>
 """)
 
+    html.append("""
+</div>
+
+<div id="panel-garazs" class="nezet-panel">
+
+""")
+
     # --------------------------------------------------------
     # MÁSODIK (GARÁZSMENET / JBK) MÁTRIX
     # --------------------------------------------------------
@@ -4376,9 +4408,7 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
     garazs_idopontok = sorted(set(idopontok) | garazs_sajat_idopontok)
 
     html.append("""
-<div class="tabla-szekcio-cim garazs-szekcio-cim">
-  Garázsban tároló online járművek: """ + str(sum(1 for k in garazs_sorok if garazs_sorok[k]["rendszám"])) + "/" + str(len(figyelt_fordak_garazs)) + """
-</div>
+<div class="tabla-szekcio">
 <div class="tabla-egesz">
 <div class="alap-ablak">
 <div class="tabla-fejlec-hely"></div>
@@ -4402,6 +4432,7 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
 </tbody></table></div>
 <div class="idopont-resz">
 <div class="idopont-csuszkasav">
+<div class="csuszka-info"><strong>Garázsban tároló:</strong> """ + str(sum(1 for k in garazs_sorok if garazs_sorok[k]["rendszám"])) + "/" + str(len(figyelt_fordak_garazs)) + """</div>
 <input type="range" id="garazs-idopont-csuszka" min="0" max="1000" value="1000" step="1">
 </div>
 <div class="idopont-ablak" id="garazs-idopont-ablak">
@@ -4592,6 +4623,33 @@ window.addEventListener(
 );
 
 </script>
+
+""")
+
+    html.append("""
+<script>
+(function(){
+ const g=document.querySelectorAll('.nezet-gomb');
+ const b=document.getElementById('panel-biztor');
+ const r=document.getElementById('panel-garazs');
+ function setView(v){
+   b.classList.toggle('hidden',v==='garazs');
+   r.classList.toggle('hidden',v==='biztor');
+   g.forEach(x=>x.classList.toggle('active',x.dataset.nezet===v));
+   try{localStorage.setItem('arrivabus-nezet',v)}catch(e){}
+   window.dispatchEvent(new Event('resize'));
+ }
+ g.forEach(x=>x.addEventListener('click',()=>setView(x.dataset.nezet)));
+ let v='mindketto';
+ try{const m=localStorage.getItem('arrivabus-nezet');if(['mindketto','biztor','garazs'].includes(m))v=m}catch(e){}
+ setView(v);
+})();
+</script>
+""")
+
+    html.append("""
+</div>
+</div>
 
 """)
 
