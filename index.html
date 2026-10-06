@@ -1042,20 +1042,30 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
 }
 .fo-tabla th.sticky-left,
 .fo-tabla td.sticky-left {
-    z-index:20 !important;
-    background:var(--surface) !important;
+    position:sticky !important;
+    z-index:1000 !important;
+    background-color:var(--surface) !important;
+    background-clip:padding-box;
+    isolation:isolate;
+    transform:translateZ(0);
+    backface-visibility:hidden;
 }
 .fo-tabla th.sticky-right,
 .fo-tabla td.sticky-right {
-    z-index:25 !important;
-    background:var(--surface) !important;
+    position:sticky !important;
+    z-index:1100 !important;
+    background-color:var(--surface) !important;
+    background-clip:padding-box;
+    isolation:isolate;
+    transform:translateZ(0);
+    backface-visibility:hidden;
 }
-.fo-tabla thead th.sticky-left { z-index:50 !important; }
-.fo-tabla thead th.sticky-right { z-index:55 !important; }
-.fo-tabla .szuro-sor th.sticky-left { z-index:45 !important; background:var(--surface2) !important; }
-.fo-tabla .szuro-sor th.sticky-right { z-index:48 !important; background:var(--surface2) !important; }
-.fo-tabla tbody td:not(.sticky-left):not(.sticky-right) { position:relative; z-index:1; }
-.fo-tabla thead th:not(.sticky-left):not(.sticky-right) { position:relative; z-index:1; }
+.fo-tabla thead th.sticky-left { z-index:1200 !important; }
+.fo-tabla thead th.sticky-right { z-index:1300 !important; }
+.fo-tabla .szuro-sor th.sticky-left { z-index:1150 !important; background:var(--surface2) !important; }
+.fo-tabla .szuro-sor th.sticky-right { z-index:1250 !important; background:var(--surface2) !important; }
+.fo-tabla tbody td:not(.sticky-left):not(.sticky-right) { position:relative; z-index:0 !important; }
+.fo-tabla thead th:not(.sticky-left):not(.sticky-right) { position:relative; z-index:0 !important; }
 
 /* Rendezés: a kiírásnak és az ikonnak külön helye van, egymás mellett. */
 .fo-tabla .fejlec-sor th:not(.idopont) {
@@ -1121,7 +1131,7 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
       <div class="adat"><b>Utolsó lekérdezés:</b> 16:55</div>
     </div>
     <div class="fejlec-jobb">
-      <div class="adat"><b>Utolsó futás:</b> 2026-10-06 23:09:54</div>
+      <div class="adat"><b>Utolsó futás:</b> 2026-10-06 23:14:26</div>
       <div class="adat"><b>Riport készült:</b> 2026-10-06 16:31:09</div>
       <div class="adat"><b>Exportált fordák:</b> 21</div>
     </div>
@@ -1217,14 +1227,20 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
       }
     });
 
-    table.style.setProperty('--fixed-left-width', offset + 'px');
+    const sliderBar=document.querySelector('.idopont-csuszkasav');
     const storageHeader=table.querySelector('thead tr.fejlec-sor th:last-child');
     const storageWidth=storageHeader ? storageHeader.getBoundingClientRect().width : 0;
+
+    /* A CSS-változókat magára a csúszkasávra is fel kell tenni: a sáv
+       nem a táblázat gyereke, ezért a table-en beállított változókat nem örökölné. */
+    sliderBar?.style.setProperty('--fixed-left-width', offset + 'px');
+    sliderBar?.style.setProperty('--storage-width', storageWidth + 'px');
+    table.style.setProperty('--fixed-left-width', offset + 'px');
     table.style.setProperty('--storage-width', storageWidth + 'px');
 
     /* A saját csúszka pontosan a látható időrész szélességét kapja. */
     const timeViewport=Math.max(0, scroll.clientWidth - offset - storageWidth);
-    document.querySelector('.idopont-csuszkasav')?.style.setProperty('--time-viewport-width', timeViewport + 'px');
+    sliderBar?.style.setProperty('--time-viewport-width', timeViewport + 'px');
   }
 
   function setTimeWindow(){
