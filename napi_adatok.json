@@ -31586,155 +31586,346 @@
     "kesz": true,
     "excel_kesz": true,
     "keszult": "2026-10-06 16:31:09",
-    "utolso_futas": "2026-10-06 16:31:09",
+    "utolso_futas": "2026-10-06 17:09:58",
     "vizsgalt_fordak": 21,
+    "dontesek": {
+      "0960|59": {
+        "viszonylat": "0960",
+        "forda": "59",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.603176, 19.066393",
+        "döntés időpontja": "12:05:12"
+      },
+      "1340|57": {
+        "viszonylat": "1340",
+        "forda": "57",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.602882, 19.066692",
+        "döntés időpontja": "13:49:24"
+      },
+      "0710|24": {
+        "viszonylat": "0710",
+        "forda": "24",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.430843, 19.07086",
+        "döntés időpontja": "12:34:12"
+      },
+      "0710|25": {
+        "viszonylat": "0710",
+        "forda": "25",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "47.44335, 19.082758",
+        "döntés időpontja": "12:13:18"
+      },
+      "0710|23": {
+        "viszonylat": "0710",
+        "forda": "23",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.430958, 19.070848",
+        "döntés időpontja": "13:06:54"
+      },
+      "1480|23": {
+        "viszonylat": "1480",
+        "forda": "23",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.4308, 19.071138",
+        "döntés időpontja": "13:55:54"
+      },
+      "1510|39": {
+        "viszonylat": "1510",
+        "forda": "39",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.43094, 19.071247",
+        "döntés időpontja": "13:19:30"
+      },
+      "0350|34": {
+        "viszonylat": "0350",
+        "forda": "34",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.43075, 19.07096",
+        "döntés időpontja": "13:27:48"
+      },
+      "1510|22": {
+        "viszonylat": "1510",
+        "forda": "22",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.48347, 19.127493",
+        "döntés időpontja": "12:42:30"
+      },
+      "1510|23": {
+        "viszonylat": "1510",
+        "forda": "23",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.483513, 19.127647",
+        "döntés időpontja": "13:03:54"
+      },
+      "1510|46": {
+        "viszonylat": "1510",
+        "forda": "46",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.484253, 19.12694",
+        "döntés időpontja": "13:23:48"
+      },
+      "1821|24": {
+        "viszonylat": "1821",
+        "forda": "24",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.46234, 19.150696",
+        "döntés időpontja": "12:46:36"
+      },
+      "1840|13": {
+        "viszonylat": "1840",
+        "forda": "13",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.462223, 19.150608",
+        "döntés időpontja": "13:53:54"
+      },
+      "1480|22": {
+        "viszonylat": "1480",
+        "forda": "22",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.462353, 19.150642",
+        "döntés időpontja": "12:00:06"
+      },
+      "1820|21": {
+        "viszonylat": "1820",
+        "forda": "21",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.46222, 19.150576",
+        "döntés időpontja": "13:45:42"
+      },
+      "0250|58": {
+        "viszonylat": "0250",
+        "forda": "58",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.519825, 19.090763",
+        "döntés időpontja": "12:43:18"
+      },
+      "2250|60": {
+        "viszonylat": "2250",
+        "forda": "60",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.51988, 19.090868",
+        "döntés időpontja": "12:55:24"
+      },
+      "1821|23": {
+        "viszonylat": "1821",
+        "forda": "23",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "47.46233, 19.150711",
+        "döntés időpontja": "12:16:30"
+      },
+      "0360|21": {
+        "viszonylat": "0360",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "47.452965, 19.173857",
+        "döntés időpontja": "12:23:18"
+      },
+      "0360|23": {
+        "viszonylat": "0360",
+        "forda": "23",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "47.452538, 19.173574",
+        "döntés időpontja": "12:02:36"
+      },
+      "0360|22": {
+        "viszonylat": "0360",
+        "forda": "22",
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.454517, 19.182283",
+        "döntés időpontja": "13:37:54"
+      }
+    },
     "eredmenyek": [
       {
         "dátum": "2026-10-06",
         "viszonylat": "0960",
         "forda": "59",
         "rendszám": "AAHY878",
-        "eredmény": "RENDBEN TÁROLT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.603176, 19.066393",
+        "döntés időpontja": "12:05:12"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "1340",
         "forda": "57",
         "rendszám": "AAHY812",
-        "eredmény": "RENDBEN TÁROLT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.602882, 19.066692",
+        "döntés időpontja": "13:49:24"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "0710",
         "forda": "24",
         "rendszám": "PDN624",
-        "eredmény": "RENDBEN TÁROLT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.430843, 19.07086",
+        "döntés időpontja": "12:34:12"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "0710",
         "forda": "25",
         "rendszám": "PDN627",
-        "eredmény": "ELTÉRÉS TÖRTÉNT"
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "47.44335, 19.082758",
+        "döntés időpontja": "12:13:18"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "0710",
         "forda": "23",
         "rendszám": "PDN623",
-        "eredmény": "RENDBEN TÁROLT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.430958, 19.070848",
+        "döntés időpontja": "13:06:54"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "1480",
         "forda": "23",
         "rendszám": "AOJM873",
-        "eredmény": "ELTÉRÉS TÖRTÉNT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.4308, 19.071138",
+        "döntés időpontja": "13:55:54"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "1510",
         "forda": "39",
         "rendszám": "AOGF659",
-        "eredmény": "RENDBEN TÁROLT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.43094, 19.071247",
+        "döntés időpontja": "13:19:30"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "0350",
         "forda": "34",
         "rendszám": "SGY804",
-        "eredmény": "RENDBEN TÁROLT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.43075, 19.07096",
+        "döntés időpontja": "13:27:48"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "1510",
         "forda": "22",
         "rendszám": "AOGF671",
-        "eredmény": "RENDBEN TÁROLT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.48347, 19.127493",
+        "döntés időpontja": "12:42:30"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "1510",
         "forda": "23",
         "rendszám": "AOGF779",
-        "eredmény": "RENDBEN TÁROLT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.483513, 19.127647",
+        "döntés időpontja": "13:03:54"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "1510",
         "forda": "46",
         "rendszám": "AOIM014",
-        "eredmény": "RENDBEN TÁROLT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.484253, 19.12694",
+        "döntés időpontja": "13:23:48"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "1821",
         "forda": "24",
         "rendszám": "PDN622",
-        "eredmény": "RENDBEN TÁROLT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.46234, 19.150696",
+        "döntés időpontja": "12:46:36"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "1840",
         "forda": "13",
         "rendszám": "SGY813",
-        "eredmény": "RENDBEN TÁROLT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.462223, 19.150608",
+        "döntés időpontja": "13:53:54"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "1480",
         "forda": "22",
         "rendszám": "AOJM872",
-        "eredmény": "RENDBEN TÁROLT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.462353, 19.150642",
+        "döntés időpontja": "12:00:06"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "1820",
         "forda": "21",
         "rendszám": "PDN637",
-        "eredmény": "RENDBEN TÁROLT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.46222, 19.150576",
+        "döntés időpontja": "13:45:42"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "0250",
         "forda": "58",
         "rendszám": "AAHY853",
-        "eredmény": "RENDBEN TÁROLT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.519825, 19.090763",
+        "döntés időpontja": "12:43:18"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "2250",
         "forda": "60",
         "rendszám": "AAHY805",
-        "eredmény": "RENDBEN TÁROLT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.51988, 19.090868",
+        "döntés időpontja": "12:55:24"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "1821",
         "forda": "23",
         "rendszám": "PDN621",
-        "eredmény": "ELTÉRÉS TÖRTÉNT"
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "47.46233, 19.150711",
+        "döntés időpontja": "12:16:30"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "0360",
         "forda": "21",
         "rendszám": "AOIM009",
-        "eredmény": "ELTÉRÉS TÖRTÉNT"
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "47.452965, 19.173857",
+        "döntés időpontja": "12:23:18"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "0360",
         "forda": "23",
         "rendszám": "AOIM019",
-        "eredmény": "ELTÉRÉS TÖRTÉNT"
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "47.452538, 19.173574",
+        "döntés időpontja": "12:02:36"
       },
       {
         "dátum": "2026-10-06",
         "viszonylat": "0360",
         "forda": "22",
         "rendszám": "AOIM010",
-        "eredmény": "RENDBEN TÁROLT"
+        "eredmény": "RENDBEN TÁROLT",
+        "tárolás helye": "47.454517, 19.182283",
+        "döntés időpontja": "13:37:54"
       }
     ]
   }
