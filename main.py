@@ -3497,10 +3497,10 @@ body{
 .ido-belso{width:max-content;min-width:100%;overflow:visible}
 .storage-ablak{min-width:0;overflow:hidden;background:var(--surface)}
 table{border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto}
-th,td{border:1px solid var(--border);padding:3px 5px;text-align:center;height:24px;box-sizing:border-box;white-space:nowrap}
+th,td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap}
 th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .fix-tabla,.storage-tabla{width:max-content;min-width:0}
-.fix-tabla th.hely,.fix-tabla td.hely{text-align:left;width:max-content;min-width:0}
+.fix-tabla th.hely,.fix-tabla td.hely{text-align:left;width:max-content;min-width:0;max-width:none}
 .fix-tabla th.rendszam,.fix-tabla td.rendszam{text-align:right}
 .fix-tabla td.rendszam{font-weight:bold}
 .fix-tabla th.viszonylat,.fix-tabla td.viszonylat,
@@ -3512,8 +3512,8 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .fix-tabla th.kezdés,.fix-tabla td.kezdés,
 .fix-tabla th.végzés,.fix-tabla td.végzés{width:1%;white-space:nowrap;min-width:0}
 .ido-tabla{width:max-content;min-width:100%}.ido-tabla th,.ido-tabla td{width:42px;min-width:42px;max-width:42px;padding:1px;text-align:center}
-.fix-tabla tbody tr,.ido-tabla tbody tr,.storage-tabla tbody tr{height:24px}
-.fix-tabla tbody td,.ido-tabla tbody td,.storage-tabla tbody td{height:24px;line-height:18px;box-sizing:border-box;overflow:hidden}
+.fix-tabla tbody tr,.ido-tabla tbody tr,.storage-tabla tbody tr{height:24px;min-height:24px;max-height:24px}
+.fix-tabla tbody td,.ido-tabla tbody td,.storage-tabla tbody td{height:24px;min-height:24px;max-height:24px;line-height:22px;padding-top:0;padding-bottom:0;box-sizing:border-box;overflow:hidden}
 /* Nézetváltás: csak egy konténerosztály változik, a sorokat nem mérjük/írjuk át egyenként. */
 #fo-tabla.view-biztor .fix-tabla tbody tr[data-forras="garazs"],
 #fo-tabla.view-biztor .ido-tabla tbody tr[data-forras="garazs"],
@@ -3523,7 +3523,6 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 #fo-tabla.view-garazs .storage-tabla tbody tr[data-forras="biztor"]{display:none}
 #fo-tabla tbody tr[data-filter-match="0"]{display:none}
 
-.ido-tabla tbody td{padding-top:1px;padding-bottom:1px}
 .ido-tabla .status-pill{height:20px;line-height:1}
 .ido-tabla th.idopont-fejlec{font-size:0;color:transparent;padding:0}
 .ido-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px}
@@ -3540,8 +3539,8 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .status-pill.neutral{color:var(--muted);background:rgba(148,163,184,.10);border-color:rgba(148,163,184,.20)}
 .fix-tabla td.ellenorzes{background:var(--surface);padding:2px 3px}
 .storage-tabla th{width:max-content;min-width:0;white-space:nowrap}.storage-tabla td.tarolas{width:max-content;min-width:0;white-space:nowrap;font-weight:750;padding:5px 8px;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.storage-tabla td.tarolas-ok{color:#6ee7a8;border-top-color:rgba(92,220,150,.48);border-bottom-color:rgba(92,220,150,.48)}
-.storage-tabla td.tarolas-eltérés{color:#ff858d;border-top-color:rgba(255,113,124,.48);border-bottom-color:rgba(255,113,124,.48)}
+.storage-tabla td.tarolas-ok{color:#6ee7a8;border-top-color:var(--border);border-bottom-color:var(--border)}
+.storage-tabla td.tarolas-eltérés{color:#ff858d;border-top-color:var(--border);border-bottom-color:var(--border)}
 .storage-tabla td.tarolas-na{color:var(--text);border-top-color:var(--border);border-bottom-color:var(--border)}
 .rendszam-link{border:0;background:transparent;color:var(--accent);font:inherit;font-weight:750;cursor:pointer;padding:2px 5px;border-radius:6px;text-decoration:underline;text-decoration-color:rgba(110,168,254,.35);text-underline-offset:2px}.rendszam-link:hover{background:rgba(110,168,254,.13);color:#fff;text-decoration-color:var(--accent)}
 .biztor-sor .adat-fixed{}
@@ -3746,21 +3745,25 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   // nézetváltáskor felesleges layout újraszámolást és lagot okozna.
 
   function setLayout(){
-    const leftWidth=fixAblak.querySelector('table').getBoundingClientRect().width;
-    const storageWidth=storageAblak.querySelector('table').getBoundingClientRect().width;
+    // A fix és a storage rész természetes szélességét használjuk.
+    // A középső időtábla maradék helyet kap. A csúszka csak EZUTÁN
+    // számolja ki a ténylegesen görgethető időtábla-szélességet.
+    const leftTable=fixAblak.querySelector('table');
+    const storageTable=storageAblak.querySelector('table');
+    const leftWidth=leftTable ? Math.ceil(leftTable.getBoundingClientRect().width) : 0;
+    const storageWidth=storageTable ? Math.ceil(storageTable.getBoundingClientRect().width) : 0;
     const section=document.querySelector('.tabla-szekcio');
     const available=section ? section.clientWidth : window.innerWidth;
-    const maxFixed=Math.max(0,available-120);
-    let lw=Math.min(leftWidth, maxFixed);
-    let sw=Math.min(storageWidth, Math.max(100, maxFixed-lw));
-    if(lw+sw>available-80){
-      const scale=Math.max(0,(available-80)/(lw+sw)); lw*=scale; sw*=scale;
-    }
-    document.documentElement.style.setProperty('--left-width',Math.max(0,lw)+'px');
-    document.documentElement.style.setProperty('--storage-width',Math.max(0,sw)+'px');
-    const middle=Math.max(0,available-lw-sw);
+
+    document.documentElement.style.setProperty('--left-width',leftWidth+'px');
+    document.documentElement.style.setProperty('--storage-width',storageWidth+'px');
+
+    const middle=Math.max(0,available-leftWidth-storageWidth-2);
     document.documentElement.style.setProperty('--time-viewport-width',middle+'px');
-    if(sliderBar) sliderBar.style.gridTemplateColumns=lw+'px minmax(0,1fr) '+sw+'px';
+    if(sliderBar) sliderBar.style.gridTemplateColumns=leftWidth+'px minmax(0,1fr) '+storageWidth+'px';
+
+    // Az időoszlopok szélessége már adott; a csúszka ezt a tényleges középső
+    // viewportot követi, nem fordítva.
     const maxScroll=Math.max(0,idoBelso.scrollWidth-idoAblak.clientWidth);
     slider.max=String(maxScroll);
     const value=Math.min(maxScroll,Math.max(0,Number(slider.value)||0));
