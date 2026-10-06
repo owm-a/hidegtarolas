@@ -2306,362 +2306,229 @@ print(
 RIport_XLSX = "data/hidegtarolas_export.xlsx"
 
 
-def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
-    """
-    A hidegtárolási szabály:
+def _ido_objektum(ertek):
+    """Idő mező kezelése Excel time vagy HH:MM[:SS] formában."""
+    if pd.isna(ertek):
+        return None
 
-    1. Megkeressük a forda kezdése után az első OK mérést.
-    2. Az első OK-tól kezdődő folyamatos OK-szakasznak el kell érnie
-       a teljes fordaidő 70%-át.
-    3. NEM és - megszakítja a folyamatos OK-szakaszt.
-    4. Adatkimaradás önmagában nem szakítja meg.
-    5. Az első OK előtti NEM és - nem számít.
-    """
+    if isinstance(ertek, time):
+        return ertek
 
-    kezdés = forda_sor.get("kezdés")
-    végzés = forda_sor.get("végzés")
+    if isinstance(ertek, datetime):
+        return ertek.time()
 
-    # Az Excelből érkező sorokban a mezők idő objektumok,
-    # a HTML sorokban viszont HH:MM szövegek lehetnek.
-    # A közös függvény mindkettőt kezelje.
-    try:
-        if isinstance(kezdés, str):
-            kezdés = datetime.strptime(kezdés[:8], "%H:%M:%S").time()
-    except ValueError:
+    szoveg = str(ertek).strip()
+
+    for fmt in ("%H:%M:%S", "%H:%M"):
         try:
-            kezdés = datetime.strptime(kezdés[:5], "%H:%M").time()
+            return datetime.strptime(szoveg[:8], fmt).time()
         except ValueError:
-            return "ELTÉRÉS TÖRTÉNT"
+            continue
 
-    try:
-        if isinstance(végzés, str):
-            végzés = datetime.strptime(végzés[:8], "%H:%M:%S").time()
-    except ValueError:
-        try:
-            végzés = datetime.strptime(végzés[:5], "%H:%M").time()
-        except ValueError:
-            return "ELTÉRÉS TÖRTÉNT"
+    return None
 
-    if pd.isna(kezdés) or pd.isna(végzés):
-        return "ELTÉRÉS TÖRTÉNT"
+
+def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
+    """
+    A hidegtárolási döntés a forda saját idejének 70%-os pontján születik.
+
+    Fontos:
+    - Nem a forda későbbi állapotát nézzük.
+    - A 70%-os időponthoz tartozó, utolsó ismert GPS-rekordot használjuk.
+    - Ettől a pillanattól az eredmény végleges az adott napra.
+    - A döntéshez használt GPS-koordinátát is elmentjük.
+    """
+
+    kezdés = _ido_objektum(forda_sor.get("kezdés"))
+    végzés = _ido_objektum(forda_sor.get("végzés"))
+
+    if kezdés is None or végzés is None:
+        return None
 
     budapest_tz = ZoneInfo("Europe/Budapest")
-    budapest_now = budapesti_most()
+    budapest_now = most or budapesti_most()
     mai_datum = budapest_now.date()
 
-    kezdés_dt = datetime.combine(
-        mai_datum,
-        kezdés,
-        tzinfo=budapest_tz
-    )
+    kezdés_dt = datetime.combine(mai_datum, kezdés, tzinfo=budapest_tz)
+    végzés_dt = datetime.combine(mai_datum, végzés, tzinfo=budapest_tz)
 
-    végzés_dt = datetime.combine(
-        mai_datum,
-        végzés,
-        tzinfo=budapest_tz
-    )
-
-    # Éjfélen átnyúló forda
     if végzés_dt < kezdés_dt:
         végzés_dt += timedelta(days=1)
 
-    teljes_idotartam = (
-        végzés_dt - kezdés_dt
-    ).total_seconds()
-
+    teljes_idotartam = (végzés_dt - kezdés_dt).total_seconds()
     if teljes_idotartam <= 0:
-        return "ELTÉRÉS TÖRTÉNT"
+        return None
 
-    # A teljes fordaidő 70%-a.
-    szukseges_ok_idotartam = (
-        teljes_idotartam * 0.70
-    )
+    döntés_dt = kezdés_dt + timedelta(seconds=teljes_idotartam * 0.70)
 
-    # A vizsgálat legfeljebb a forda végéig tart.
-    vizsgalat_vege = min(
-        budapest_now,
-        végzés_dt
-    )
+    # A 70%-os pont előtt még nincs döntés.
+    if budapest_now < döntés_dt:
+        return None
 
-    # Csak a forda kezdése után és a vizsgálat végéig
-    # tartó rekordokat vesszük figyelembe.
     rekordok = []
 
     for rekord in pozicio_tortenet:
+        if str(rekord.get("viszonylat", "")).strip() != str(forda_sor.get("viszonylat", "")).strip():
+            continue
+        if str(rekord.get("forda", "")).strip() != str(forda_sor.get("forda", "")).strip():
+            continue
+
+        idopont = str(rekord.get("frissítve", "")).strip()
+        if not idopont:
+            continue
 
         try:
-            if (
-                str(rekord.get("viszonylat", "")).strip()
-                != str(forda_sor.get("viszonylat", "")).strip()
-            ):
-                continue
-
-            if (
-                str(rekord.get("forda", "")).strip()
-                != str(forda_sor.get("forda", "")).strip()
-            ):
-                continue
-
-            idopont = str(
-                rekord.get("frissítve", "")
-            ).strip()
-
-            if not idopont:
-                continue
-
-            ido = datetime.strptime(
-                idopont,
-                "%H:%M:%S"
-            ).time()
-
-            dt = datetime.combine(
-                kezdés_dt.date(),
-                ido,
-                tzinfo=budapest_tz
-            )
-
-            if dt < kezdés_dt:
-                dt += timedelta(days=1)
-
-            if kezdés_dt < dt <= vizsgalat_vege:
-                rekordok.append({
-                    "idő": dt,
-                    "állapot": str(
-                        rekord.get("ellenőrzés", "-")
-                    ).strip().upper()
-                })
-
+            ido = datetime.strptime(idopont, "%H:%M:%S").time()
+            rekord_dt = datetime.combine(mai_datum, ido, tzinfo=budapest_tz)
+            if rekord_dt < kezdés_dt:
+                rekord_dt += timedelta(days=1)
         except (ValueError, TypeError):
             continue
 
-    if not rekordok:
-        return "ELTÉRÉS TÖRTÉNT"
+        if kezdés_dt <= rekord_dt <= döntés_dt:
+            rekordok.append((rekord_dt, rekord))
 
-    # Azonos időpontból csak egy állapot maradjon.
-    rekordok.sort(key=lambda x: x["idő"])
+    rekordok.sort(key=lambda x: x[0])
 
-    idopont_allapot = {}
+    if rekordok:
+        _, rekord = rekordok[-1]
+        állapot = str(rekord.get("ellenőrzés", "-")).strip().upper()
+        eredmény = "RENDBEN TÁROLT" if állapot == "OK" else "ELTÉRÉS TÖRTÉNT"
+        tárolás_helye = str(rekord.get("pozíció", "")).strip() or "-"
+    else:
+        eredmény = "ELTÉRÉS TÖRTÉNT"
+        tárolás_helye = "Nincs adat"
 
-    for rekord in rekordok:
-        idopont_allapot[rekord["idő"]] = rekord["állapot"]
+    return {
+        "eredmény": eredmény,
+        "tárolás helye": tárolás_helye,
+        "döntés időpontja": döntés_dt.strftime("%H:%M:%S")
+    }
 
-    rekordok = [
-        {"idő": dt, "állapot": allapot}
-        for dt, allapot in sorted(
-            idopont_allapot.items()
-        )
-    ]
 
-    # ------------------------------------------------------------
-    # Az első OK megkeresése.
-    # Az előtte lévő NEM / - nem számít.
-    # ------------------------------------------------------------
-    elso_ok_index = None
+def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
+    """Kompatibilitási segédfüggvény: csak az eredményt adja vissza."""
+    döntés = hidegtarolas_70_dontes(forda_sor, pozicio_tortenet)
+    if döntés is None:
+        return ""
+    return döntés["eredmény"]
 
-    for index, rekord in enumerate(rekordok):
-        if rekord["állapot"] == "OK":
-            elso_ok_index = index
-            break
-
-    if elso_ok_index is None:
-        return "ELTÉRÉS TÖRTÉNT"
-
-    # ------------------------------------------------------------
-    # Az első OK-tól folyamatos OK-szakasz.
-    #
-    # NEM vagy - azonnal megszakítja.
-    # Adatkimaradás nem szakítja meg, ezért itt nincs
-    # semmilyen 10 perces / időréses ellenőrzés.
-    # ------------------------------------------------------------
-    elso_ok_ido = rekordok[elso_ok_index]["idő"]
-
-    for rekord in rekordok[elso_ok_index + 1:]:
-
-        if rekord["állapot"] != "OK":
-            return "ELTÉRÉS TÖRTÉNT"
-
-    # ------------------------------------------------------------
-    # A folyamatos OK-szakasz végét a vizsgálat vége jelenti.
-    # Ez lehet a forda vége, vagy az aktuális időpont.
-    # ------------------------------------------------------------
-    folyamatos_ok_idotartam = (
-        vizsgalat_vege - elso_ok_ido
-    ).total_seconds()
-
-    # ------------------------------------------------------------
-    # A folyamatos OK-szakasznak kell elérnie a teljes
-    # fordaidő 70%-át.
-    # ------------------------------------------------------------
-    if folyamatos_ok_idotartam < szukseges_ok_idotartam:
-        return "ELTÉRÉS TÖRTÉNT"
-
-    return "RENDBEN TÁROLT"
 
 def keszit_hidegtarolas_riport():
     """
-    16:30 után minden futáskor újraszámolja a napi riportot.
+    A 70%-os döntéseket minden futáskor ellenőrzi és véglegesen elmenti.
 
-    A HTML mindig a legfrissebb eredményt kapja.
-    Az Excelbe ugyanaz a nap csak egyszer kerül be.
+    Az Excel-riport naponta egyszer készül el, amikor minden figyelt forda
+    elérte a saját 70%-os döntési pontját. Így az Excel is már a végleges,
+    70%-nál rögzített eredményt és tárolási helyet kapja.
     """
 
     most = budapesti_most()
-
-    # 16:30 előtt még nincs hidegtárolási riport,
-    # de a HTML exportnak ettől még le kell futnia.
-    # Ilyenkor egy üres riportstruktúrát adunk vissza,
-    # így a mai oldal elkészülhet a nap folyamán gyűjtött adatokból.
-    if most.time() < time(16, 30):
-        return {
-            "datum": MAI_NAP,
-            "kesz": False,
-            "excel_kesz": False,
-            "keszult": "-",
-            "utolso_futas": most.strftime("%Y-%m-%d %H:%M:%S"),
-            "vizsgalt_fordak": 0,
-            "eredmenyek": []
-        }
 
     korabbi_riport = napi_adatok.get(
         "hidegtarolas_riport"
     ) or {}
 
-    # A napi pozíciótörténetet itt is be kell tölteni.
-    # Ez a változó a korábbi pozíciólekérési blokkban lokális,
-    # ezért ebben a függvényben külön ki kell venni a napi JSON-ból.
+    # Már meghozott döntések: ezeket SOHA nem számoljuk újra.
+    dontesek = korabbi_riport.get("dontesek", {})
+
+    if not isinstance(dontesek, dict):
+        dontesek = {}
+
     pozicio_tortenet = napi_adatok.get(
         "pozicio_tortenet",
         []
     )
 
+    uj_dontes = 0
+
+    for _, forda_sor in figyelt_fordak.iterrows():
+        viszonylat = str(forda_sor["viszonylat"]).strip()
+        forda = str(forda_sor["forda"]).strip()
+        kulcs = f"{viszonylat}|{forda}"
+
+        # Ha már döntöttünk róla, az eredmény és a hely végleges.
+        if kulcs in dontesek:
+            continue
+
+        dontes = hidegtarolas_70_dontes(
+            forda_sor,
+            pozicio_tortenet,
+            most=most
+        )
+
+        if dontes is not None:
+            dontesek[kulcs] = {
+                "viszonylat": viszonylat,
+                "forda": forda,
+                "eredmény": dontes["eredmény"],
+                "tárolás helye": dontes["tárolás helye"],
+                "döntés időpontja": dontes["döntés időpontja"]
+            }
+            uj_dontes += 1
+
     eredmenyek = []
 
     for _, forda_sor in figyelt_fordak.iterrows():
-
-        viszonylat = str(
-            forda_sor["viszonylat"]
-        ).strip()
-
-        forda = str(
-            forda_sor["forda"]
-        ).strip()
-
+        viszonylat = str(forda_sor["viszonylat"]).strip()
+        forda = str(forda_sor["forda"]).strip()
         kulcs = f"{viszonylat}|{forda}"
 
-        forda_adat = forda_rendszamok.get(
-            kulcs,
-            {}
-        )
-
-        rendszam = str(
-            forda_adat.get(
-                "rendszám",
-                ""
-            )
-        ).strip()
-
-        eredmeny = hidegtarolas_riport_eredmeny(
-            forda_sor,
-            pozicio_tortenet
-        )
+        forda_adat = forda_rendszamok.get(kulcs, {})
+        rendszam = str(forda_adat.get("rendszám", "")).strip()
+        dontes = dontesek.get(kulcs, {})
 
         eredmenyek.append({
             "dátum": MAI_NAP,
             "viszonylat": viszonylat,
             "forda": forda,
             "rendszám": rendszam,
-            "eredmény": eredmeny
+            "eredmény": dontes.get("eredmény", ""),
+            "tárolás helye": dontes.get("tárolás helye", ""),
+            "döntés időpontja": dontes.get("döntés időpontja", "")
         })
 
-    aktualis_futas_idopont = most.strftime(
-        "%Y-%m-%d %H:%M:%S"
+    # Excel csak akkor készüljön el, amikor minden forda döntése megvan.
+    minden_döntött = (
+        len(figyelt_fordak) == 0
+        or len(dontesek) >= len(figyelt_fordak)
     )
-
-    # Az "Utolsó futás" az előző riport készítési ideje.
-    utolso_futas = korabbi_riport.get(
-        "keszult",
-        "-"
-    )
-
-    # --------------------------------------------------------
-    # Excel: egy nap csak egyszer kerüljön bele.
-    # --------------------------------------------------------
 
     excel_mar_mentve = (
         korabbi_riport.get("datum") == MAI_NAP
         and korabbi_riport.get("excel_kesz") is True
     )
 
-    if not excel_mar_mentve:
+    riport_idopont = korabbi_riport.get("keszult", "-")
 
-        os.makedirs(
-            "data",
-            exist_ok=True
-        )
+    if minden_döntött and not excel_mar_mentve:
+        os.makedirs("data", exist_ok=True)
 
         if os.path.exists(RIport_XLSX):
-
-            export_wb = openpyxl.load_workbook(
-                RIport_XLSX
-            )
-
+            export_wb = openpyxl.load_workbook(RIport_XLSX)
             if "Riport" in export_wb.sheetnames:
                 export_ws = export_wb["Riport"]
             else:
-                export_ws = export_wb.create_sheet(
-                    "Riport"
-                )
-
+                export_ws = export_wb.create_sheet("Riport")
         else:
-
             export_wb = openpyxl.Workbook()
-
             export_ws = export_wb.active
             export_ws.title = "Riport"
 
-            export_ws.append([
-                "Dátum",
-                "Viszonylat",
-                "Forda",
-                "Rendszám",
-                "Eredmény"
-            ])
+        # A riport fejlécét a 6. oszloppal bővítjük.
+        export_ws.cell(1, 1).value = "Dátum"
+        export_ws.cell(1, 2).value = "Viszonylat"
+        export_ws.cell(1, 3).value = "Forda"
+        export_ws.cell(1, 4).value = "Rendszám"
+        export_ws.cell(1, 5).value = "Eredmény"
+        export_ws.cell(1, 6).value = "Tárolás helye"
 
-        if export_ws.max_row == 1 and all(
-            export_ws.cell(1, col).value is None
-            for col in range(1, 6)
-        ):
-            export_ws.delete_rows(1)
-            export_ws.append([
-                "Dátum",
-                "Viszonylat",
-                "Forda",
-                "Rendszám",
-                "Eredmény"
-            ])
-
-        zold_toltes = openpyxl.styles.PatternFill(
-            fill_type="solid",
-            fgColor="00B050"
-        )
-
-        piros_toltes = openpyxl.styles.PatternFill(
-            fill_type="solid",
-            fgColor="FF0000"
-        )
-
-        fekete_toltes = openpyxl.styles.PatternFill(
-            fill_type="solid",
-            fgColor="000000"
-        )
-
-        feher_betu = openpyxl.styles.Font(
-            color="FFFFFF",
-            bold=True
-        )
+        zold_toltes = openpyxl.styles.PatternFill(fill_type="solid", fgColor="00B050")
+        piros_toltes = openpyxl.styles.PatternFill(fill_type="solid", fgColor="FF0000")
+        fekete_toltes = openpyxl.styles.PatternFill(fill_type="solid", fgColor="000000")
+        feher_betu = openpyxl.styles.Font(color="FFFFFF", bold=True)
 
         for sor in eredmenyek:
-
             if not sor["rendszám"] and sor["forda"]:
                 export_eredmeny = "?"
             elif sor["eredmény"] == "RENDBEN TÁROLT":
@@ -2674,14 +2541,11 @@ def keszit_hidegtarolas_riport():
                 sor["viszonylat"],
                 sor["forda"],
                 sor["rendszám"],
-                export_eredmeny
+                export_eredmeny,
+                sor["tárolás helye"]
             ])
 
-            eredmeny_cella = export_ws.cell(
-                export_ws.max_row,
-                5
-            )
-
+            eredmeny_cella = export_ws.cell(export_ws.max_row, 5)
             if not sor["rendszám"] and sor["forda"]:
                 eredmeny_cella.fill = fekete_toltes
                 eredmeny_cella.font = feher_betu
@@ -2692,90 +2556,46 @@ def keszit_hidegtarolas_riport():
                 eredmeny_cella.fill = piros_toltes
                 eredmeny_cella.font = feher_betu
 
-        for oszlop in range(1, 6):
+        for oszlop in range(1, 7):
             max_hossz = 0
-
-            for cella in export_ws.iter_cols(
-                min_col=oszlop,
-                max_col=oszlop
-            ):
-                for cell in cella:
+            for cella_oszlop in export_ws.iter_cols(min_col=oszlop, max_col=oszlop):
+                for cell in cella_oszlop:
                     if cell.value is not None:
-                        max_hossz = max(
-                            max_hossz,
-                            len(str(cell.value))
-                        )
-
+                        max_hossz = max(max_hossz, len(str(cell.value)))
             export_ws.column_dimensions[
                 openpyxl.utils.get_column_letter(oszlop)
-            ].width = min(
-                max_hossz + 2,
-                35
-            )
+            ].width = min(max_hossz + 2, 35)
 
-        export_wb.save(
-            RIport_XLSX
-        )
-
-        # A "Riport készült" időpontja az XLS export befejezési ideje.
-        riport_idopont = budapesti_most().strftime("%Y-%m-%d %H:%M:%S")
-
-    if excel_mar_mentve:
-        # Ha a mai XLS már korábban elkészült, annak ideje maradjon.
-        riport_idopont = korabbi_riport.get(
-            "keszult",
-            aktualis_futas_idopont
-        )
+        export_wb.save(RIport_XLSX)
+        riport_idopont = most.strftime("%Y-%m-%d %H:%M:%S")
+        excel_mar_mentve = True
 
     riportok = {
         "datum": MAI_NAP,
-        "kesz": True,
-        "excel_kesz": True,
+        "kesz": minden_döntött,
+        "excel_kesz": excel_mar_mentve,
         "keszult": riport_idopont,
-        "utolso_futas": utolso_futas,
+        "utolso_futas": most.strftime("%Y-%m-%d %H:%M:%S"),
         "vizsgalt_fordak": len(eredmenyek),
+        "dontesek": dontesek,
         "eredmenyek": eredmenyek
     }
 
-    napi_adatok[
-        "hidegtarolas_riport"
-    ] = riportok
+    napi_adatok["hidegtarolas_riport"] = riportok
 
-    with open(
-        NAPI_ADATOK_FAJL,
-        "w",
-        encoding="utf-8"
-    ) as f:
-
-        json.dump(
-            napi_adatok,
-            f,
-            ensure_ascii=False,
-            indent=2
-        )
+    with open(NAPI_ADATOK_FAJL, "w", encoding="utf-8") as f:
+        json.dump(napi_adatok, f, ensure_ascii=False, indent=2)
 
     print()
     print("=== HIDEGTÁROLÁSI RIPORT ===")
-    print(
-        "Riport készült/frissítve:",
-        riport_idopont
-    )
-    print(
-        "Vizsgált fordák:",
-        len(eredmenyek),
-        "/",
-        len(figyelt_fordak)
-    )
-    print(
-        "Excel:",
-        RIport_XLSX,
-        "(mai nap már mentve)" if excel_mar_mentve else "(mai nap mentve)"
-    )
+    print("Új 70%-os döntések:", uj_dontes)
+    print("Meghozott döntések:", len(dontesek), "/", len(figyelt_fordak))
+    print("Excel:", "mentve" if excel_mar_mentve else "még vár a teljes döntésre")
 
     return riportok
 
 
-# A riport 16:30 után készül el, de naponta csak egyszer.
+# A 70%-os döntések minden futáskor ellenőrzésre kerülnek.
 hidegtarolas_riport = keszit_hidegtarolas_riport()
 
 
@@ -4243,18 +4063,16 @@ ArrivaBus hidegtárolás
 """)
     # --------------------------------------------------------
     # HIDEGTÁROLÁSI RIPORT OSZLOP – HTML
-    # Az XLS export logikájához nem nyúlunk.
+    # A döntés a 70%-os ponton véglegesen elmentett adatból jön.
     # --------------------------------------------------------
 
     riport_eredmenyek = {
         (
             str(sor.get("viszonylat", "")).strip(),
             str(sor.get("forda", "")).strip()
-        ): sor.get("eredmény", "")
+        ): sor
         for sor in hidegtarolas_riport.get("eredmenyek", [])
     } if hidegtarolas_riport else {}
-
-    napi_poziciok = napi_adatok.get("pozicio_tortenet", [])
 
     html.append("""
 <div class="riport-resz">
@@ -4263,77 +4081,21 @@ ArrivaBus hidegtárolás
 <thead>
 <tr>
     <th>Eredmény</th>
+    <th>Tárolás helye</th>
 </tr>
 </thead>
 <tbody>
 """)
 
-    budapest_tz = ZoneInfo("Europe/Budapest")
-    html_most = budapesti_most()
-    html_ma = html_most.date()
-
     for _, sor in rendezett_sorok:
-
         kulcs = (
             str(sor["viszonylat"]).strip(),
             str(sor["forda"]).strip()
         )
 
-        riport_eredmeny = riport_eredmenyek.get(kulcs, "")
-
-        # ----------------------------------------------------
-        # A HTML az Excel-riporttól függetlenül is mutatja az
-        # eredményt, amint az adott forda ténylegesen befejeződött.
-        # Ugyanazt a közös 70%-os függvényt használjuk, mint az XLS
-        # exportnál, így a két eredmény logikája azonos.
-        # ----------------------------------------------------
-
-        if riport_eredmeny in ("RENDBEN TÁROLT", "ELTÉRÉS TÖRTÉNT"):
-            eredmeny = riport_eredmeny
-
-        else:
-            try:
-                kezdes = sor.get("kezdés")
-                vegzes = sor.get("végzés")
-
-                if pd.isna(kezdes) or pd.isna(vegzes):
-                    forda_vege = None
-                else:
-                    # A HTML sorokban a kezdés/végzés HH:MM szöveg.
-                    if isinstance(kezdes, str):
-                        try:
-                            kezdes = datetime.strptime(kezdes[:8], "%H:%M:%S").time()
-                        except ValueError:
-                            kezdes = datetime.strptime(kezdes[:5], "%H:%M").time()
-
-                    if isinstance(vegzes, str):
-                        try:
-                            vegzes = datetime.strptime(vegzes[:8], "%H:%M:%S").time()
-                        except ValueError:
-                            vegzes = datetime.strptime(vegzes[:5], "%H:%M").time()
-
-                    forda_kezdete = datetime.combine(
-                        html_ma, kezdes, tzinfo=budapest_tz
-                    )
-                    forda_vege = datetime.combine(
-                        html_ma, vegzes, tzinfo=budapest_tz
-                    )
-
-                    if forda_vege < forda_kezdete:
-                        forda_vege += timedelta(days=1)
-
-            except (TypeError, ValueError):
-                forda_vege = None
-
-            # A HTML-ben már a forda saját végzési ideje után
-            # kiszámoljuk az eredményt, nem kell megvárni a 16:30-at.
-            if forda_vege is not None and html_most >= forda_vege:
-                eredmeny = hidegtarolas_riport_eredmeny(
-                    sor,
-                    napi_poziciok
-                )
-            else:
-                eredmeny = ""
+        riport_sor = riport_eredmenyek.get(kulcs, {})
+        eredmeny = str(riport_sor.get("eredmény", "")).strip()
+        tarolas_helye = str(riport_sor.get("tárolás helye", "")).strip()
 
         if eredmeny == "RENDBEN TÁROLT":
             osztaly = "riport-ok"
@@ -4343,9 +4105,10 @@ ArrivaBus hidegtárolás
             osztaly = "riport-ures"
 
         html.append(
-            f'<tr><td class="{osztaly}">' 
-            f'{escape(eredmeny)}'
-            f'</td></tr>'
+            f'<tr>'
+            f'<td class="{osztaly}">{escape(eredmeny)}</td>'
+            f'<td class="{osztaly}">{escape(tarolas_helye)}</td>'
+            f'</tr>'
         )
 
     html.append("""
