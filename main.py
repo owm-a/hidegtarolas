@@ -993,7 +993,7 @@ for i in range(7, len(excel)):
 # 9/l. MÁSODIK EXCEL FORRÁS – GARÁZSMENET / JBK
 # =========================================================
 
-GARAZS_EXCEL_FAJL = f"data/garazs_{ev}.{honap}.xlsx"
+GARAZS_EXCEL_FAJL = f"data/garazs_{ev}-{honap}.xlsx"
 
 if not os.path.exists(GARAZS_EXCEL_FAJL):
     raise FileNotFoundError(f"Nem található a második Excel fájl:\n{GARAZS_EXCEL_FAJL}")
@@ -4423,17 +4423,40 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
         for idopont_g in garazs_idopontok:
             eredmeny_g = sor_g["ellenőrzés"].get(idopont_g, "-")
             osztaly_g = "nincs"
+            megj_g = {"OK": "I", "NEM": "N"}.get(eredmeny_g, "-")
+
+            # A garázs mátrix időszínezése pontosan ugyanaz, mint
+            # a fő (BIZTOR) mátrixé:
+            # - kezdés előtt 15 perc: fekete I/N
+            # - kezdéstől végzésig: OK = zöld, NEM = piros
+            # - végzés után 15 perc: fekete I/N
             try:
                 t = datetime.strptime(idopont_g, "%H:%M")
                 k = datetime.strptime(sor_g["kezdés"], "%H:%M")
                 v = datetime.strptime(sor_g["végzés"], "%H:%M")
+                ellenorzes_kezdete = k - timedelta(minutes=15)
+                ellenorzes_vege = v + timedelta(minutes=15)
+
                 if k <= t <= v and eredmeny_g == "OK":
                     osztaly_g = "ok"
                 elif k <= t <= v and eredmeny_g == "NEM":
                     osztaly_g = "nem"
+                elif (
+                    ellenorzes_kezdete <= t < k
+                    or v < t <= ellenorzes_vege
+                ):
+                    osztaly_g = "nincs"
+                elif eredmeny_g not in ("OK", "NEM"):
+                    megj_g = "-"
             except (ValueError, TypeError):
-                pass
-            megj_g = {"OK": "I", "NEM": "N"}.get(eredmeny_g, "-")
+                if eredmeny_g == "OK":
+                    osztaly_g = "ok"
+                elif eredmeny_g == "NEM":
+                    osztaly_g = "nem"
+                else:
+                    osztaly_g = "nincs"
+                    megj_g = "-"
+
             html.append(f'<td class="ellenorzes {osztaly_g}">{escape(megj_g)}</td>')
         html.append("</tr>")
 
