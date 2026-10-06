@@ -4008,7 +4008,14 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
     max-width: 100%;
 }
 .idopont-ablak { overflow: hidden; }
-.fo-tabla { table-layout: auto; width: max-content; }
+.fo-tabla { table-layout: auto; width: 100%; }
+.fo-tabla th, .fo-tabla td { box-sizing:border-box; white-space:nowrap; }
+.fo-tabla th.idopont, .fo-tabla td.ellenorzes, .fo-tabla th.szuro-idopont { width:var(--time-col-width,34px); min-width:var(--time-col-width,34px); max-width:var(--time-col-width,34px); text-align:center; }
+.fo-tabla .biztor-sor > td.adat-fixed { background:rgba(110,168,254,.045); }
+.fo-tabla .szuro-sor th { padding:3px 4px; background:var(--surface2); }
+.oszlop-kereso { width:100%; min-width:0; box-sizing:border-box; border:1px solid var(--border); background:var(--surface); color:var(--text); border-radius:5px; padding:4px 5px; font:inherit; font-size:11px; outline:none; }
+.oszlop-kereso:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(110,168,254,.12); }
+.fo-tabla .tipus { display:none!important; }
 .alap-ablak th,
 .alap-ablak td,
 .idopont-belső th,
@@ -4018,12 +4025,6 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
     height: 24px;
     white-space: nowrap;
     box-sizing: border-box;
-}
-.fo-tabla th.idopont,
-.fo-tabla td.ellenorzes {
-    width: 34px;
-    min-width: 34px;
-    max-width: 34px;
 }
 .riport-tablazat th,
 .riport-tablazat td {
@@ -4050,101 +4051,103 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
 
 <body>
 
-
 <div class="fejlec">
-
-<div class="cim">
-
-ArrivaBus hidegtárolás
-
-</div>
-
-
-<div class="fejlec-adatok riport-fejlec-adatok">
-
+  <div class="cim">ArrivaBus hidegtárolás</div>
+  <div class="fejlec-adatok riport-fejlec-adatok">
     <div class="fejlec-bal">
-        <div class="adat">
-            <b>Dátum:</b> """ + escape(futas_datum) + """
-        </div>
-        <div class="adat">
-            <b>Naptípus:</b> """ + (
-                escape(str(talalt_munkalap))
-                if str(talalt_munkalap).strip() == str(garazs_talalt_munkalap).strip()
-                else escape(str(talalt_munkalap)) + " / " + escape(str(garazs_talalt_munkalap))
-            ) + """
-        </div>
+      <div class="adat"><b>Dátum:</b> """ + escape(futas_datum) + """</div>
+      <div class="adat"><b>Naptípus:</b> """ + (
+          escape(str(talalt_munkalap))
+          if str(talalt_munkalap).strip() == str(garazs_talalt_munkalap).strip()
+          else escape(str(talalt_munkalap)) + " / " + escape(str(garazs_talalt_munkalap))
+      ) + """</div>
     </div>
-
     <div class="fejlec-jobb">
-        <div class="adat">
-            <b>Utolsó futás:</b> """ + escape(str(max(
-                hidegtarolas_riport.get("utolso_futas", ""),
-                garazstarolas_riport.get("utolso_futas", "")
-            ) or "-")) + """
-        </div>
-        <div class="adat">
-            <b>Riport készült:</b> """ + escape(str(hidegtarolas_riport.get("keszult", "-"))) + """
-        </div>
-        <div class="adat">
-            <b>Exportált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0)) + """
-        </div>
+      <div class="adat"><b>Utolsó futás:</b> """ + escape(str(max(
+          hidegtarolas_riport.get("utolso_futas", ""),
+          garazstarolas_riport.get("utolso_futas", "")
+      ) or "-")) + """</div>
+      <div class="adat"><b>Riport készült:</b> """ + escape(str(hidegtarolas_riport.get("keszult", "-"))) + """</div>
+      <div class="adat"><b>Exportált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0)) + """</div>
     </div>
-
+  </div>
 </div>
-
-
-<!-- =========================================================
-     TÉRKÉP – KÖZVETLENÜL A FEJLÉC ALATT
-     ========================================================= -->
 
 <div id="geozona-terkep"></div>
 
 <div class="nezet-valaszto" role="tablist" aria-label="Megjelenítés">
-<button class="nezet-gomb" data-nezet="mindketto" type="button">Összes</button>
-<button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás</button>
-<button class="nezet-gomb" data-nezet="garazs" type="button">Garázs</button>
+  <button class="nezet-gomb" data-nezet="mindketto" type="button">Összes</button>
+  <button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás</button>
+  <button class="nezet-gomb" data-nezet="garazs" type="button">Garázs</button>
 </div>
 
 <div id="panel-adatok" class="nezet-panel">
 <div class="tabla-szekcio">
-<div class="idopont-csuszkasav">
-  <div class="csuszka-info"><strong id="aktiv-sorok-szoveg">Végállomás</strong></div>
-  <input type="range" id="fo-idopont-csuszka" min="0" max="1000" value="1000" step="1" aria-label="Időpont görgetése">
-</div>
-<div class="tabla-scroll" id="fo-tabla-scroll">
-<table class="fo-tabla">
-<thead><tr>
-<th class="tipus sticky-left">T</th><th class="viszonylat sticky-left">Viszonylat</th><th class="forda sticky-left">Forda</th><th class="kezdés sticky-left">Kezdés</th><th class="végzés sticky-left">Végzés</th><th class="hely sticky-left">Hely</th><th class="rendszam sticky-left">Rendszám</th>
+  <div class="idopont-csuszkasav">
+    <div class="csuszka-info"><strong id="aktiv-sorok-szoveg">Végállomás</strong></div>
+    <input type="range" id="fo-idopont-csuszka" min="0" max="0" value="0" step="1" aria-label="Időpont görgetése">
+  </div>
+  <div class="tabla-scroll" id="fo-tabla-scroll">
+    <table class="fo-tabla" id="fo-tabla">
+      <thead>
+        <tr class="fejlec-sor">
+          <th class="viszonylat sticky-left">Viszonylat</th>
+          <th class="forda sticky-left">Forda</th>
+          <th class="kezdés sticky-left">Kezdés</th>
+          <th class="végzés sticky-left">Végzés</th>
+          <th class="hely sticky-left">Hely</th>
+          <th class="rendszam sticky-left">Rendszám</th>
+          """ )
+
     for time_index, idopont in enumerate(idopontok):
         html.append(f'<th class="idopont" data-time-index="{time_index}">{escape(idopont)}</th>')
 
-    html.append("<th class=\"tarolas sticky-right\">Tárolás helye</th></tr></thead><tbody>")
+    html.append("""
+          <th class="tarolas sticky-right">Tárolás helye</th>
+        </tr>
+        <tr class="szuro-sor">
+          <th><input class="oszlop-kereso" data-col="0" placeholder="Keresés…" aria-label="Viszonylat keresése"></th>
+          <th><input class="oszlop-kereso" data-col="1" placeholder="Keresés…" aria-label="Forda keresése"></th>
+          <th><input class="oszlop-kereso" data-col="2" placeholder="Keresés…" aria-label="Kezdés keresése"></th>
+          <th><input class="oszlop-kereso" data-col="3" placeholder="Keresés…" aria-label="Végzés keresése"></th>
+          <th><input class="oszlop-kereso" data-col="4" placeholder="Keresés…" aria-label="Hely keresése"></th>
+          <th><input class="oszlop-kereso" data-col="5" placeholder="Keresés…" aria-label="Rendszám keresése"></th>
+""")
+
+    for time_index, idopont in enumerate(idopontok):
+        html.append(f'<th class="szuro-idopont" data-time-index="{time_index}"><input class="oszlop-kereso" data-time-col="{time_index}" placeholder="" aria-label="{escape(idopont)} keresése"></th>')
+
+    html.append("""
+          <th class="tarolas"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Tárolás helye keresése"></th>
+        </tr>
+      </thead>
+      <tbody>
+""")
 
     osszes_sor = []
-    osszes_sor.extend({**v, "forrás":"biztor", "kulcs":k} for k,v in sorok.items())
-    osszes_sor.extend({**v, "forrás":"garazs", "kulcs":k} for k,v in garazs_sorok.items())
+    osszes_sor.extend({**v, "forrás": "biztor", "kulcs": k} for k, v in sorok.items())
+    osszes_sor.extend({**v, "forrás": "garazs", "kulcs": k} for k, v in garazs_sorok.items())
     osszes_sor.sort(key=lambda x: (x.get("kezdés", ""), 0 if x.get("forrás") == "biztor" else 1, x.get("viszonylat", ""), x.get("forda", "")))
 
     for sor in osszes_sor:
         forras = sor.get("forrás", "biztor")
-        tipus = "V" if forras == "biztor" else "G"
-        html.append(f'<tr class="{\"biztor-sor\" if forras == \"biztor\" else \"garazs-sor\"}" data-forras="{forras}">')
-        html.append(f'<td class="tipus sticky-left">{tipus}</td>')
-        html.append(f'<td class="viszonylat sticky-left">{escape(sor["viszonylat"])}</td>')
-        html.append(f'<td class="forda sticky-left">{escape(sor["forda"])}</td>')
-        html.append(f'<td class="kezdés sticky-left">{escape(sor["kezdés"])}</td>')
-        html.append(f'<td class="végzés sticky-left">{escape(sor["végzés"])}</td>')
-        html.append(f'<td class="hely sticky-left">{escape(sor["hely"])}</td>')
+        sor_class = "biztor-sor" if forras == "biztor" else "garazs-sor"
+        html.append(f'<tr class="{sor_class}" data-forras="{forras}">')
+        html.append(f'<td class="viszonylat adat-fixed">{escape(sor["viszonylat"])}</td>')
+        html.append(f'<td class="forda adat-fixed">{escape(sor["forda"])}</td>')
+        html.append(f'<td class="kezdés adat-fixed">{escape(sor["kezdés"])}</td>')
+        html.append(f'<td class="végzés adat-fixed">{escape(sor["végzés"])}</td>')
+        html.append(f'<td class="hely adat-fixed">{escape(sor["hely"])}</td>')
         rs = str(sor.get("rendszám", "")).strip()
         if rs:
             rs_html = f'<button type="button" class="rendszam-link" data-rendszam="{escape(rs)}" title="Jármű megjelenítése a térképen">{escape(rs)}</button>'
         else:
             rs_html = ""
-        html.append(f'<td class="rendszam sticky-left">{rs_html}</td>')
+        html.append(f'<td class="rendszam adat-fixed">{rs_html}</td>')
 
         for time_index, idopont in enumerate(idopontok):
             eredmeny = sor.get("ellenőrzés", {}).get(idopont, "-")
-            megj = {"OK":"I", "NEM":"N"}.get(eredmeny, "-")
+            megj = {"OK": "I", "NEM": "N"}.get(eredmeny, "-")
             osztaly = "nincs"
             try:
                 t = datetime.strptime(idopont, "%H:%M")
@@ -4173,58 +4176,108 @@ ArrivaBus hidegtárolás
         rcls = "riport-ok" if tarolas and eredmeny_riport == "RENDBEN TÁROLT" else ("riport-eltérés" if tarolas and eredmeny_riport == "ELTÉRÉS TÖRTÉNT" else "riport-ures")
         html.append(f'<td class="tarolas sticky-right {rcls}">{escape(tarolas)}</td></tr>')
 
-    html.append("</tbody></table></div></div></div>")
-
-    html.append(""")
-
     html.append("""
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
 <script>
 (function(){
- const buttons=document.querySelectorAll('.nezet-gomb');
- const table=document.querySelector('.fo-tabla');
- const scroll=document.getElementById('fo-tabla-scroll');
- const slider=document.getElementById('fo-idopont-csuszka');
- const label=document.getElementById('aktiv-sorok-szoveg');
- const timeHeaders=table ? Array.from(table.querySelectorAll('thead th.idopont')) : [];
- const timeCells=table ? Array.from(table.querySelectorAll('tbody td.ellenorzes')) : [];
- const totalTimes=timeHeaders.length;
- let visibleCount=17;
+  const table=document.getElementById('fo-tabla');
+  const scroll=document.getElementById('fo-tabla-scroll');
+  const slider=document.getElementById('fo-idopont-csuszka');
+  const label=document.getElementById('aktiv-sorok-szoveg');
+  const buttons=document.querySelectorAll('.nezet-gomb');
+  if(!table || !scroll) return;
 
- function setTimeWindow(){
-   if(!table || !scroll || !totalTimes) return;
-   const allRows=table.querySelectorAll('tr');
-   let fixed=0;
-   const headCells=table.querySelectorAll('thead th');
-   headCells.forEach((th,i)=>{
-     if(i < 7 || i === headCells.length-1) fixed += th.getBoundingClientRect().width;
-   });
-   const available=Math.max(204, scroll.clientWidth-fixed-8);
-   visibleCount=Math.max(6, Math.min(17, Math.floor(available/34)));
-   visibleCount=Math.min(visibleCount,totalTimes);
-   slider.max=String(Math.max(0,totalTimes-visibleCount));
-   let start=Math.min(Number(slider.value)||0, Math.max(0,totalTimes-visibleCount));
-   slider.value=String(start);
-   timeHeaders.forEach((el,i)=>el.style.display=(i>=start && i<start+visibleCount)?'':'none');
-   timeCells.forEach(el=>{
-     const i=Number(el.dataset.timeIndex);
-     el.style.display=(i>=start && i<start+visibleCount)?'':'none';
-   });
-   table.style.width='max-content';
- }
+  const timeHeaders=Array.from(table.querySelectorAll('thead tr.fejlec-sor th.idopont'));
+  const timeFilterHeaders=Array.from(table.querySelectorAll('thead tr.szuro-sor th.szuro-idopont'));
+  const timeCells=Array.from(table.querySelectorAll('tbody td.ellenorzes'));
+  const totalTimes=timeHeaders.length;
 
- function setView(v){
-   buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===v));
-   table?.querySelectorAll('tbody tr').forEach(tr=>{
-     tr.style.display=(v==='mindketto'||tr.dataset.forras===v)?'':'none';
-   });
-   if(label) label.textContent=v==='biztor'?'Végállomás':v==='garazs'?'Garázs':'Összes';
-   requestAnimationFrame(setTimeWindow);
- }
+  function setTimeWindow(){
+    const allHead=Array.from(table.querySelectorAll('thead tr.fejlec-sor th'));
+    let fixed=0;
+    allHead.forEach(th=>{ if(!th.classList.contains('idopont')) fixed += th.getBoundingClientRect().width; });
+    const available=Math.max(180, scroll.clientWidth-fixed-2);
+    const minTimeWidth=30;
+    let visibleCount=totalTimes ? Math.min(totalTimes, Math.max(1, Math.floor(available/minTimeWidth))) : 0;
+    let width=visibleCount ? available/visibleCount : minTimeWidth;
+    if(width < minTimeWidth){ width=minTimeWidth; visibleCount=Math.min(totalTimes, Math.max(1, Math.floor(available/minTimeWidth))); }
+    const maxStart=Math.max(0,totalTimes-visibleCount);
+    slider.max=String(maxStart);
+    let start=Math.min(Number(slider.value)||0,maxStart);
+    slider.value=String(start);
+    table.style.setProperty('--time-col-width', width+'px');
+    timeHeaders.forEach((el,i)=>el.style.display=(i>=start && i<start+visibleCount)?'':'none');
+    timeFilterHeaders.forEach((el,i)=>el.style.display=(i>=start && i<start+visibleCount)?'':'none');
+    timeCells.forEach(el=>{const i=Number(el.dataset.timeIndex);el.style.display=(i>=start && i<start+visibleCount)?'':'none';});
+  }
 
- buttons.forEach(b=>b.addEventListener('click',()=>setView(b.dataset.nezet)));
- slider?.addEventListener('input',setTimeWindow);
- window.addEventListener('resize',()=>requestAnimationFrame(setTimeWindow));
- setView('biztor');
+  function applyFilters(){
+    const fixedInputs=Array.from(table.querySelectorAll('.oszlop-kereso[data-col]:not([data-col="storage"])'));
+    const timeInputs=Array.from(table.querySelectorAll('.oszlop-kereso[data-time-col]'));
+    const storageInput=table.querySelector('.oszlop-kereso[data-col="storage"]');
+    const rows=Array.from(table.querySelectorAll('tbody tr'));
+    rows.forEach(row=>{
+      let ok=true;
+      fixedInputs.forEach(input=>{
+        if(!ok) return;
+        const q=input.value.trim().toLocaleLowerCase('hu-HU');
+        if(!q) return;
+        const cell=row.children[Number(input.dataset.col)];
+        const txt=cell ? cell.textContent.trim().toLocaleLowerCase('hu-HU') : '';
+        if(!txt.includes(q)) ok=false;
+      });
+      if(ok){
+        timeInputs.forEach(input=>{
+          if(!ok) return;
+          const q=input.value.trim().toLocaleLowerCase('hu-HU');
+          if(!q) return;
+          const idx=Number(input.dataset.timeCol);
+          const cell=row.querySelector('td.ellenorzes[data-time-index="'+idx+'"]');
+          const txt=cell ? cell.textContent.trim().toLocaleLowerCase('hu-HU') : '';
+          if(!txt.includes(q)) ok=false;
+        });
+      }
+      if(ok && storageInput){
+        const q=storageInput.value.trim().toLocaleLowerCase('hu-HU');
+        if(q){
+          const cell=row.lastElementChild;
+          const txt=cell ? cell.textContent.trim().toLocaleLowerCase('hu-HU') : '';
+          if(!txt.includes(q)) ok=false;
+        }
+      }
+      row.dataset.filterMatch=ok?'1':'0';
+    });
+    applyView(currentView);
+  }
+
+  let currentView='biztor';
+  function applyView(view){
+    currentView=view;
+    buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===view));
+    rowsForView=Array.from(table.querySelectorAll('tbody tr'));
+    rowsForView.forEach(tr=>{
+      const viewOk=view==='mindketto' || tr.dataset.forras===view;
+      const filterOk=tr.dataset.filterMatch!=='0';
+      tr.style.display=(viewOk && filterOk)?'':'none';
+    });
+    if(label) label.textContent=view==='biztor'?'Végállomás':view==='garazs'?'Garázs':'Összes';
+    requestAnimationFrame(setTimeWindow);
+  }
+
+  let rowsForView=[];
+  buttons.forEach(b=>b.addEventListener('click',()=>applyView(b.dataset.nezet)));
+  slider.addEventListener('input',setTimeWindow);
+  table.querySelectorAll('.oszlop-kereso').forEach(input=>input.addEventListener('input',applyFilters));
+  window.addEventListener('resize',()=>requestAnimationFrame(setTimeWindow));
+
+  // Mindig Végállomás legyen az alapértelmezett nézet.
+  applyView('biztor');
+  setTimeWindow();
 })();
 </script>
 
