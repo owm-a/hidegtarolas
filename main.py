@@ -1533,7 +1533,7 @@ FUTAR_URL = (
 
 FUTAR_LAT = 47.4979
 FUTAR_LON = 19.0402
-FUTAR_RADIUS = 15000
+FUTAR_RADIUS = 20000
 
 futar_jarmuvek = {}
 futar_sikeres = False
