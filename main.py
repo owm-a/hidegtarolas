@@ -2732,6 +2732,8 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             ])
 
             eredmeny_cella = export_ws.cell(export_ws.max_row, 5)
+            tarolas_cella = export_ws.cell(export_ws.max_row, 6)
+
             if not sor["rendszám"] and sor["forda"]:
                 eredmeny_cella.fill = fekete_toltes
                 eredmeny_cella.font = feher_betu
@@ -2741,6 +2743,22 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             else:
                 eredmeny_cella.fill = piros_toltes
                 eredmeny_cella.font = feher_betu
+
+            # A napi riportban a Tárolás helye is az eredmény szerint
+            # színeződik. Ha nincs tényleges tárolási adat, nincs szín.
+            tarolas_helye = str(sor.get("tárolás helye", "")).strip()
+            van_tarolas_adat = (
+                tarolas_helye
+                and tarolas_helye not in ("Nincs adat", "-")
+            )
+
+            if van_tarolas_adat:
+                if sor["eredmény"] == "RENDBEN TÁROLT":
+                    tarolas_cella.fill = zold_toltes
+                    tarolas_cella.font = feher_betu
+                elif sor["eredmény"] == "ELTÉRÉS TÖRTÉNT":
+                    tarolas_cella.fill = piros_toltes
+                    tarolas_cella.font = feher_betu
 
         for oszlop in range(1, 7):
             max_hossz = 0
@@ -3540,6 +3558,12 @@ body {
 
 }
 
+.garazs-szekcio-cim {
+
+    margin-top: 14px;
+
+}
+
 
 .tabla-egesz {
 
@@ -4213,27 +4237,25 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
                 ellenorzes_kezdete = kezdes_dt - timedelta(minutes=15)
                 ellenorzes_vege = vegzes_dt + timedelta(minutes=15)
 
+                # A megjelenítés sorrendje szándékosan:
+                # 1. ±15 perces ellenőrzési ablak = mindig fekete I/N
+                # 2. tényleges kezdés–végzés = OK zöld / NEM piros
+                # A számítási/logikai eredmény ettől nem változik.
                 if (
-                    kezdes_dt <= idopont_dt <= vegzes_dt
-                    and eredmeny == "OK"
-                ):
-                    osztaly = "ok"
-
-                elif (
-                    kezdes_dt <= idopont_dt <= vegzes_dt
-                    and eredmeny == "NEM"
-                ):
-                    osztaly = "nem"
-
-                elif (
                     ellenorzes_kezdete <= idopont_dt < kezdes_dt
-                ) or (
-                    vegzes_dt < idopont_dt <= ellenorzes_vege
+                    or vegzes_dt < idopont_dt <= ellenorzes_vege
                 ):
-                    # 15 perces elő-/utóablak: fekete I/N.
                     osztaly = "nincs"
 
-                elif eredmeny not in ("OK", "NEM"):
+                elif kezdes_dt <= idopont_dt <= vegzes_dt:
+                    if eredmeny == "OK":
+                        osztaly = "ok"
+                    elif eredmeny == "NEM":
+                        osztaly = "nem"
+                    else:
+                        eredmeny = "-"
+
+                else:
                     eredmeny = "-"
 
             except (ValueError, TypeError):
@@ -4385,7 +4407,7 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
     garazs_idopontok = sorted(set(idopontok) | garazs_sajat_idopontok)
 
     html.append("""
-<div class="tabla-szekcio-cim">
+<div class="tabla-szekcio-cim garazs-szekcio-cim">
   Garázsban tároló online járművek: """ + str(sum(1 for k in garazs_sorok if garazs_sorok[k]["rendszám"])) + "/" + str(len(figyelt_fordak_garazs)) + """
 </div>
 <div class="tabla-egesz">
@@ -4442,16 +4464,23 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
                 ellenorzes_kezdete = k - timedelta(minutes=15)
                 ellenorzes_vege = v + timedelta(minutes=15)
 
-                if k <= t <= v and eredmeny_g == "OK":
-                    osztaly_g = "ok"
-                elif k <= t <= v and eredmeny_g == "NEM":
-                    osztaly_g = "nem"
-                elif (
+                # A garázs mátrixban is elsőbbséget kap a ±15 perces
+                # ellenőrzési ablak: ott mindig fekete I/N.
+                if (
                     ellenorzes_kezdete <= t < k
                     or v < t <= ellenorzes_vege
                 ):
                     osztaly_g = "nincs"
-                elif eredmeny_g not in ("OK", "NEM"):
+
+                elif k <= t <= v:
+                    if eredmeny_g == "OK":
+                        osztaly_g = "ok"
+                    elif eredmeny_g == "NEM":
+                        osztaly_g = "nem"
+                    else:
+                        megj_g = "-"
+
+                else:
                     megj_g = "-"
             except (ValueError, TypeError):
                 if eredmeny_g == "OK":
@@ -4472,21 +4501,35 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
     html.append("""
 </tbody></table></div>
 </div>
+</div>
 <div class="riport-resz">
 <div class="tabla-fejlec-hely"></div>
-<table class="riport-tablazat"><thead><tr><th>Eredmény</th><th>Tárolás helye</th></tr></thead><tbody>
+<table class="riport-tablazat"><thead><tr><th>Tárolás helye</th></tr></thead><tbody>
 """)
 
     for _, sor_g in garazs_rendezett:
         rs = garazs_riport_eredmenyek.get((sor_g["viszonylat"], sor_g["forda"]), {})
         e = str(rs.get("eredmény", "")).strip()
         h = str(rs.get("tárolás helye", "")).strip()
-        cls = "riport-ok" if e == "RENDBEN TÁROLT" else "riport-eltérés" if e == "ELTÉRÉS TÖRTÉNT" else "riport-ures"
-        html.append(f'<tr><td class="{cls}">{escape(e)}</td><td>{escape(h)}</td></tr>')
+
+        van_tarolas_adat = (
+            h
+            and h not in ("Nincs adat", "-")
+        )
+
+        if van_tarolas_adat and e == "RENDBEN TÁROLT":
+            cls = "riport-ok"
+        elif van_tarolas_adat and e == "ELTÉRÉS TÖRTÉNT":
+            cls = "riport-eltérés"
+        else:
+            cls = "riport-ures"
+
+        html.append(
+            f'<tr><td class="{cls}">{escape(h)}</td></tr>'
+        )
 
     html.append("""
 </tbody></table>
-</div>
 </div>
 </div>
 
