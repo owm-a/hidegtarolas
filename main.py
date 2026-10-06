@@ -4033,7 +4033,14 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
     max-width: 100%;
 }
 .idopont-ablak { overflow: hidden; }
-.fo-tabla { table-layout:auto; width:max-content; min-width:0; max-width:none; }
+.fo-tabla { table-layout:auto; width:max-content; min-width:100%; max-width:none; border-collapse:separate; border-spacing:0; }
+.fo-tabla .sticky-left, .fo-tabla .sticky-right { position:sticky; z-index:5; background:var(--surface) !important; }
+.fo-tabla .sticky-left { left:0; }
+.fo-tabla .sticky-right { right:0; z-index:6; }
+.fo-tabla thead .sticky-left, .fo-tabla thead .sticky-right { z-index:9; }
+.fo-tabla .sticky-left::after { content:""; position:absolute; right:-1px; top:0; bottom:0; width:1px; background:var(--border); }
+.fo-tabla .sticky-right::before { content:""; position:absolute; left:-1px; top:0; bottom:0; width:1px; background:var(--border); }
+.fo-tabla .sticky-left, .fo-tabla .sticky-right { box-shadow:none; }
 .fo-tabla th, .fo-tabla td { box-sizing:border-box; white-space:nowrap; }
 .fo-tabla th.idopont, .fo-tabla td.ellenorzes, .fo-tabla th.idopont-ertek { width:var(--time-col-width,34px); min-width:var(--time-col-width,34px); max-width:var(--time-col-width,34px); text-align:center; }
 .fo-tabla th, .fo-tabla td { background:var(--surface); color:var(--text); }
@@ -4050,7 +4057,8 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
 .fo-tabla .rendez-gomb.active { color:#fff; background:var(--accent2); border-color:var(--accent2); }
 .fo-tabla .fejlec-sor th { vertical-align:middle; }
 .fo-tabla .tarolas { min-width:120px; }
-.tabla-scroll { width:100%; max-width:100%; overflow-x:auto; overflow-y:hidden; }
+.tabla-scroll { width:100%; max-width:100%; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; -ms-overflow-style:none; overscroll-behavior-x:contain; }
+.tabla-scroll::-webkit-scrollbar { display:none; }
 .alap-ablak th, .alap-ablak td, .idopont-belső th, .idopont-belső td, .riport-tablazat th, .riport-tablazat td { height:24px; white-space:nowrap; box-sizing:border-box; }
 .riport-tablazat th, .riport-tablazat td { width:145px; min-width:145px; max-width:145px; }
 @media (max-width:900px) { .idopont-ablak, .idopont-csuszkasav { max-width:calc(100vw - 24px); } }
@@ -4209,6 +4217,28 @@ html, body { max-width:100%; overflow-x:hidden; }
 .tabla-szekcio, .tabla-scroll { max-width:100%; box-sizing:border-box; }
 .fo-tabla { box-sizing:border-box; }
 
+
+/* VALÓS TÁROLÁS – a fix oszlopokkal azonos háttér, csak a szöveg jelzi az eredményt */
+.fo-tabla td.tarolas.sticky-right {
+    background:var(--surface) !important;
+    color:var(--text);
+    font-weight:700 !important;
+    border-radius:0 !important;
+    border:0 !important;
+    text-align:center;
+    padding:4px 10px !important;
+    white-space:nowrap;
+}
+.fo-tabla td.tarolas.riport-ok { color:#62e6a0 !important; background:var(--surface) !important; }
+.fo-tabla td.tarolas.riport-eltérés { color:#ff7d86 !important; background:var(--surface) !important; }
+body.light-mode .fo-tabla td.tarolas.riport-ok { color:#16824d !important; background:var(--surface) !important; }
+body.light-mode .fo-tabla td.tarolas.riport-eltérés { color:#b52f3b !important; background:var(--surface) !important; }
+body.light-mode .fo-tabla td.tarolas.riport-ures { color:var(--muted) !important; background:var(--surface) !important; }
+.fo-tabla.all-view .biztor-sor > td.tarolas.riport-ok,
+.fo-tabla.all-view .biztor-sor > td.tarolas.riport-eltérés,
+.fo-tabla.all-view .biztor-sor > td.tarolas.riport-ures {
+    background:rgba(110,168,254,.055) !important;
+}
 </style>
 
 
@@ -4275,19 +4305,19 @@ html, body { max-width:100%; overflow-x:hidden; }
           <th class="tarolas sticky-right">Valós tárolás <button class="rendez-gomb" type="button" data-sort-col="storage" title="Rendezés">↕</button></th>
         </tr>
         <tr class="szuro-sor">
-          <th><input class="oszlop-kereso" data-col="0" placeholder="Keresés…" aria-label="Viszonylat keresése"></th>
-          <th><input class="oszlop-kereso" data-col="1" placeholder="Keresés…" aria-label="Forda keresése"></th>
-          <th></th>
-          <th></th>
-          <th><input class="oszlop-kereso" data-col="4" placeholder="Keresés…" aria-label="Hely keresése"></th>
-          <th><input class="oszlop-kereso" data-col="5" placeholder="Keresés…" aria-label="Rendszám keresése"></th>
+          <th class="sticky-left"><input class="oszlop-kereso" data-col="0" placeholder="Keresés…" aria-label="Viszonylat keresése"></th>
+          <th class="sticky-left"><input class="oszlop-kereso" data-col="1" placeholder="Keresés…" aria-label="Forda keresése"></th>
+          <th class="sticky-left"></th>
+          <th class="sticky-left"></th>
+          <th class="sticky-left"><input class="oszlop-kereso" data-col="4" placeholder="Keresés…" aria-label="Hely keresése"></th>
+          <th class="sticky-left"><input class="oszlop-kereso" data-col="5" placeholder="Keresés…" aria-label="Rendszám keresése"></th>
 """)
 
     for time_index, idopont in enumerate(idopontok):
         html.append(f'<th class="idopont-ertek" data-time-index="{time_index}">{escape(idopont)}</th>')
 
     html.append("""
-          <th class="tarolas"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Valós tárolás keresése"></th>
+          <th class="tarolas sticky-right"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Valós tárolás keresése"></th>
         </tr>
       </thead>
       <tbody>
@@ -4361,33 +4391,44 @@ html, body { max-width:100%; overflow-x:hidden; }
   const buttons=document.querySelectorAll('.nezet-gomb');
   if(!table || !scroll) return;
 
-  const timeHeaders=Array.from(table.querySelectorAll('thead tr.fejlec-sor th.idopont'));
-  const timeFilterHeaders=Array.from(table.querySelectorAll('thead tr.szuro-sor th.idopont-ertek'));
-  const timeCells=Array.from(table.querySelectorAll('tbody td.ellenorzes'));
-  const totalTimes=timeHeaders.length;
   const tbody=table.querySelector('tbody');
   const sortButtons=Array.from(table.querySelectorAll('.rendez-gomb'));
   let sortState={col:null,dir:1};
 
+  const timeFilterHeaders=Array.from(table.querySelectorAll('thead tr.szuro-sor th.idopont-ertek'));
+  const timeCells=Array.from(table.querySelectorAll('tbody td.ellenorzes'));
+  const totalTimes=timeFilterHeaders.length;
+
+  function syncSlider(){
+    if(!slider) return;
+    const maxScroll=Math.max(0, scroll.scrollWidth-scroll.clientWidth);
+    slider.max=String(maxScroll);
+    const ratio=maxScroll ? scroll.scrollLeft/maxScroll : 0;
+    slider.value=String(Math.round(ratio*maxScroll));
+  }
+
+  function updateStickyOffsets(){
+    let left=0;
+    const leftCells=Array.from(table.querySelectorAll('.sticky-left'));
+    leftCells.forEach((cell, index)=>{
+      // A hat fix oszlop minden sora ugyanazt az oszlopszélességet használja.
+      // A fejléc első sorából vesszük az aktuális szélességet, majd ezt
+      // alkalmazzuk az összes azonos sorszámú sticky cellára.
+      if(index < 6) {
+        const headCell=table.querySelector('thead tr.fejlec-sor th:nth-child('+(index+1)+')');
+        const width=headCell ? headCell.getBoundingClientRect().width : cell.getBoundingClientRect().width;
+        table.querySelectorAll('.sticky-left:nth-child('+(index+1)+')').forEach(el=>{ el.style.left=left+'px'; });
+        left += width;
+      }
+    });
+  }
+
   function setTimeWindow(){
-    const allHead=Array.from(table.querySelectorAll('thead tr.fejlec-sor th'));
-    const fixedHeads=allHead.filter(th=>!th.classList.contains('idopont') && !th.classList.contains('idopont-slider-fejlec'));
-    let fixed=0;
-    fixedHeads.forEach(th=>fixed += th.getBoundingClientRect().width);
-    const available=Math.max(160, scroll.clientWidth-fixed-2);
-    const minTimeWidth=30;
-    const maxVisible=totalTimes ? Math.max(1, Math.floor(available/minTimeWidth)) : 0;
-    const visibleCount=totalTimes ? Math.min(totalTimes,maxVisible) : 0;
-    const width=visibleCount ? Math.max(minTimeWidth, available/visibleCount) : minTimeWidth;
-    const maxStart=Math.max(0,totalTimes-visibleCount);
-    slider.max=String(maxStart);
-    if(sliderHead) sliderHead.colSpan=Math.max(1,visibleCount);
-    let start=Math.min(Number(slider.value)||0,maxStart);
-    slider.value=String(start);
-    table.style.setProperty('--time-col-width', width+'px');
-    timeHeaders.forEach((el,i)=>el.style.display=(i>=start && i<start+visibleCount)?'':'none');
-    timeFilterHeaders.forEach((el,i)=>el.style.display=(i>=start && i<start+visibleCount)?'':'none');
-    timeCells.forEach(el=>{const i=Number(el.dataset.timeIndex);el.style.display=(i>=start && i<start+visibleCount)?'':'none';});
+    // Egyetlen táblázat + egyetlen scroll-tér: a sorok végig tökéletesen
+    // egy vonalban maradnak, miközben csak az időrész gördül vizuálisan.
+    table.style.setProperty('--time-col-width','42px');
+    updateStickyOffsets();
+    requestAnimationFrame(syncSlider);
   }
 
   function applyFilters(){
@@ -4467,9 +4508,25 @@ html, body { max-width:100%; overflow-x:hidden; }
   let sliderFrame=0;
   slider.addEventListener('input',()=>{
     if(sliderFrame) return;
-    sliderFrame=requestAnimationFrame(()=>{ sliderFrame=0; setTimeWindow(); });
+    sliderFrame=requestAnimationFrame(()=>{
+      sliderFrame=0;
+      const maxScroll=Math.max(0, scroll.scrollWidth-scroll.clientWidth);
+      scroll.scrollLeft=Math.min(maxScroll, Number(slider.value)||0);
+    });
   });
+  scroll.addEventListener('scroll',()=>{
+    if(sliderFrame) return;
+    sliderFrame=requestAnimationFrame(()=>{ sliderFrame=0; syncSlider(); });
+  }, {passive:true});
   table.querySelectorAll('.oszlop-kereso').forEach(input=>input.addEventListener('input',applyFilters));
+  table.addEventListener('wheel',e=>{
+    if(Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    const target=e.target.closest('td.ellenorzes, th.idopont-ertek, th.idopont-slider-fejlec');
+    if(!target) return;
+    if(scroll.scrollWidth <= scroll.clientWidth) return;
+    e.preventDefault();
+    scroll.scrollLeft += e.deltaY;
+  }, {passive:false});
   window.addEventListener('resize',()=>requestAnimationFrame(setTimeWindow));
 
   table.querySelectorAll('tbody tr').forEach(r=>r.dataset.filterMatch='1');
