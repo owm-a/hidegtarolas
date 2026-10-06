@@ -399,8 +399,15 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 
     frissitAlapKeresok(view);
 
-    // A szűrés külön kezeli a sorok filterMatch állapotát.
-    // A nézetváltás az alap ArrivaBus szöveget nem tekinti aktív szűrőnek.
+    // A három fizikailag külön tábla sorait ugyanaz a data-row-id köti össze.
+    // A szűrés eredményét ezért mindhárom táblarészre alkalmazzuk.
+    allRows().forEach(fixRow=>{
+      const ok=(view==='mindketto' || fixRow.dataset.forras===view) && fixRow.dataset.filterMatch!=='0';
+      const parts=rowParts(fixRow.dataset.rowId);
+      [parts.fix,parts.ido,parts.storage].forEach(r=>{
+        if(r) r.style.display=ok?'':'none';
+      });
+    });
   }
 
   function applyFilters(){
