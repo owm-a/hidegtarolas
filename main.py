@@ -2959,13 +2959,113 @@ def html_export():
     # --------------------------------------------------------
     # Sorok
     # --------------------------------------------------------
+    #
+    # FONTOS:
+    # Az első Excel ÖSSZES sora jelenjen meg már akkor is,
+    # ha még nincs hozzá GTFS-RT / FUTÁR adat.
+    #
+    # A pozíciótörténet csak kiegészíti ezeket a sorokat:
+    # - rendszám
+    # - időpontonkénti I/N
+    #
+    # Így egy újonnan felkerült forda nem tűnik el csak azért,
+    # mert még nincs hozzá RT találat.
+    # --------------------------------------------------------
 
     sorok = {}
 
 
+    # 1. MINDEN BIZTOR EXCEL-SOR ELŐRE FELVÉTELE
+
+    for _, forda_sor in figyelt_fordak_biztor.iterrows():
+
+        viszonylat = str(
+            forda_sor.get(
+                "viszonylat",
+                ""
+            )
+        ).strip()
+
+        forda = str(
+            forda_sor.get(
+                "forda",
+                ""
+            )
+        ).strip()
+
+        if not viszonylat or not forda:
+            continue
+
+        kezdes_ertek = forda_sor.get("kezdés")
+        vegzes_ertek = forda_sor.get("végzés")
+
+        kezdes = (
+            kezdes_ertek.strftime("%H:%M")
+            if pd.notna(kezdes_ertek)
+            and hasattr(kezdes_ertek, "strftime")
+            else str(kezdes_ertek)[:5]
+        )
+
+        vegzes = (
+            vegzes_ertek.strftime("%H:%M")
+            if pd.notna(vegzes_ertek)
+            and hasattr(vegzes_ertek, "strftime")
+            else str(vegzes_ertek)[:5]
+        )
+
+        hely = str(
+            forda_sor.get(
+                "hely",
+                ""
+            )
+        ).strip()
+
+        kulcs = (
+            viszonylat,
+            forda
+        )
+
+        mentett = forda_rendszamok.get(
+            forda_kulcs_adat(forda_sor),
+            {}
+        )
+
+        sorok[kulcs] = {
+
+            "viszonylat": viszonylat,
+
+            "forda": forda,
+
+            "kezdés": kezdes,
+
+            "végzés": vegzes,
+
+            "hely": hely,
+
+            "rendszám": str(
+                mentett.get(
+                    "rendszám",
+                    ""
+                )
+            ).strip(),
+
+            "forrás": "biztor",
+
+            "ellenőrzés": {}
+
+        }
+
+
+    # 2. POZÍCIÓTÖRTÉNET RÁÉPÍTÉSE AZ EXCEL-SOROKRA
+
     for rekord in pozicio_tortenet:
 
-        if str(rekord.get("forrás", "biztor")).strip() != "biztor":
+        if str(
+            rekord.get(
+                "forrás",
+                "biztor"
+            )
+        ).strip() != "biztor":
             continue
 
         viszonylat = str(
@@ -2973,90 +3073,50 @@ def html_export():
                 "viszonylat",
                 ""
             )
-        )
-
+        ).strip()
 
         forda = str(
             rekord.get(
                 "forda",
                 ""
             )
-        )
-
-
-        kezdes = str(
-            rekord.get(
-                "kezdés",
-                ""
-            )
-        )[:5]
-
-
-        vegzes = str(
-            rekord.get(
-                "végzés",
-                ""
-            )
-        )[:5]
-
-
-        hely = str(
-            rekord.get(
-                "hely",
-                ""
-            )
-        )
-
-
-        rendszam = str(
-            rekord.get(
-                "rendszám",
-                ""
-            )
-        )
-
+        ).strip()
 
         kulcs = (
             viszonylat,
             forda
         )
 
-
+        # Ha a rekord régi/árva adat lenne, ne hozzon létre
+        # külön sort az Excel-listán kívül.
         if kulcs not in sorok:
+            continue
 
-            sorok[kulcs] = {
+        # Rendszám frissítése, ha a történeti rekordban van.
+        rendszam = str(
+            rekord.get(
+                "rendszám",
+                ""
+            )
+        ).strip()
 
-                "viszonylat": viszonylat,
+        if rendszam:
+            sorok[kulcs]["rendszám"] = rendszam
 
-                "forda": forda,
-
-                "kezdés": kezdes,
-
-                "végzés": vegzes,
-
-                "hely": hely,
-
-                "rendszám": rendszam,
-                "forrás": "biztor",
-                "ellenőrzés": {}
-
-            }
-
-
-        idopont = rekord.get(
-            "frissítve",
-            ""
+        idopont = str(
+            rekord.get(
+                "frissítve",
+                ""
+            )
         )[:5]
 
-
-        sorok[kulcs]["ellenőrzés"][idopont] = (
-
-            rekord.get(
-                "ellenőrzés",
-                "-"
+        if idopont:
+            sorok[kulcs]["ellenőrzés"][idopont] = (
+                rekord.get(
+                    "ellenőrzés",
+                    "-"
+                )
             )
-
-        )
 
 
     # --------------------------------------------------------
