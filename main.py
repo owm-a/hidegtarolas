@@ -2961,6 +2961,28 @@ def html_export():
 
 
     # --------------------------------------------------------
+    # Online járművek száma a nézetekhez
+    # --------------------------------------------------------
+    # Y = az adott Excel-részhez jelenleg hozzárendelt, egyedi rendszámok száma.
+    # X = ezek közül hány szerepel az aktuális GTFS-RT járműpozíciók között.
+    def online_jarmu_szamlalo(forras):
+        plates = set()
+        for _, fs in (figyelt_fordak_biztor if forras == "biztor" else figyelt_fordak_garazs).iterrows():
+            adat = forda_rendszamok.get(forda_kulcs_adat(fs), {})
+            plate = str(adat.get("rendszám", "")).strip().upper()
+            if plate:
+                plates.add(plate)
+        current = set()
+        if isinstance(jarmuvek, pd.DataFrame) and not jarmuvek.empty and "rendszám" in jarmuvek.columns:
+            current = {str(x).strip().upper() for x in jarmuvek["rendszám"].tolist() if str(x).strip()}
+        return len(plates & current), len(plates)
+
+    biz_online, biz_osszes = online_jarmu_szamlalo("biztor")
+    garazs_online, garazs_osszes = online_jarmu_szamlalo("garazs")
+    osszes_online = biz_online + garazs_online
+    osszes_osszes = biz_osszes + garazs_osszes
+
+    # --------------------------------------------------------
     # Sorok
     # --------------------------------------------------------
     # MINDEN, az első Excelben szereplő forda előre bekerül.
@@ -3979,6 +4001,7 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
 .nezet-valaszto{display:flex;align-items:center;gap:6px;margin:0 0 14px;padding:4px;width:fit-content;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.16)}
 .nezet-gomb{border:0;border-radius:7px;padding:8px 13px;background:transparent;color:var(--muted);font:inherit;font-size:13px;font-weight:650;cursor:pointer;transition:.16s}
 .nezet-gomb:hover{color:var(--text);background:var(--surface3)}.nezet-gomb.active{color:white;background:linear-gradient(135deg,var(--accent2),#6b7ff0);box-shadow:0 4px 12px rgba(79,143,247,.24)}.nezet-gomb:active{transform:translateY(1px)}
+.online-szam{display:inline-block;margin-left:5px;font-size:11px;font-weight:600;color:var(--muted);opacity:.9}.nezet-gomb.active .online-szam{color:rgba(255,255,255,.82)}
 .nezet-panel{display:block}.nezet-panel.hidden{display:none!important}
 .tabla-szekcio{margin-top:0;padding:12px;border-top:1px solid var(--border);overflow-x:auto}.tabla-szekcio+.tabla-szekcio{margin-top:14px}
 .tabla-szekcio-cim,.garazs-matrix-cim{color:#dbe4ee;padding:3px 4px 9px;font-size:13px;font-weight:700}.tabla-egesz{background:transparent}
@@ -4012,7 +4035,7 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
 .idopont-ablak { overflow: hidden; }
 .fo-tabla { table-layout:auto; width:max-content; min-width:0; }
 .fo-tabla th, .fo-tabla td { box-sizing:border-box; white-space:nowrap; }
-.fo-tabla th.idopont, .fo-tabla td.ellenorzes, .fo-tabla th.szuro-idopont { width:var(--time-col-width,34px); min-width:var(--time-col-width,34px); max-width:var(--time-col-width,34px); text-align:center; }
+.fo-tabla th.idopont, .fo-tabla td.ellenorzes, .fo-tabla th.idopont-ertek { width:var(--time-col-width,34px); min-width:var(--time-col-width,34px); max-width:var(--time-col-width,34px); text-align:center; }
 .fo-tabla th, .fo-tabla td { background:var(--surface); color:var(--text); }
 .fo-tabla .szuro-sor th { padding:3px 4px; background:var(--surface2); }
 .fo-tabla .szuro-sor th:empty { background:var(--surface2); }
@@ -4022,7 +4045,6 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
 .oszlop-kereso:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(110,168,254,.12); }
 .fo-tabla .tipus { display:none!important; }
 .fo-tabla .rendez-gomb { border:1px solid var(--border); background:transparent; color:var(--muted); width:20px; height:20px; padding:0; margin-left:4px; border-radius:5px; cursor:pointer; font-size:11px; line-height:18px; vertical-align:middle; }
-.fo-tabla th.idopont .rendez-gomb { width:15px; height:15px; margin-left:1px; padding:0; border-radius:4px; font-size:9px; line-height:13px; }
 .fo-tabla th.idopont { padding-left:1px; padding-right:1px; }
 .fo-tabla .rendez-gomb:hover { color:var(--text); background:var(--surface2); border-color:var(--accent); }
 .fo-tabla .rendez-gomb.active { color:#fff; background:var(--accent2); border-color:var(--accent2); }
@@ -4032,6 +4054,90 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
 .alap-ablak th, .alap-ablak td, .idopont-belső th, .idopont-belső td, .riport-tablazat th, .riport-tablazat td { height:24px; white-space:nowrap; box-sizing:border-box; }
 .riport-tablazat th, .riport-tablazat td { width:145px; min-width:145px; max-width:145px; }
 @media (max-width:900px) { .idopont-ablak, .idopont-csuszkasav { max-width:calc(100vw - 24px); } }
+
+
+/* UI FINOMHANGOLÁS – végső */
+.fo-tabla .fejlec-sor th { font-weight: 600; }
+.fo-tabla .fejlec-sor th.idopont {
+    position: relative;
+    font-weight: 400;
+    font-size: 11px;
+    padding: 0 2px;
+    overflow: hidden;
+    text-overflow: clip;
+}
+.fo-tabla .fejlec-sor th.idopont {
+    font-size: 0;
+    padding: 0;
+    color: transparent;
+}
+.fo-tabla .szuro-sor th.idopont-ertek {
+    font-weight: 400;
+    font-size: 11px;
+    color: var(--text);
+    background: var(--surface2);
+    padding: 4px 1px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: clip;
+}
+.fo-tabla th.idopont .rendez-gomb {
+    display:none;
+    position: absolute;
+    top: 2px;
+    right: 1px;
+    width: 11px;
+    height: 11px;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: 8px;
+    line-height: 10px;
+    padding: 0;
+    z-index: 2;
+}
+.fo-tabla th.idopont,
+.fo-tabla td.ellenorzes,
+.fo-tabla th.idopont-ertek {
+    width: 42px;
+    min-width: 42px;
+    max-width: 42px;
+}
+.fo-tabla th:not(.idopont), .fo-tabla td:not(.ellenorzes) { min-width: 0; }
+.oszlop-kereso {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 3px 4px;
+    font-size: 10px;
+}
+.fo-tabla.all-view .biztor-sor > td.adat-fixed {
+    background: var(--surface);
+    color: #82b4ff;
+    font-weight: 700;
+}
+.fo-tabla.all-view .biztor-sor > td.adat-fixed .rendszam-link { color: #82b4ff; font-weight: 800; }
+
+/* Világos mód */
+body.light-mode {
+    --bg:#eef2f6; --surface:#ffffff; --surface2:#f4f6f8; --surface3:#e7ebf0;
+    --border:#cbd3dc; --text:#1f2937; --muted:#667085; --accent:#2f6fed; --accent2:#4f7ff5;
+    --ok:#16a765; --bad:#df4f4f; --dark:#4b5563; --shadow:0 8px 24px rgba(15,23,42,.10);
+    background:var(--bg); color:var(--text);
+}
+body.light-mode .fo-tabla th, body.light-mode .fo-tabla td { color:var(--text); }
+body.light-mode .fo-tabla .szuro-sor th { background:var(--surface2); }
+body.light-mode .oszlop-kereso { background:#fff; color:#1f2937; }
+body.light-mode #geozona-terkep .leaflet-tile-pane { filter:none !important; }
+body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hue-rotate(180deg) brightness(78%) contrast(88%) saturate(70%); }
+.theme-toggle {
+    border:1px solid var(--border); background:var(--surface2); color:var(--text);
+    border-radius:8px; padding:7px 10px; font:inherit; font-size:12px; font-weight:650;
+    cursor:pointer; white-space:nowrap; transition:.16s;
+}
+.theme-toggle:hover { background:var(--surface3); border-color:var(--accent); }
 
 </style>
 
@@ -4063,8 +4169,10 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
           hidegtarolas_riport.get("utolso_futas", ""),
           garazstarolas_riport.get("utolso_futas", "")
       ) or "-")) + """</div>
+      <div class="adat"><b>Utolsó lekérdezés:</b> """ + escape(str(idopontok[-1] if idopontok else "-")) + """</div>
       <div class="adat"><b>Riport készült:</b> """ + escape(str(hidegtarolas_riport.get("keszult", "-"))) + """</div>
       <div class="adat"><b>Exportált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0)) + """</div>
+      <button id="theme-toggle" class="theme-toggle" type="button" title="Sötét / világos mód">☀ Világos mód</button>
     </div>
   </div>
 </div>
@@ -4072,9 +4180,9 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
 <div id="geozona-terkep"></div>
 
 <div class="nezet-valaszto" role="tablist" aria-label="Megjelenítés">
-  <button class="nezet-gomb" data-nezet="mindketto" type="button">Összes</button>
-  <button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás</button>
-  <button class="nezet-gomb" data-nezet="garazs" type="button">Garázs</button>
+  <button class="nezet-gomb" data-nezet="mindketto" type="button">Összes <span class="online-szam">""" + str(osszes_online) + "/" + str(osszes_osszes) + """</span></button>
+  <button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás <span class="online-szam">""" + str(biz_online) + "/" + str(biz_osszes) + """</span></button>
+  <button class="nezet-gomb" data-nezet="garazs" type="button">Garázs <span class="online-szam">""" + str(garazs_online) + "/" + str(garazs_osszes) + """</span></button>
 </div>
 
 <div id="panel-adatok" class="nezet-panel">
@@ -4096,7 +4204,7 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
           """ )
 
     for time_index, idopont in enumerate(idopontok):
-        html.append(f'<th class="idopont" data-time-index="{time_index}">{escape(idopont)} <button class="rendez-gomb" type="button" data-sort-col="{6 + time_index}" data-sort-type="time" title="Rendezés">↕</button></th>')
+        html.append(f'<th class="idopont" data-time-index="{time_index}"></th>')
 
     html.append("""
           <th class="tarolas sticky-right">Tárolás helye <button class="rendez-gomb" type="button" data-sort-col="storage" title="Rendezés">↕</button></th>
@@ -4111,7 +4219,7 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
 """)
 
     for time_index, idopont in enumerate(idopontok):
-        html.append('<th class="szuro-idopont" data-time-index="%s"></th>' % time_index)
+        html.append(f'<th class="idopont-ertek" data-time-index="{time_index}">{escape(idopont)}</th>')
 
     html.append("""
           <th class="tarolas"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Tárolás helye keresése"></th>
@@ -4189,7 +4297,7 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
   if(!table || !scroll) return;
 
   const timeHeaders=Array.from(table.querySelectorAll('thead tr.fejlec-sor th.idopont'));
-  const timeFilterHeaders=Array.from(table.querySelectorAll('thead tr.szuro-sor th.szuro-idopont'));
+  const timeFilterHeaders=Array.from(table.querySelectorAll('thead tr.szuro-sor th.idopont-ertek'));
   const timeCells=Array.from(table.querySelectorAll('tbody td.ellenorzes'));
   const totalTimes=timeHeaders.length;
   const tbody=table.querySelector('tbody');
@@ -4290,13 +4398,33 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
 
   buttons.forEach(b=>b.addEventListener('click',()=>applyView(b.dataset.nezet)));
   sortButtons.forEach(b=>b.addEventListener('click',()=>sortRows(b)));
-  slider.addEventListener('input',setTimeWindow);
+  let sliderFrame=0;
+  slider.addEventListener('input',()=>{
+    if(sliderFrame) return;
+    sliderFrame=requestAnimationFrame(()=>{ sliderFrame=0; setTimeWindow(); });
+  });
   table.querySelectorAll('.oszlop-kereso').forEach(input=>input.addEventListener('input',applyFilters));
   window.addEventListener('resize',()=>requestAnimationFrame(setTimeWindow));
 
   table.querySelectorAll('tbody tr').forEach(r=>r.dataset.filterMatch='1');
   applyView('biztor');
   setTimeWindow();
+})();
+
+/* Téma kapcsoló */
+(function(){
+  const btn=document.getElementById('theme-toggle');
+  if(!btn) return;
+  function applyTheme(light){
+    document.body.classList.toggle('light-mode',light);
+    btn.textContent=light?'☾ Sötét mód':'☀ Világos mód';
+    try{localStorage.setItem('arrivabus-theme',light?'light':'dark')}catch(e){}
+    window.dispatchEvent(new Event('resize'));
+  }
+  let light=false;
+  try{light=localStorage.getItem('arrivabus-theme')==='light'}catch(e){}
+  applyTheme(light);
+  btn.addEventListener('click',()=>applyTheme(!document.body.classList.contains('light-mode')));
 })();
 </script>
 
@@ -4320,15 +4448,7 @@ const map = L.map(
     11
 );
 
-// OSM Standard vizuális sötétítése – nincs külön API-kulcs vagy külső dark tile szolgáltató.
-const terkepSotetito = document.createElement("style");
-terkepSotetito.textContent = `
-  #geozona-terkep .leaflet-tile-pane {
-    filter: invert(90%) hue-rotate(180deg) brightness(78%) contrast(88%) saturate(70%);
-  }
-`;
-document.head.appendChild(terkepSotetito);
-
+// OSM Standard, a sötét/világos megjelenítést a dashboard CSS kapcsolja.
 
 L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
