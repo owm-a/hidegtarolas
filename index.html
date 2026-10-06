@@ -1005,6 +1005,96 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
     width: calc(100% - 6px);
 }
 
+
+/* =========================================================
+   CSÚSZKA + STICKY RÉSZEK VÉGLEGES RÉTEGEZÉSE
+   ========================================================= */
+.idopont-csuszkasav {
+    width:100%;
+    max-width:100%;
+    box-sizing:border-box;
+    display:grid;
+    grid-template-columns:var(--fixed-left-width, 0px) minmax(0, var(--time-viewport-width, 1fr)) var(--storage-width, 0px);
+    gap:0;
+    align-items:center;
+    padding:4px 0;
+}
+.idopont-csuszkasav .csuszka-info {
+    min-width:0;
+    padding-left:8px;
+    box-sizing:border-box;
+}
+.idopont-csuszkasav input[type="range"] {
+    grid-column:2;
+    width:100%;
+    min-width:0;
+    box-sizing:border-box;
+    margin:0;
+}
+
+/* A fix oszlopok valóban takarják az alattuk elhaladó időoszlopokat. */
+.tabla-scroll {
+    position:relative;
+    isolation:isolate;
+}
+.fo-tabla {
+    position:relative;
+}
+.fo-tabla th.sticky-left,
+.fo-tabla td.sticky-left {
+    z-index:20 !important;
+    background:var(--surface) !important;
+}
+.fo-tabla th.sticky-right,
+.fo-tabla td.sticky-right {
+    z-index:25 !important;
+    background:var(--surface) !important;
+}
+.fo-tabla thead th.sticky-left { z-index:50 !important; }
+.fo-tabla thead th.sticky-right { z-index:55 !important; }
+.fo-tabla .szuro-sor th.sticky-left { z-index:45 !important; background:var(--surface2) !important; }
+.fo-tabla .szuro-sor th.sticky-right { z-index:48 !important; background:var(--surface2) !important; }
+.fo-tabla tbody td:not(.sticky-left):not(.sticky-right) { position:relative; z-index:1; }
+.fo-tabla thead th:not(.sticky-left):not(.sticky-right) { position:relative; z-index:1; }
+
+/* Rendezés: a kiírásnak és az ikonnak külön helye van, egymás mellett. */
+.fo-tabla .fejlec-sor th:not(.idopont) {
+    white-space:nowrap;
+    overflow:visible;
+    text-overflow:clip;
+}
+.fo-tabla .fejlec-sor th .rendez-gomb {
+    position:static !important;
+    transform:none !important;
+    display:inline-flex !important;
+    vertical-align:middle;
+    flex:0 0 auto;
+    margin:0 0 0 6px !important;
+    width:21px;
+    min-width:21px;
+    max-width:21px;
+    height:21px;
+    min-height:21px;
+    padding:0;
+}
+
+/* A fix bal oldali cellák kékes háttere az összes nézetben maradjon. */
+.fo-tabla.all-view .biztor-sor > td.adat-fixed.sticky-left {
+    background:rgba(110,168,254,.055) !important;
+}
+.fo-tabla.all-view .biztor-sor > td.tarolas.sticky-right {
+    background:rgba(110,168,254,.055) !important;
+}
+
+@media(max-width:600px){
+    .idopont-csuszkasav {
+        grid-template-columns:var(--fixed-left-width, 0px) minmax(0, var(--time-viewport-width, 1fr)) var(--storage-width, 0px);
+    }
+    .idopont-csuszkasav .csuszka-info {
+        font-size:10px;
+        padding-left:5px;
+    }
+}
 </style>
 
 
@@ -1031,7 +1121,7 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
       <div class="adat"><b>Utolsó lekérdezés:</b> 16:55</div>
     </div>
     <div class="fejlec-jobb">
-      <div class="adat"><b>Utolsó futás:</b> 2026-10-06 23:02:22</div>
+      <div class="adat"><b>Utolsó futás:</b> 2026-10-06 23:09:54</div>
       <div class="adat"><b>Riport készült:</b> 2026-10-06 16:31:09</div>
       <div class="adat"><b>Exportált fordák:</b> 21</div>
     </div>
@@ -1111,6 +1201,8 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
         if(cell){
           cell.classList.add('sticky-left');
           cell.style.setProperty('--sticky-left', offset + 'px');
+          /* A görgethető időcellák mindig ezek mögött fussanak. */
+          cell.style.zIndex = row.closest('thead') ? '50' : '20';
         }
       });
       offset += w;
@@ -1119,15 +1211,26 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
     /* A jobb szélső Valós tárolás oszlop minden sorban legyen sticky. */
     table.querySelectorAll('tr').forEach(row=>{
       const cell=row.lastElementChild;
-      if(cell) cell.classList.add('sticky-right');
+      if(cell){
+        cell.classList.add('sticky-right');
+        cell.style.zIndex = row.closest('thead') ? '55' : '25';
+      }
     });
+
+    table.style.setProperty('--fixed-left-width', offset + 'px');
+    const storageHeader=table.querySelector('thead tr.fejlec-sor th:last-child');
+    const storageWidth=storageHeader ? storageHeader.getBoundingClientRect().width : 0;
+    table.style.setProperty('--storage-width', storageWidth + 'px');
+
+    /* A saját csúszka pontosan a látható időrész szélességét kapja. */
+    const timeViewport=Math.max(0, scroll.clientWidth - offset - storageWidth);
+    document.querySelector('.idopont-csuszkasav')?.style.setProperty('--time-viewport-width', timeViewport + 'px');
   }
 
   function setTimeWindow(){
     /*
-       Nem rejtünk el időoszlopokat és nem építünk külön időtáblát.
-       Az egész táblázat egyetlen görgethető felület, de az első 6
-       + a Valós tárolás sticky, ezért vizuálisan csak az időrész mozog.
+       Egyetlen görgethető táblázat: az első 6 és a Valós tárolás sticky,
+       így vizuálisan kizárólag az időoszlopok mozognak.
     */
     updateStickyOffsets();
 
