@@ -1207,57 +1207,91 @@ print(
 # és elmentjük a rendszám + jármű ID párost.
 # =========================================================
 
-if azonositas_idoszak:
+url = (
+    "https://go.bkk.hu/api/query/v1/ws/"
+    "gtfs-rt/full/VehiclePositions.txt"
+)
 
-    url = (
-        "https://go.bkk.hu/api/query/v1/ws/"
-        "gtfs-rt/full/VehiclePositions.txt"
+response = requests.get(
+    url,
+    params={"key": API_KEY},
+    timeout=30
+)
+
+if response.status_code != 200:
+    raise Exception(
+        f"GTFS-RT lekérési hiba. "
+        f"HTTP státusz: {response.status_code}"
     )
 
-    response = requests.get(
-        url,
-        params={"key": API_KEY},
-        timeout=30
-    )
+print(
+    "GTFS-RT HTTP státusz:",
+    response.status_code
+)
+print(
+    "Kapott adatmennyiség:",
+    len(response.content),
+    "byte"
+)
 
-    if response.status_code != 200:
-        raise Exception(
-            f"GTFS-RT lekérési hiba. "
-            f"HTTP státusz: {response.status_code}"
-        )
 
-    print(
-        "GTFS-RT HTTP státusz:",
-        response.status_code
-    )
-    print(
-        "Kapott adatmennyiség:",
-        len(response.content),
-        "byte"
-    )
+feed = gtfs_realtime_pb2.FeedMessage()
 
-    feed = gtfs_realtime_pb2.FeedMessage()
+text_format.Parse(
+    torol_nem_regisztralt_bkk_extensionok(response.text),
+    feed
+)
 
-    text_format.Parse(
-        torol_nem_regisztralt_bkk_extensionok(response.text),
-        feed
-    )
+print(
+    "GTFS-RT entitások száma:",
+    len(feed.entity)
+)
 
-    print(
-        "GTFS-RT entitások száma:",
-        len(feed.entity)
-    )
 
-else:
+# =========================================================
+# 10/f. GTFS-RT JÁRMŰVEK
+# =========================================================
 
-    # 13:30 után (és 07:00 előtt) nincs GTFS-RT azonosítási lekérés.
-    # A korábban elmentett rendszám + jármű ID marad érvényben.
-    feed = gtfs_realtime_pb2.FeedMessage()
+jarmuvek = []
 
-    print(
-        "GTFS-RT azonosítási lekérés kihagyva: "
-        "nincs aktív 07:00–13:30 azonosítási fázis."
-    )
+for entity in feed.entity:
+
+    if not entity.HasField("vehicle"):
+        continue
+
+    v = entity.vehicle
+
+    rendszam = str(
+        v.vehicle.license_plate
+    ).strip().upper()
+
+    jarmu_id = str(
+        v.vehicle.id
+    ).strip()
+
+    trip_id = str(
+        v.trip.trip_id
+    ).strip()
+
+    if not jarmu_id or not trip_id:
+        continue
+
+    jarmuvek.append({
+        "rendszám": rendszam,
+        "jármű_id": jarmu_id,
+        "trip_id": trip_id,
+        "route_id": v.trip.route_id,
+        "direction_id": v.trip.direction_id
+    })
+
+
+jarmuvek = pd.DataFrame(jarmuvek)
+
+print(
+    "GTFS-RT trip + jármű ID kapcsolatok:",
+    len(jarmuvek)
+)
+
 
 # =========================================================
 # 10/g. AKTUÁLIS IDŐ
@@ -2929,27 +2963,19 @@ def html_export():
     # --------------------------------------------------------
     # Online járművek száma a nézetekhez
     # --------------------------------------------------------
-    # A kapcsolón látható X/Y jelentése:
-    # X = ahány figyelt fordához már sikerült rendszám + jármű ID párost menteni.
-    # Y = az adott forrás összes figyelt fordája.
-    # A mentett azonosítás 13:30 után is érvényes marad; ilyenkor
-    # nem szabad az aktuális GTFS-RT pillanatnyi listával újraszámolni.
+    # Y = az adott Excel-részhez jelenleg hozzárendelt, egyedi rendszámok száma.
+    # X = ezek közül hány szerepel az aktuális GTFS-RT járműpozíciók között.
     def online_jarmu_szamlalo(forras):
-        forras_fordak = (
-            figyelt_fordak_biztor
-            if forras == "biztor"
-            else figyelt_fordak_garazs
-        )
-
-        azonosított = 0
-        for _, fs in forras_fordak.iterrows():
+        plates = set()
+        for _, fs in (figyelt_fordak_biztor if forras == "biztor" else figyelt_fordak_garazs).iterrows():
             adat = forda_rendszamok.get(forda_kulcs_adat(fs), {})
-            rendszam = str(adat.get("rendszám", "")).strip()
-            jarmu_id = str(adat.get("jármű_id", "")).strip()
-            if rendszam and jarmu_id:
-                azonosított += 1
-
-        return azonosított, len(forras_fordak)
+            plate = str(adat.get("rendszám", "")).strip().upper()
+            if plate:
+                plates.add(plate)
+        current = set()
+        if isinstance(jarmuvek, pd.DataFrame) and not jarmuvek.empty and "rendszám" in jarmuvek.columns:
+            current = {str(x).strip().upper() for x in jarmuvek["rendszám"].tolist() if str(x).strip()}
+        return len(plates & current), len(plates)
 
     biz_online, biz_osszes = online_jarmu_szamlalo("biztor")
     garazs_online, garazs_osszes = online_jarmu_szamlalo("garazs")
@@ -4113,498 +4139,6 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hu
 }
 .theme-toggle:hover { background:var(--surface3); border-color:var(--accent); }
 
-
-
-/* =========================================================
-   KÉZI FINOMHANGOLÁS – STABIL VERZIÓ
-   ========================================================= */
-
-/* A keresőmezők ne befolyásolják az oszlopok természetes szélességét. */
-.fo-tabla .szuro-sor th {
-    position: relative;
-    height: 31px;
-    min-width: 0;
-}
-.fo-tabla .szuro-sor th .oszlop-kereso {
-    position: absolute;
-    left: 3px;
-    right: 3px;
-    top: 3px;
-    width: auto;
-    max-width: none;
-    min-width: 0;
-    box-sizing: border-box;
-}
-
-/* A rendezőgomb ne növelje meg mesterségesen a Visz./Forda/Rendszám
-   oszlopok szélességét. */
-.fo-tabla .fejlec-sor th {
-    position: relative;
-    padding-right: 4px;
-}
-.fo-tabla .fejlec-sor th .rendez-gomb {
-    position: absolute;
-    right: 3px;
-    top: 50%;
-    transform: translateY(-50%);
-    margin: 0;
-}
-.fo-tabla .fejlec-sor th.viszonylat,
-.fo-tabla .fejlec-sor th.forda,
-.fo-tabla .fejlec-sor th.rendszam {
-    padding-right: 4px;
-}
-
-/* A teljes oldal ne lógjon ki jobbra. A táblázat saját görgetője marad. */
-html, body {
-    max-width: 100%;
-    overflow-x: hidden;
-}
-.tabla-szekcio {
-    overflow: hidden;
-}
-.tabla-scroll {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-}
-
-/* Modern I/N pillák. */
-.fo-tabla td.ellenorzes {
-    background: var(--surface) !important;
-    color: var(--text);
-    padding: 2px 3px;
-}
-.status-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 24px;
-    height: 20px;
-    padding: 0 7px;
-    border-radius: 999px;
-    border: 1px solid transparent;
-    font-weight: 750;
-    font-size: 11px;
-    line-height: 1;
-    box-sizing: border-box;
-}
-.status-pill.ok {
-    color: #6ee7a8;
-    background: rgba(54, 181, 116, .16);
-    border-color: rgba(92, 220, 150, .34);
-}
-.status-pill.nem {
-    color: #ff858d;
-    background: rgba(218, 75, 84, .16);
-    border-color: rgba(255, 113, 124, .34);
-}
-.status-pill.neutral {
-    color: var(--muted);
-    background: rgba(148, 163, 184, .10);
-    border-color: rgba(148, 163, 184, .20);
-}
-
-/* Valós tárolás – finom, modern, felső/alsó szegély. */
-.fo-tabla td.tarolas {
-    min-width: 120px;
-    font-weight: 750;
-    padding: 5px 8px;
-    background: var(--surface) !important;
-    border-top: 1px solid var(--border) !important;
-    border-bottom: 1px solid var(--border) !important;
-}
-.fo-tabla td.tarolas-ok {
-    color: #6ee7a8 !important;
-    background: rgba(54, 181, 116, .07) !important;
-    border-top-color: rgba(92, 220, 150, .48) !important;
-    border-bottom-color: rgba(92, 220, 150, .48) !important;
-}
-.fo-tabla td.tarolas-eltérés {
-    color: #ff858d !important;
-    background: rgba(218, 75, 84, .07) !important;
-    border-top-color: rgba(255, 113, 124, .48) !important;
-    border-bottom-color: rgba(255, 113, 124, .48) !important;
-}
-.fo-tabla td.tarolas-na {
-    color: var(--muted) !important;
-    background: var(--surface) !important;
-}
-
-/* Világos mód – teljes felső fejléc és táblázati keret is világos. */
-.fejlec-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    width: 100%;
-}
-.fejlec-top .cim {
-    margin-bottom: 0;
-}
-body.light-mode .fejlec,
-body.light-mode .tabla-szekcio {
-    background: var(--surface) !important;
-    border-color: var(--border) !important;
-    box-shadow: var(--shadow);
-}
-body.light-mode .fejlec .cim {
-    color: var(--text) !important;
-}
-body.light-mode .tabla-szekcio {
-    border-top-color: var(--border) !important;
-}
-body.light-mode .status-pill.ok {
-    color: #198754;
-    background: rgba(25, 135, 84, .10);
-    border-color: rgba(25, 135, 84, .28);
-}
-body.light-mode .status-pill.nem {
-    color: #c93f49;
-    background: rgba(201, 63, 73, .09);
-    border-color: rgba(201, 63, 73, .26);
-}
-body.light-mode .status-pill.neutral {
-    color: #667085;
-    background: rgba(102, 112, 133, .08);
-    border-color: rgba(102, 112, 133, .20);
-}
-body.light-mode .fo-tabla td.tarolas-ok {
-    color: #198754 !important;
-    background: rgba(25, 135, 84, .055) !important;
-    border-top-color: rgba(25, 135, 84, .34) !important;
-    border-bottom-color: rgba(25, 135, 84, .34) !important;
-}
-body.light-mode .fo-tabla td.tarolas-eltérés {
-    color: #c93f49 !important;
-    background: rgba(201, 63, 73, .055) !important;
-    border-top-color: rgba(201, 63, 73, .34) !important;
-    border-bottom-color: rgba(201, 63, 73, .34) !important;
-}
-body.light-mode .fo-tabla td.tarolas-na {
-    color: var(--muted) !important;
-    background: var(--surface) !important;
-}
-
-
-/* =========================================================
-   STABIL IDŐOSZLOP-GÖRGETÉS + VÉGSŐ UI JAVÍTÁS
-   ========================================================= */
-
-/* A fejléc két sora között legyen külön levegő. */
-.fejlec-top {
-    margin-bottom: 9px;
-}
-
-/* A böngésző ne kapjon saját vízszintes görgetést. */
-html, body {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden !important;
-}
-
-/* A külső blokk sem görgethető: kizárólag a táblázat belső része kezelje a vízszintes mozgást. */
-.tabla-szekcio {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    overflow: hidden !important;
-}
-
-/* A natív vízszintes scrollbar ne jelenjen meg; a fölötte lévő saját csúszka vezérli. */
-.tabla-scroll {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    overscroll-behavior-x: contain;
-}
-.tabla-scroll::-webkit-scrollbar {
-    display: none;
-    width: 0;
-    height: 0;
-}
-
-/* Egyetlen táblázat marad, ezért a sorok magassága és az oszlopok mindig együtt maradnak. */
-.fo-tabla {
-    width: max-content;
-    min-width: 100%;
-    table-layout: auto;
-}
-
-/* Az első 6 oszlop és a Valós tárolás fixen marad; csak a középső időrész mozog. */
-.fo-tabla th.sticky-left,
-.fo-tabla td.sticky-left,
-.fo-tabla th.sticky-right,
-.fo-tabla td.sticky-right {
-    position: sticky;
-    z-index: 5;
-    background: var(--surface) !important;
-}
-.fo-tabla th.sticky-left,
-.fo-tabla td.sticky-left {
-    left: var(--sticky-left, 0px);
-}
-.fo-tabla th.sticky-right,
-.fo-tabla td.sticky-right {
-    right: 0;
-    z-index: 6;
-}
-.fo-tabla thead th.sticky-left,
-.fo-tabla thead th.sticky-right {
-    z-index: 10;
-}
-
-/* A szűrősor sticky cellái is fedjék el az alattuk áthaladó időoszlopokat. */
-.fo-tabla .szuro-sor th.sticky-left,
-.fo-tabla .szuro-sor th.sticky-right {
-    background: var(--surface2) !important;
-}
-
-/* Összes nézetben a Végállomás sor kékes megkülönböztetése a sticky cellákon is maradjon. */
-.fo-tabla.all-view .biztor-sor > td.adat-fixed.sticky-left {
-    background: rgba(110,168,254,.055) !important;
-}
-
-/* A rendezés ikon mindig látható és biztosan a szöveg fölött van. */
-.fo-tabla .fejlec-sor th .rendez-gomb {
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    right: 3px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 21px;
-    min-width: 21px;
-    max-width: 21px;
-    height: 21px;
-    min-height: 21px;
-    margin: 0;
-    padding: 0;
-    z-index: 20;
-    border: 1px solid var(--border);
-    border-radius: 5px;
-    background: var(--surface2);
-    color: var(--muted);
-    line-height: 1;
-    font-size: 11px;
-}
-.fo-tabla .fejlec-sor th .rendez-gomb:hover {
-    color: var(--text);
-    background: var(--surface3);
-    border-color: var(--accent);
-}
-.fo-tabla .fejlec-sor th .rendez-gomb.active {
-    color: #fff;
-    background: var(--accent2);
-    border-color: var(--accent2);
-}
-
-/* A Valós tárolás háttere pontosan a sor többi fix cellájának hátterét kövesse.
-   Csak a szöveg és a felső/alsó szegély marad színezett. */
-.fo-tabla td.tarolas,
-.fo-tabla td.tarolas.tarolas-ok,
-.fo-tabla td.tarolas.tarolas-eltérés,
-.fo-tabla td.tarolas.tarolas-na {
-    background: var(--surface) !important;
-}
-.fo-tabla.all-view .biztor-sor > td.tarolas {
-    background: rgba(110,168,254,.055) !important;
-}
-
-/* Világos módban ugyanez a sor háttérszínéhez igazodik. */
-body.light-mode .fo-tabla td.tarolas,
-body.light-mode .fo-tabla td.tarolas.tarolas-ok,
-body.light-mode .fo-tabla td.tarolas.tarolas-eltérés,
-body.light-mode .fo-tabla td.tarolas.tarolas-na {
-    background: var(--surface) !important;
-}
-body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
-    background: rgba(110,168,254,.055) !important;
-}
-
-/* A keresők maradjanak az oszlopon belül, de ne határozzák meg annak szélességét. */
-.fo-tabla .szuro-sor th.viszonylat,
-.fo-tabla .szuro-sor th.forda,
-.fo-tabla .szuro-sor th.rendszam {
-    min-width: 0;
-}
-.fo-tabla .szuro-sor .oszlop-kereso {
-    left: 3px;
-    right: 3px;
-    width: calc(100% - 6px);
-}
-
-
-/* =========================================================
-   CSÚSZKA + STICKY RÉSZEK VÉGLEGES RÉTEGEZÉSE
-   ========================================================= */
-.idopont-csuszkasav {
-    width:100%;
-    max-width:100%;
-    box-sizing:border-box;
-    display:grid;
-    grid-template-columns:var(--fixed-left-width, 0px) minmax(0, var(--time-viewport-width, 1fr)) var(--storage-width, 0px);
-    gap:0;
-    align-items:center;
-    padding:4px 0;
-}
-.idopont-csuszkasav .csuszka-info {
-    min-width:0;
-    padding-left:8px;
-    box-sizing:border-box;
-}
-.idopont-csuszkasav input[type="range"] {
-    grid-column:2;
-    width:100%;
-    min-width:0;
-    box-sizing:border-box;
-    margin:0;
-}
-
-/*
-   A sticky cellák táblázaton belüli rétegzése collapse módban böngészőfüggő.
-   Külön cellaszegélyes (separate) táblázattal a fix bal/jobb oszlopok
-   megbízhatóan a mozgó időoszlopok fölött maradnak.
-*/
-.fo-tabla {
-    border-collapse: separate !important;
-    border-spacing: 0 !important;
-}
-.fo-tabla th,
-.fo-tabla td {
-    border-right: 1px solid var(--border) !important;
-    border-bottom: 1px solid var(--border) !important;
-    border-left: 0 !important;
-    border-top: 0 !important;
-}
-.fo-tabla tr:first-child th {
-    border-top: 1px solid var(--border) !important;
-}
-.fo-tabla th:first-child,
-.fo-tabla td:first-child {
-    border-left: 1px solid var(--border) !important;
-}
-
-/* A mozgó időcellák semmilyen körülmények között ne kerüljenek a fix részek fölé. */
-.fo-tabla tbody td.ellenorzes,
-.fo-tabla thead th.idopont,
-.fo-tabla thead th.idopont-ertek {
-    position: relative !important;
-    z-index: 1 !important;
-}
-
-/* A fix részek saját, átlátszatlan réteget kapnak. */
-.fo-tabla tbody td.sticky-left,
-.fo-tabla tbody td.sticky-right {
-    z-index: 100 !important;
-    background-color: var(--surface) !important;
-    background-clip: border-box !important;
-}
-.fo-tabla thead th.sticky-left,
-.fo-tabla thead th.sticky-right {
-    z-index: 200 !important;
-    background-color: var(--surface) !important;
-    background-clip: border-box !important;
-}
-.fo-tabla .szuro-sor th.sticky-left,
-.fo-tabla .szuro-sor th.sticky-right {
-    z-index: 190 !important;
-    background-color: var(--surface2) !important;
-}
-
-/* Összes nézetben a Végállomás sor fix cellái maradjanak kékesek,
-   de továbbra is teljesen fedjék az időoszlopokat. */
-.fo-tabla.all-view .biztor-sor > td.adat-fixed.sticky-left,
-.fo-tabla.all-view .biztor-sor > td.tarolas.sticky-right {
-    background: rgba(110,168,254,.055) !important;
-}
-
-/* A Valós tárolás jobb oldali takarófelülete legyen teljesen tömör. */
-.fo-tabla td.tarolas.sticky-right {
-    background-color: var(--surface) !important;
-}
-.fo-tabla.all-view .biztor-sor > td.tarolas.sticky-right {
-    background-color: rgba(110,168,254,.055) !important;
-}
-
-/* A fix oszlopok valóban takarják az alattuk elhaladó időoszlopokat. */
-.tabla-scroll {
-    position:relative;
-    isolation:isolate;
-}
-.fo-tabla {
-    position:relative;
-}
-.fo-tabla th.sticky-left,
-.fo-tabla td.sticky-left {
-    position:sticky !important;
-    z-index:1000 !important;
-    background-color:var(--surface) !important;
-    background-clip:padding-box;
-    isolation:isolate;
-    transform:translateZ(0);
-    backface-visibility:hidden;
-}
-.fo-tabla th.sticky-right,
-.fo-tabla td.sticky-right {
-    position:sticky !important;
-    z-index:1100 !important;
-    background-color:var(--surface) !important;
-    background-clip:padding-box;
-    isolation:isolate;
-    transform:translateZ(0);
-    backface-visibility:hidden;
-}
-.fo-tabla thead th.sticky-left { z-index:1200 !important; }
-.fo-tabla thead th.sticky-right { z-index:1300 !important; }
-.fo-tabla .szuro-sor th.sticky-left { z-index:1150 !important; background:var(--surface2) !important; }
-.fo-tabla .szuro-sor th.sticky-right { z-index:1250 !important; background:var(--surface2) !important; }
-.fo-tabla tbody td:not(.sticky-left):not(.sticky-right) { position:relative; z-index:0 !important; }
-.fo-tabla thead th:not(.sticky-left):not(.sticky-right) { position:relative; z-index:0 !important; }
-
-/* Rendezés: a kiírásnak és az ikonnak külön helye van, egymás mellett. */
-.fo-tabla .fejlec-sor th:not(.idopont) {
-    white-space:nowrap;
-    overflow:visible;
-    text-overflow:clip;
-}
-.fo-tabla .fejlec-sor th .rendez-gomb {
-    position:static !important;
-    transform:none !important;
-    display:inline-flex !important;
-    vertical-align:middle;
-    flex:0 0 auto;
-    margin:0 0 0 6px !important;
-    width:21px;
-    min-width:21px;
-    max-width:21px;
-    height:21px;
-    min-height:21px;
-    padding:0;
-}
-
-/* A fix bal oldali cellák kékes háttere az összes nézetben maradjon. */
-.fo-tabla.all-view .biztor-sor > td.adat-fixed.sticky-left {
-    background:rgba(110,168,254,.055) !important;
-}
-.fo-tabla.all-view .biztor-sor > td.tarolas.sticky-right {
-    background:rgba(110,168,254,.055) !important;
-}
-
-@media(max-width:600px){
-    .idopont-csuszkasav {
-        grid-template-columns:var(--fixed-left-width, 0px) minmax(0, var(--time-viewport-width, 1fr)) var(--storage-width, 0px);
-    }
-    .idopont-csuszkasav .csuszka-info {
-        font-size:10px;
-        padding-left:5px;
-    }
-}
 </style>
 
 
@@ -4620,10 +4154,7 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
 <body>
 
 <div class="fejlec">
-  <div class="fejlec-top">
-    <div class="cim">ArrivaBus hidegtárolás</div>
-    <button id="theme-toggle" class="theme-toggle" type="button" title="Sötét / világos mód">☀ Világos mód</button>
-  </div>
+  <div class="cim">ArrivaBus hidegtárolás</div>
   <div class="fejlec-adatok riport-fejlec-adatok">
     <div class="fejlec-bal">
       <div class="adat"><b>Dátum:</b> """ + escape(futas_datum) + """</div>
@@ -4632,15 +4163,16 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
           if str(talalt_munkalap).strip() == str(garazs_talalt_munkalap).strip()
           else escape(str(talalt_munkalap)) + " / " + escape(str(garazs_talalt_munkalap))
       ) + """</div>
-      <div class="adat"><b>Utolsó lekérdezés:</b> """ + escape(str(idopontok[-1] if idopontok else "-")) + """</div>
     </div>
     <div class="fejlec-jobb">
       <div class="adat"><b>Utolsó futás:</b> """ + escape(str(max(
           hidegtarolas_riport.get("utolso_futas", ""),
           garazstarolas_riport.get("utolso_futas", "")
       ) or "-")) + """</div>
+      <div class="adat"><b>Utolsó lekérdezés:</b> """ + escape(str(idopontok[-1] if idopontok else "-")) + """</div>
       <div class="adat"><b>Riport készült:</b> """ + escape(str(hidegtarolas_riport.get("keszult", "-"))) + """</div>
       <div class="adat"><b>Exportált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0)) + """</div>
+      <button id="theme-toggle" class="theme-toggle" type="button" title="Sötét / világos mód">☀ Világos mód</button>
     </div>
   </div>
 </div>
@@ -4675,7 +4207,7 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
         html.append(f'<th class="idopont" data-time-index="{time_index}"></th>')
 
     html.append("""
-          <th class="tarolas sticky-right">Valós tárolás <button class="rendez-gomb" type="button" data-sort-col="storage" title="Rendezés">↕</button></th>
+          <th class="tarolas sticky-right">Tárolás helye <button class="rendez-gomb" type="button" data-sort-col="storage" title="Rendezés">↕</button></th>
         </tr>
         <tr class="szuro-sor">
           <th><input class="oszlop-kereso" data-col="0" placeholder="Keresés…" aria-label="Viszonylat keresése"></th>
@@ -4690,7 +4222,7 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
         html.append(f'<th class="idopont-ertek" data-time-index="{time_index}">{escape(idopont)}</th>')
 
     html.append("""
-          <th class="tarolas"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Valós tárolás keresése"></th>
+          <th class="tarolas"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Tárolás helye keresése"></th>
         </tr>
       </thead>
       <tbody>
@@ -4737,38 +4269,15 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
                 if eredmeny == "OK": osztaly = "ok"
                 elif eredmeny == "NEM": osztaly = "nem"
                 else: megj = "-"
-            pill_class = (
-                "ok" if osztaly == "ok"
-                else "nem" if osztaly == "nem"
-                else "neutral"
-            )
-            html.append(
-                f'<td class="ellenorzes" data-time-index="{time_index}">'
-                f'<span class="status-pill {pill_class}">{escape(megj)}</span>'
-                f'</td>'
-            )
+            style = ' style="background:#000000;color:white;"' if osztaly == "nincs" and megj in ("I", "N") else ""
+            html.append(f'<td class="ellenorzes {osztaly}" data-time-index="{time_index}"{style}>{escape(megj)}</td>')
 
         riport_map = riport_eredmenyek if forras == "biztor" else garazs_riport_eredmenyek
         rr = riport_map.get(sor["kulcs"], {})
         eredmeny_riport = str(rr.get("eredmény", "")).strip()
         tarolas = str(rr.get("tárolás helye", "")).strip()
-
-        # A 70%-os döntésig nincs végleges tárolási adat.
-        # Ezt a HTML-ben n.a jelöli.
-        if not rr or not eredmeny_riport:
-            tarolas = "n.a"
-            rcls = "tarolas-na"
-        else:
-            if tarolas in ("Nincs adat", "-"):
-                tarolas = "n.a"
-            rcls = (
-                "tarolas-ok"
-                if eredmeny_riport == "RENDBEN TÁROLT"
-                else "tarolas-eltérés"
-                if eredmeny_riport == "ELTÉRÉS TÖRTÉNT"
-                else "tarolas-na"
-            )
-
+        if tarolas in ("Nincs adat", "-"): tarolas = ""
+        rcls = "riport-ok" if tarolas and eredmeny_riport == "RENDBEN TÁROLT" else ("riport-eltérés" if tarolas and eredmeny_riport == "ELTÉRÉS TÖRTÉNT" else "riport-ures")
         html.append(f'<td class="tarolas sticky-right {rcls}">{escape(tarolas)}</td></tr>')
 
     html.append("""
@@ -4795,61 +4304,24 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
   const sortButtons=Array.from(table.querySelectorAll('.rendez-gomb'));
   let sortState={col:null,dir:1};
 
-  function updateStickyOffsets(){
-    const headerCells=Array.from(table.querySelectorAll('thead tr.fejlec-sor th')).slice(0,6);
-    let offset=0;
-    headerCells.forEach((headerCell, index)=>{
-      const w=headerCell.getBoundingClientRect().width;
-      table.querySelectorAll('tr').forEach(row=>{
-        const cell=row.children[index];
-        if(cell){
-          cell.classList.add('sticky-left');
-          cell.style.setProperty('--sticky-left', offset + 'px');
-          /* A görgethető időcellák mindig ezek mögött fussanak. */
-          cell.style.zIndex = row.closest('thead') ? '50' : '20';
-        }
-      });
-      offset += w;
-    });
-
-    /* A jobb szélső Valós tárolás oszlop minden sorban legyen sticky. */
-    table.querySelectorAll('tr').forEach(row=>{
-      const cell=row.lastElementChild;
-      if(cell){
-        cell.classList.add('sticky-right');
-        cell.style.zIndex = row.closest('thead') ? '55' : '25';
-      }
-    });
-
-    const sliderBar=document.querySelector('.idopont-csuszkasav');
-    const storageHeader=table.querySelector('thead tr.fejlec-sor th:last-child');
-    const storageWidth=storageHeader ? storageHeader.getBoundingClientRect().width : 0;
-
-    /* A CSS-változókat magára a csúszkasávra is fel kell tenni: a sáv
-       nem a táblázat gyereke, ezért a table-en beállított változókat nem örökölné. */
-    sliderBar?.style.setProperty('--fixed-left-width', offset + 'px');
-    sliderBar?.style.setProperty('--storage-width', storageWidth + 'px');
-    table.style.setProperty('--fixed-left-width', offset + 'px');
-    table.style.setProperty('--storage-width', storageWidth + 'px');
-
-    /* A saját csúszka pontosan a látható időrész szélességét kapja. */
-    const timeViewport=Math.max(0, scroll.clientWidth - offset - storageWidth);
-    sliderBar?.style.setProperty('--time-viewport-width', timeViewport + 'px');
-  }
-
   function setTimeWindow(){
-    /*
-       Egyetlen görgethető táblázat: az első 6 és a Valós tárolás sticky,
-       így vizuálisan kizárólag az időoszlopok mozognak.
-    */
-    updateStickyOffsets();
-
-    const maxScroll=Math.max(0, scroll.scrollWidth-scroll.clientWidth);
-    slider.max=String(maxScroll);
-
-    const current=Math.min(maxScroll, Math.max(0, Number(slider.value)||0));
-    slider.value=String(current);
-    scroll.scrollLeft=current;
+    const allHead=Array.from(table.querySelectorAll('thead tr.fejlec-sor th'));
+    const fixedHeads=allHead.filter(th=>!th.classList.contains('idopont'));
+    let fixed=0;
+    fixedHeads.forEach(th=>fixed += th.getBoundingClientRect().width);
+    const available=Math.max(160, scroll.clientWidth-fixed-2);
+    const minTimeWidth=30;
+    const maxVisible=totalTimes ? Math.max(1, Math.floor(available/minTimeWidth)) : 0;
+    const visibleCount=totalTimes ? Math.min(totalTimes,maxVisible) : 0;
+    const width=visibleCount ? Math.max(minTimeWidth, available/visibleCount) : minTimeWidth;
+    const maxStart=Math.max(0,totalTimes-visibleCount);
+    slider.max=String(maxStart);
+    let start=Math.min(Number(slider.value)||0,maxStart);
+    slider.value=String(start);
+    table.style.setProperty('--time-col-width', width+'px');
+    timeHeaders.forEach((el,i)=>el.style.display=(i>=start && i<start+visibleCount)?'':'none');
+    timeFilterHeaders.forEach((el,i)=>el.style.display=(i>=start && i<start+visibleCount)?'':'none');
+    timeCells.forEach(el=>{const i=Number(el.dataset.timeIndex);el.style.display=(i>=start && i<start+visibleCount)?'':'none';});
   }
 
   function applyFilters(){
@@ -4929,21 +4401,8 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
   let sliderFrame=0;
   slider.addEventListener('input',()=>{
     if(sliderFrame) return;
-    sliderFrame=requestAnimationFrame(()=>{
-      sliderFrame=0;
-      const maxScroll=Math.max(0, scroll.scrollWidth-scroll.clientWidth);
-      const value=Math.min(maxScroll, Math.max(0, Number(slider.value)||0));
-      scroll.scrollLeft=value;
-    });
+    sliderFrame=requestAnimationFrame(()=>{ sliderFrame=0; setTimeWindow(); });
   });
-
-  scroll.addEventListener('scroll',()=>{
-    if(sliderFrame) return;
-    sliderFrame=requestAnimationFrame(()=>{
-      sliderFrame=0;
-      slider.value=String(Math.round(scroll.scrollLeft));
-    });
-  }, {passive:true});
   table.querySelectorAll('.oszlop-kereso').forEach(input=>input.addEventListener('input',applyFilters));
   window.addEventListener('resize',()=>requestAnimationFrame(setTimeWindow));
 
@@ -4956,20 +4415,16 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
 (function(){
   const btn=document.getElementById('theme-toggle');
   if(!btn) return;
-
   function applyTheme(light){
     document.body.classList.toggle('light-mode',light);
     btn.textContent=light?'☾ Sötét mód':'☀ Világos mód';
+    try{localStorage.setItem('arrivabus-theme',light?'light':'dark')}catch(e){}
     window.dispatchEvent(new Event('resize'));
   }
-
-  // Minden betöltéskor sötét mód az alapértelmezett.
-  // A választás az aktuális oldalbetöltés alatt szabadon módosítható.
-  applyTheme(false);
-
-  btn.addEventListener('click',()=>{
-    applyTheme(!document.body.classList.contains('light-mode'));
-  });
+  let light=false;
+  try{light=localStorage.getItem('arrivabus-theme')==='light'}catch(e){}
+  applyTheme(light);
+  btn.addEventListener('click',()=>applyTheme(!document.body.classList.contains('light-mode')));
 })();
 </script>
 
