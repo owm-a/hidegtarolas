@@ -676,7 +676,7 @@ print(
 # =========================================================
 
 EXCEL_FAJL = (
-    f"data/{ev}-{honap}.xlsx"
+    f"data/biztor_{ev}-{honap}.xlsx"
 )
 
 print(
@@ -993,7 +993,7 @@ for i in range(7, len(excel)):
 # 9/l. MÁSODIK EXCEL FORRÁS – GARÁZSMENET / JBK
 # =========================================================
 
-GARAZS_EXCEL_FAJL = f"data/garazs_{ev}.{honap}.xlsx"
+GARAZS_EXCEL_FAJL = f"data/garazs_{ev}-{honap}.xlsx"
 
 if not os.path.exists(GARAZS_EXCEL_FAJL):
     raise FileNotFoundError(f"Nem található a második Excel fájl:\n{GARAZS_EXCEL_FAJL}")
