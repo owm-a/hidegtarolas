@@ -31586,8 +31586,9 @@
     "kesz": true,
     "excel_kesz": true,
     "keszult": "2026-10-06 16:31:09",
-    "utolso_futas": "2026-10-06 18:53:54",
+    "utolso_futas": "2026-10-06 19:16:33",
     "vizsgalt_fordak": 21,
+    "forrás": "biztor",
     "dontesek": {
       "0960|59": {
         "viszonylat": "0960",
@@ -31926,6 +31927,1683 @@
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "Pestszentlőrinc",
         "döntés időpontja": "13:37:54"
+      }
+    ]
+  },
+  "garazstarolas_riport": {
+    "datum": "2026-10-06",
+    "kesz": true,
+    "excel_kesz": true,
+    "keszult": "2026-10-06 19:16:33",
+    "utolso_futas": "2026-10-06 19:16:33",
+    "vizsgalt_fordak": 104,
+    "forrás": "garazs",
+    "dontesek": {
+      "garazs|0085|51": {
+        "viszonylat": "0085",
+        "forda": "51",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:25:06"
+      },
+      "garazs|0205|53": {
+        "viszonylat": "0205",
+        "forda": "53",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "10:25:18"
+      },
+      "garazs|0205|60": {
+        "viszonylat": "0205",
+        "forda": "60",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:47:36"
+      },
+      "garazs|0205|63": {
+        "viszonylat": "0205",
+        "forda": "63",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:52:24"
+      },
+      "garazs|0205|64": {
+        "viszonylat": "0205",
+        "forda": "64",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:27:36"
+      },
+      "garazs|0205|65": {
+        "viszonylat": "0205",
+        "forda": "65",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:25:24"
+      },
+      "garazs|0205|66": {
+        "viszonylat": "0205",
+        "forda": "66",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:39:48"
+      },
+      "garazs|0205|67": {
+        "viszonylat": "0205",
+        "forda": "67",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:35:36"
+      },
+      "garazs|0250|59": {
+        "viszonylat": "0250",
+        "forda": "59",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:06:06"
+      },
+      "garazs|0300|61": {
+        "viszonylat": "0300",
+        "forda": "61",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:41:00"
+      },
+      "garazs|0300|66": {
+        "viszonylat": "0300",
+        "forda": "66",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:09:00"
+      },
+      "garazs|0300|67": {
+        "viszonylat": "0300",
+        "forda": "67",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:14:06"
+      },
+      "garazs|0310|56": {
+        "viszonylat": "0310",
+        "forda": "56",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:40:42"
+      },
+      "garazs|0310|57": {
+        "viszonylat": "0310",
+        "forda": "57",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:20:18"
+      },
+      "garazs|0350|21": {
+        "viszonylat": "0350",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:36:30"
+      },
+      "garazs|0350|22": {
+        "viszonylat": "0350",
+        "forda": "22",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:20:36"
+      },
+      "garazs|0530|21": {
+        "viszonylat": "0530",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:48:00"
+      },
+      "garazs|0660|21": {
+        "viszonylat": "0660",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:16:42"
+      },
+      "garazs|0660|40": {
+        "viszonylat": "0660",
+        "forda": "40",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:55:18"
+      },
+      "garazs|0660|51": {
+        "viszonylat": "0660",
+        "forda": "51",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:22:54"
+      },
+      "garazs|0960|60": {
+        "viszonylat": "0960",
+        "forda": "60",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:22:54"
+      },
+      "garazs|0960|61": {
+        "viszonylat": "0960",
+        "forda": "61",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:52:00"
+      },
+      "garazs|1012|21": {
+        "viszonylat": "1012",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:12:36"
+      },
+      "garazs|1012|22": {
+        "viszonylat": "1012",
+        "forda": "22",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:29:00"
+      },
+      "garazs|1012|23": {
+        "viszonylat": "1012",
+        "forda": "23",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:51:30"
+      },
+      "garazs|1012|26": {
+        "viszonylat": "1012",
+        "forda": "26",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:07:00"
+      },
+      "garazs|1012|38": {
+        "viszonylat": "1012",
+        "forda": "38",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:21:42"
+      },
+      "garazs|1012|39": {
+        "viszonylat": "1012",
+        "forda": "39",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:49:36"
+      },
+      "garazs|1040|60": {
+        "viszonylat": "1040",
+        "forda": "60",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:27:36"
+      },
+      "garazs|1040|61": {
+        "viszonylat": "1040",
+        "forda": "61",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:44:30"
+      },
+      "garazs|1040|63": {
+        "viszonylat": "1040",
+        "forda": "63",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:07:42"
+      },
+      "garazs|1050|21": {
+        "viszonylat": "1050",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:02:30"
+      },
+      "garazs|1050|22": {
+        "viszonylat": "1050",
+        "forda": "22",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:04:36"
+      },
+      "garazs|1050|30": {
+        "viszonylat": "1050",
+        "forda": "30",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:30:36"
+      },
+      "garazs|1050|61": {
+        "viszonylat": "1050",
+        "forda": "61",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:48:24"
+      },
+      "garazs|1050|62": {
+        "viszonylat": "1050",
+        "forda": "62",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:55:36"
+      },
+      "garazs|1050|63": {
+        "viszonylat": "1050",
+        "forda": "63",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:29:54"
+      },
+      "garazs|1100|21": {
+        "viszonylat": "1100",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:28:36"
+      },
+      "garazs|1100|22": {
+        "viszonylat": "1100",
+        "forda": "22",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:44:24"
+      },
+      "garazs|1100|45": {
+        "viszonylat": "1100",
+        "forda": "45",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:33:00"
+      },
+      "garazs|1100|46": {
+        "viszonylat": "1100",
+        "forda": "46",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:41:42"
+      },
+      "garazs|1100|52": {
+        "viszonylat": "1100",
+        "forda": "52",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:13:12"
+      },
+      "garazs|1100|61": {
+        "viszonylat": "1100",
+        "forda": "61",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:13:54"
+      },
+      "garazs|1100|62": {
+        "viszonylat": "1100",
+        "forda": "62",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:27:42"
+      },
+      "garazs|1140|11": {
+        "viszonylat": "1140",
+        "forda": "11",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:28:54"
+      },
+      "garazs|1200|55": {
+        "viszonylat": "1200",
+        "forda": "55",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:49:06"
+      },
+      "garazs|1225|50": {
+        "viszonylat": "1225",
+        "forda": "50",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:02:18"
+      },
+      "garazs|1225|61": {
+        "viszonylat": "1225",
+        "forda": "61",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:34:06"
+      },
+      "garazs|1225|62": {
+        "viszonylat": "1225",
+        "forda": "62",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:11:42"
+      },
+      "garazs|1225|63": {
+        "viszonylat": "1225",
+        "forda": "63",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:08:36"
+      },
+      "garazs|1240|56": {
+        "viszonylat": "1240",
+        "forda": "56",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:57:06"
+      },
+      "garazs|1240|57": {
+        "viszonylat": "1240",
+        "forda": "57",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:17:18"
+      },
+      "garazs|1240|61": {
+        "viszonylat": "1240",
+        "forda": "61",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:57:48"
+      },
+      "garazs|1240|62": {
+        "viszonylat": "1240",
+        "forda": "62",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:21:54"
+      },
+      "garazs|1335|21": {
+        "viszonylat": "1335",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:19:48"
+      },
+      "garazs|1335|22": {
+        "viszonylat": "1335",
+        "forda": "22",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:43:06"
+      },
+      "garazs|1335|23": {
+        "viszonylat": "1335",
+        "forda": "23",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:00:24"
+      },
+      "garazs|1335|24": {
+        "viszonylat": "1335",
+        "forda": "24",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:14:48"
+      },
+      "garazs|1335|25": {
+        "viszonylat": "1335",
+        "forda": "25",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:28:54"
+      },
+      "garazs|1335|41": {
+        "viszonylat": "1335",
+        "forda": "41",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:07:18"
+      },
+      "garazs|1335|42": {
+        "viszonylat": "1335",
+        "forda": "42",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:59:00"
+      },
+      "garazs|1335|43": {
+        "viszonylat": "1335",
+        "forda": "43",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "08:19:42"
+      },
+      "garazs|1335|44": {
+        "viszonylat": "1335",
+        "forda": "44",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:04:00"
+      },
+      "garazs|1335|61": {
+        "viszonylat": "1335",
+        "forda": "61",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:43:36"
+      },
+      "garazs|1335|62": {
+        "viszonylat": "1335",
+        "forda": "62",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:58:36"
+      },
+      "garazs|1335|63": {
+        "viszonylat": "1335",
+        "forda": "63",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:12:54"
+      },
+      "garazs|1335|64": {
+        "viszonylat": "1335",
+        "forda": "64",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:04:54"
+      },
+      "garazs|1335|65": {
+        "viszonylat": "1335",
+        "forda": "65",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:22:48"
+      },
+      "garazs|1335|66": {
+        "viszonylat": "1335",
+        "forda": "66",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:56:48"
+      },
+      "garazs|1380|30": {
+        "viszonylat": "1380",
+        "forda": "30",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:25:30"
+      },
+      "garazs|1390|21": {
+        "viszonylat": "1390",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:47:30"
+      },
+      "garazs|1390|22": {
+        "viszonylat": "1390",
+        "forda": "22",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:55:18"
+      },
+      "garazs|1390|23": {
+        "viszonylat": "1390",
+        "forda": "23",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:15:24"
+      },
+      "garazs|1390|24": {
+        "viszonylat": "1390",
+        "forda": "24",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:23:12"
+      },
+      "garazs|1390|31": {
+        "viszonylat": "1390",
+        "forda": "31",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:39:24"
+      },
+      "garazs|1470|56": {
+        "viszonylat": "1470",
+        "forda": "56",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:44:30"
+      },
+      "garazs|1470|57": {
+        "viszonylat": "1470",
+        "forda": "57",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:59:48"
+      },
+      "garazs|1480|21": {
+        "viszonylat": "1480",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:44:18"
+      },
+      "garazs|1510|21": {
+        "viszonylat": "1510",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:56:18"
+      },
+      "garazs|1530|21": {
+        "viszonylat": "1530",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:08:06"
+      },
+      "garazs|1530|22": {
+        "viszonylat": "1530",
+        "forda": "22",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:39:24"
+      },
+      "garazs|1530|23": {
+        "viszonylat": "1530",
+        "forda": "23",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:40:48"
+      },
+      "garazs|1590|21": {
+        "viszonylat": "1590",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:22:54"
+      },
+      "garazs|1590|22": {
+        "viszonylat": "1590",
+        "forda": "22",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:37:54"
+      },
+      "garazs|1820|40": {
+        "viszonylat": "1820",
+        "forda": "40",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:12:06"
+      },
+      "garazs|1820|41": {
+        "viszonylat": "1820",
+        "forda": "41",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:24:24"
+      },
+      "garazs|1840|11": {
+        "viszonylat": "1840",
+        "forda": "11",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:58:00"
+      },
+      "garazs|1840|42": {
+        "viszonylat": "1840",
+        "forda": "42",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:48:36"
+      },
+      "garazs|1960|60": {
+        "viszonylat": "1960",
+        "forda": "60",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:08:24"
+      },
+      "garazs|1960|61": {
+        "viszonylat": "1960",
+        "forda": "61",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:01:12"
+      },
+      "garazs|1960|62": {
+        "viszonylat": "1960",
+        "forda": "62",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:25:00"
+      },
+      "garazs|1960|63": {
+        "viszonylat": "1960",
+        "forda": "63",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "09:44:48"
+      },
+      "garazs|1960|64": {
+        "viszonylat": "1960",
+        "forda": "64",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:32:18"
+      },
+      "garazs|1960|66": {
+        "viszonylat": "1960",
+        "forda": "66",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:58:54"
+      },
+      "garazs|1960|67": {
+        "viszonylat": "1960",
+        "forda": "67",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:25:06"
+      },
+      "garazs|1960|68": {
+        "viszonylat": "1960",
+        "forda": "68",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:42:12"
+      },
+      "garazs|2120|21": {
+        "viszonylat": "2120",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:47:36"
+      },
+      "garazs|2120|22": {
+        "viszonylat": "2120",
+        "forda": "22",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:39:00"
+      },
+      "garazs|2120|23": {
+        "viszonylat": "2120",
+        "forda": "23",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:15:54"
+      },
+      "garazs|2120|24": {
+        "viszonylat": "2120",
+        "forda": "24",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:07:30"
+      },
+      "garazs|2120|40": {
+        "viszonylat": "2120",
+        "forda": "40",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:14:24"
+      },
+      "garazs|2200|50": {
+        "viszonylat": "2200",
+        "forda": "50",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:24:12"
+      },
+      "garazs|2200|56": {
+        "viszonylat": "2200",
+        "forda": "56",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:54:48"
+      },
+      "garazs|2235|41": {
+        "viszonylat": "2235",
+        "forda": "41",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:11:24"
+      }
+    },
+    "eredmenyek": [
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0085",
+        "forda": "51",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:25:06"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0205",
+        "forda": "53",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "10:25:18"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0205",
+        "forda": "60",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:47:36"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0205",
+        "forda": "63",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:52:24"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0205",
+        "forda": "64",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:27:36"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0205",
+        "forda": "65",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:25:24"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0205",
+        "forda": "66",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:39:48"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0205",
+        "forda": "67",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:35:36"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0250",
+        "forda": "59",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:06:06"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0300",
+        "forda": "61",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:41:00"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0300",
+        "forda": "66",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:09:00"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0300",
+        "forda": "67",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:14:06"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0310",
+        "forda": "56",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:40:42"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0310",
+        "forda": "57",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:20:18"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0350",
+        "forda": "21",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:36:30"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0350",
+        "forda": "22",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:20:36"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0530",
+        "forda": "21",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:48:00"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0660",
+        "forda": "21",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:16:42"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0660",
+        "forda": "40",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:55:18"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0660",
+        "forda": "51",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:22:54"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0960",
+        "forda": "60",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:22:54"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "0960",
+        "forda": "61",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:52:00"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1012",
+        "forda": "21",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:12:36"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1012",
+        "forda": "22",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:29:00"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1012",
+        "forda": "23",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:51:30"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1012",
+        "forda": "26",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:07:00"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1012",
+        "forda": "38",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:21:42"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1012",
+        "forda": "39",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:49:36"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1040",
+        "forda": "60",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:27:36"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1040",
+        "forda": "61",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:44:30"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1040",
+        "forda": "63",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:07:42"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1050",
+        "forda": "21",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:02:30"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1050",
+        "forda": "22",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:04:36"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1050",
+        "forda": "30",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:30:36"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1050",
+        "forda": "61",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:48:24"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1050",
+        "forda": "62",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:55:36"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1050",
+        "forda": "63",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:29:54"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1100",
+        "forda": "21",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:28:36"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1100",
+        "forda": "22",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:44:24"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1100",
+        "forda": "45",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:33:00"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1100",
+        "forda": "46",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:41:42"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1100",
+        "forda": "52",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:13:12"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1100",
+        "forda": "61",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:13:54"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1100",
+        "forda": "62",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:27:42"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1140",
+        "forda": "11",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:28:54"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1200",
+        "forda": "55",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:49:06"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1225",
+        "forda": "50",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:02:18"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1225",
+        "forda": "61",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:34:06"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1225",
+        "forda": "62",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:11:42"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1225",
+        "forda": "63",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:08:36"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1240",
+        "forda": "56",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:57:06"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1240",
+        "forda": "57",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:17:18"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1240",
+        "forda": "61",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:57:48"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1240",
+        "forda": "62",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:21:54"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1335",
+        "forda": "21",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:19:48"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1335",
+        "forda": "22",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:43:06"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1335",
+        "forda": "23",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:00:24"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1335",
+        "forda": "24",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:14:48"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1335",
+        "forda": "25",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:28:54"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1335",
+        "forda": "41",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:07:18"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1335",
+        "forda": "42",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:59:00"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1335",
+        "forda": "43",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "08:19:42"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1335",
+        "forda": "44",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:04:00"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1335",
+        "forda": "61",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:43:36"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1335",
+        "forda": "62",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:58:36"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1335",
+        "forda": "63",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:12:54"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1335",
+        "forda": "64",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:04:54"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1335",
+        "forda": "65",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:22:48"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1335",
+        "forda": "66",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:56:48"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1380",
+        "forda": "30",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:25:30"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1390",
+        "forda": "21",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:47:30"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1390",
+        "forda": "22",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:55:18"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1390",
+        "forda": "23",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:15:24"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1390",
+        "forda": "24",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:23:12"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1390",
+        "forda": "31",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:39:24"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1470",
+        "forda": "56",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:44:30"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1470",
+        "forda": "57",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:59:48"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1480",
+        "forda": "21",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:44:18"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1510",
+        "forda": "21",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:56:18"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1530",
+        "forda": "21",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:08:06"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1530",
+        "forda": "22",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:39:24"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1530",
+        "forda": "23",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:40:48"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1590",
+        "forda": "21",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:22:54"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1590",
+        "forda": "22",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:37:54"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1820",
+        "forda": "40",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:12:06"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1820",
+        "forda": "41",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:24:24"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1840",
+        "forda": "11",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:58:00"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1840",
+        "forda": "42",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:48:36"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1960",
+        "forda": "60",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:08:24"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1960",
+        "forda": "61",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:01:12"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1960",
+        "forda": "62",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:25:00"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1960",
+        "forda": "63",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "09:44:48"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1960",
+        "forda": "64",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:32:18"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1960",
+        "forda": "66",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:58:54"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1960",
+        "forda": "67",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:25:06"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "1960",
+        "forda": "68",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:42:12"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "2120",
+        "forda": "21",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:47:36"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "2120",
+        "forda": "22",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:39:00"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "2120",
+        "forda": "23",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:15:54"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "2120",
+        "forda": "24",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:07:30"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "2120",
+        "forda": "40",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:14:24"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "2200",
+        "forda": "50",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "11:24:12"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "2200",
+        "forda": "56",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "12:54:48"
+      },
+      {
+        "dátum": "2026-10-06",
+        "viszonylat": "2235",
+        "forda": "41",
+        "rendszám": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:11:24"
       }
     ]
   }
