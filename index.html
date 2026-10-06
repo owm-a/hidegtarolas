@@ -479,7 +479,20 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     });
   });
   idoAblak.addEventListener('scroll',()=>{slider.value=String(Math.round(idoAblak.scrollLeft));},{passive:true});
-  buttons.forEach(b=>b.addEventListener('click',()=>applyView(b.dataset.nezet)));
+
+  function valtasNezet(view){
+    // Nézetváltáskor minden korábbi keresést elengedünk.
+    // Ezután az Összes/Garázs nézet kapja meg újra az alap "ArrivaBus " szöveget,
+    // ami önmagában nem számít aktív szűrésnek.
+    document.querySelectorAll('.oszlop-kereso[data-col="4"], .oszlop-kereso[data-col="storage"]').forEach(input=>{
+      input.value='';
+      input.dataset.defaultArrivabus='0';
+    });
+    allRows().forEach(r=>r.dataset.filterMatch='1');
+    applyView(view);
+  }
+
+  buttons.forEach(b=>b.addEventListener('click',()=>valtasNezet(b.dataset.nezet)));
   sortButtons.forEach(b=>b.addEventListener('click',()=>sortRows(b)));
   document.querySelectorAll('.oszlop-kereso').forEach(input=>{
     input.addEventListener('input',()=>{
