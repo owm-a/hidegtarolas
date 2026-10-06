@@ -3400,6 +3400,10 @@ body {
 
 .tabla-szekcio {
 
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+
     margin-top: 12px;
 
     padding-top: 10px;
@@ -3601,20 +3605,17 @@ td.ellenorzes {
 
     max-width: calc(100vw - 30px);
 
+    height: 31px;
+
     background: white;
 
-    border-left: 1px solid #888;
-
-    border-right: 1px solid #888;
-
-    border-bottom: 1px solid #888;
+    border: 1px solid #888;
 
     box-sizing: border-box;
 
     padding: 2px 5px 4px 5px;
 
 }
-
 
 .idopont-csuszkasav input[type="range"] {
 
@@ -3677,6 +3678,11 @@ td.ellenorzes {
     flex: 0 0 auto;
     margin-left: 4px;
     align-self: flex-start;
+}
+
+.tabla-fejlec-hely {
+    height: 31px;
+    box-sizing: border-box;
 }
 
 .riport-tablazat {
@@ -3891,6 +3897,8 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
 
 <div class="alap-ablak">
 
+<div class="tabla-fejlec-hely"></div>
+
 <table>
 
 <thead>
@@ -3988,6 +3996,19 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
      ========================================================= -->
 
 <div class="idopont-resz">
+
+<div class="idopont-csuszkasav">
+
+<input
+    type="range"
+    id="idopont-csuszka"
+    min="0"
+    max="0"
+    value="0"
+    step="1"
+>
+
+</div>
 
 <div
     class="idopont-ablak"
@@ -4140,27 +4161,8 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
 
 </div>
 
-
-<!-- =========================================================
-     KÜLÖN CSÚSZKA
-     ========================================================= -->
-
-<div class="idopont-csuszkasav">
-
-<input
-    type="range"
-    id="idopont-csuszka"
-    min="0"
-    max="0"
-    value="0"
-    step="1"
->
-
-</div>
-
-</div>
-
 """)
+
     # --------------------------------------------------------
     # HIDEGTÁROLÁSI RIPORT OSZLOP – HTML
     # A döntés a 70%-os ponton véglegesen elmentett adatból jön.
@@ -4176,6 +4178,8 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
 
     html.append("""
 <div class="riport-resz">
+
+<div class="tabla-fejlec-hely"></div>
 
 <table class="riport-tablazat">
 <thead>
@@ -4309,7 +4313,9 @@ window.addEventListener(
 
 </script>
 
+""")
 
+    html.append("""
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
