@@ -477,6 +477,30 @@ HELYSZINEK = {
         "lon_max": 19.07169262649567
     },
 
+    "andor": {
+        "kulcsszo": "ArrivaBus Andor telephely",
+        "lat_min": 47.45703696628262,
+        "lat_max": 47.45974359947361,
+        "lon_min": 19.025296690497736,
+        "lon_max": 19.02988619533237
+    },
+
+    "bogancs": {
+        "kulcsszo": "ArrivaBus Bogáncs telephely",
+        "lat_min": 47.569747494207284,
+        "lat_max": 47.5731577937613,
+        "lon_min": 19.131368356259316,
+        "lon_max": 19.137645363043006
+    },
+
+    "csepel": {
+        "kulcsszo": "ArrivaBus Szállító telephely",
+        "lat_min": 47.441927955392465,
+        "lat_max": 47.4437481894374,
+        "lon_min": 19.081122238879782,
+        "lon_max": 19.084841859297306
+    },
+
     "kobanya_also": {
         "kulcsszo": "Kőbánya alsó",
         "lat_min": 47.48261593267198,
@@ -523,58 +547,10 @@ HELYSZINEK = {
         "lat_max": 47.45651651124522,
         "lon_min": 19.178530697809354,
         "lon_max": 19.18350366084327
-    },
-
-    "andor": {
-        "kulcsszo": "ArrivaBus Andor telephely",
-        "lat_min": 47.45703696628262,
-        "lat_max": 47.45974359947361,
-        "lon_min": 19.025296690497736,
-        "lon_max": 19.02988619533237
-    },
-
-    "bogancs": {
-        "kulcsszo": "ArrivaBus Bogáncs telephely",
-        "lat_min": 47.569747494207284,
-        "lat_max": 47.5731577937613,
-        "lon_min": 19.131368356259316,
-        "lon_max": 19.137645363043006
-    },
-
-    "csepel": {
-        "kulcsszo": "ArrivaBus Szállító telephely",
-        "lat_min": 47.441927955392465,
-        "lat_max": 47.4437481894374,
-        "lon_min": 19.081122238879782,
-        "lon_max": 19.084841859297306
     }
 
 }
 
-
-
-def tarolas_helye_pozicio_alapjan(pozicio):
-    """Geozóna nevét adja vissza a GPS alapján, egyébként a koordinátát."""
-
-    pozicio_szoveg = str(pozicio or "").strip()
-    if not pozicio_szoveg:
-        return "Nincs adat"
-
-    try:
-        latitude_szoveg, longitude_szoveg = pozicio_szoveg.split(",", 1)
-        latitude = float(latitude_szoveg.strip())
-        longitude = float(longitude_szoveg.strip())
-    except (ValueError, TypeError):
-        return pozicio_szoveg
-
-    for helyszin in HELYSZINEK.values():
-        if (
-            helyszin["lat_min"] <= latitude <= helyszin["lat_max"]
-            and helyszin["lon_min"] <= longitude <= helyszin["lon_max"]
-        ):
-            return str(helyszin.get("kulcsszo", "")).strip() or pozicio_szoveg
-
-    return pozicio_szoveg
 
 print(
     "Helyszín-konfiguráció betöltve:",
@@ -623,7 +599,7 @@ def forda_aktiv_e(kezdés, végzés, időpont):
         return False
 
     ellenőrzési_kezdés = kezdés_dt - timedelta(minutes=15)
-    ellenőrzési_végzés = végzés_dt + timedelta(minutes=20)
+    ellenőrzési_végzés = végzés_dt + timedelta(minutes=15)
 
     return ellenőrzési_kezdés <= időpont_dt <= ellenőrzési_végzés
 
@@ -2414,6 +2390,27 @@ def _ido_objektum(ertek):
     return None
 
 
+def gps_geozona_vagy_koordinata(pozicio):
+    """A GPS-koordinátából geozóna-nevet ad vissza, vagy ha nincs találat, a GPS-t."""
+    eredeti = str(pozicio or "").strip()
+
+    try:
+        latitude_s, longitude_s = eredeti.split(",", 1)
+        latitude = float(latitude_s.strip())
+        longitude = float(longitude_s.strip())
+    except (ValueError, TypeError):
+        return eredeti or "Nincs adat"
+
+    for helyszin in HELYSZINEK.values():
+        if (
+            helyszin["lat_min"] <= latitude <= helyszin["lat_max"]
+            and helyszin["lon_min"] <= longitude <= helyszin["lon_max"]
+        ):
+            return str(helyszin.get("kulcsszo", "")).strip() or eredeti
+
+    return f"{latitude}, {longitude}"
+
+
 def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
     """
     A hidegtárolási döntés a forda saját idejének 70%-os pontján születik.
@@ -2480,7 +2477,7 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
         _, rekord = rekordok[-1]
         állapot = str(rekord.get("ellenőrzés", "-")).strip().upper()
         eredmény = "RENDBEN TÁROLT" if állapot == "OK" else "ELTÉRÉS TÖRTÉNT"
-        tárolás_helye = tarolas_helye_pozicio_alapjan(
+        tárolás_helye = gps_geozona_vagy_koordinata(
             rekord.get("pozíció", "")
         )
     else:
@@ -3102,7 +3099,7 @@ def html_export():
                     )
 
                     ellenőrzési_végzés_map = (
-                        végzés_dt_map + timedelta(minutes=20)
+                        végzés_dt_map + timedelta(minutes=15)
                     )
 
                     if not (
@@ -3206,14 +3203,8 @@ def html_export():
                         < kezdés_dt_map
                     )
 
-                    postend_sarga = (
-                        végzés_dt_map
-                        <= lekérdezés_dt_map
-                        <= végzés_dt_map + timedelta(minutes=20)
-                    )
-
                     if (
-                        (prestart_sarga or postend_sarga)
+                        prestart_sarga
                         and statusz in ("OK", "NEM")
                     ):
                         statusz = "SÁRGA"
@@ -3393,20 +3384,6 @@ body {
 }
 
 
-.tarolt-jarmuvek-cim {
-
-    margin-top: 12px;
-    margin-bottom: 6px;
-    font-size: 16px;
-    font-weight: bold;
-    background: white;
-    border: 1px solid #cccccc;
-    padding: 8px 10px;
-    width: fit-content;
-
-}
-
-
 .adat {
 
     font-size: 13px;
@@ -3420,6 +3397,30 @@ body {
    TÁBLÁZATI BLOKK
    6 fix oszlop + időtábla + riport egy sorban
    ========================================================= */
+
+.tabla-szekcio {
+
+    margin-top: 12px;
+
+    padding-top: 10px;
+
+    border-top: 1px solid #cccccc;
+
+    background: white;
+
+}
+
+
+.tabla-szekcio-cim {
+
+    padding: 0 10px 8px 10px;
+
+    font-size: 14px;
+
+    font-weight: bold;
+
+}
+
 
 .tabla-egesz {
 
@@ -3441,7 +3442,6 @@ body {
 .alap-ablak {
 
     flex: 0 0 auto;
-    margin-right: 8px;
 
 }
 
@@ -3847,6 +3847,15 @@ ArrivaBus hidegtárolás
             <b>Naptípus:</b> """ + escape(str(talalt_munkalap)) + """
         </div>
         <div class="adat">
+            <b>Utolsó lekérdezés:</b> """ + escape(utolso_ido) + """
+        </div>
+    </div>
+
+    <div class="fejlec-jobb">
+        <div class="adat">
+            <b>Riport készült:</b> """ + escape(str(hidegtarolas_riport.get("keszult", "-"))) + """
+        </div>
+        <div class="adat">
             <b>Exportált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0)) + """
         </div>
     </div>
@@ -3861,8 +3870,10 @@ ArrivaBus hidegtárolás
 <div id="geozona-terkep"></div>
 
 
-<div class="tarolt-jarmuvek-cim">
-    Végállomáson tárolt járművek: """ + str(megtalalt_jarmuvek) + "/" + str(excel_fordak_szama) + """
+<div class="tabla-szekcio">
+
+<div class="tabla-szekcio-cim">
+Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" + str(excel_fordak_szama) + """
 </div>
 
 
@@ -4074,15 +4085,9 @@ ArrivaBus hidegtárolás
                     < kezdes_perc
                 )
 
-                postend_sarga = (
-                    vegzes_perc
-                    <= idopont_perc
-                    <= vegzes_perc + 20
-                )
-
                 if (
                     eredmeny in ("OK", "NEM")
-                    and (prestart_sarga or postend_sarga)
+                    and prestart_sarga
                 ):
                     osztaly = "sarga"
 
@@ -4128,6 +4133,8 @@ ArrivaBus hidegtárolás
 </tbody>
 
 </table>
+
+</div>
 
 </div>
 
@@ -4200,7 +4207,7 @@ ArrivaBus hidegtárolás
         html.append(
             f'<tr>'
             f'<td class="{osztaly}">{escape(eredmeny)}</td>'
-            f'<td class="{osztaly}">{escape(tarolas_helye)}</td>'
+            f'<td>{escape(tarolas_helye)}</td>'
             f'</tr>'
         )
 
