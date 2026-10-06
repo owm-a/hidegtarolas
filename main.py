@@ -4287,6 +4287,158 @@ body.light-mode .fo-tabla td.tarolas-na {
     background: var(--surface) !important;
 }
 
+
+/* =========================================================
+   STABIL IDŐOSZLOP-GÖRGETÉS + VÉGSŐ UI JAVÍTÁS
+   ========================================================= */
+
+/* A fejléc két sora között legyen külön levegő. */
+.fejlec-top {
+    margin-bottom: 9px;
+}
+
+/* A böngésző ne kapjon saját vízszintes görgetést. */
+html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden !important;
+}
+
+/* A külső blokk sem görgethető: kizárólag a táblázat belső része kezelje a vízszintes mozgást. */
+.tabla-szekcio {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden !important;
+}
+
+/* A natív vízszintes scrollbar ne jelenjen meg; a fölötte lévő saját csúszka vezérli. */
+.tabla-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior-x: contain;
+}
+.tabla-scroll::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+/* Egyetlen táblázat marad, ezért a sorok magassága és az oszlopok mindig együtt maradnak. */
+.fo-tabla {
+    width: max-content;
+    min-width: 100%;
+    table-layout: auto;
+}
+
+/* Az első 6 oszlop és a Valós tárolás fixen marad; csak a középső időrész mozog. */
+.fo-tabla th.sticky-left,
+.fo-tabla td.sticky-left,
+.fo-tabla th.sticky-right,
+.fo-tabla td.sticky-right {
+    position: sticky;
+    z-index: 5;
+    background: var(--surface) !important;
+}
+.fo-tabla th.sticky-left,
+.fo-tabla td.sticky-left {
+    left: var(--sticky-left, 0px);
+}
+.fo-tabla th.sticky-right,
+.fo-tabla td.sticky-right {
+    right: 0;
+    z-index: 6;
+}
+.fo-tabla thead th.sticky-left,
+.fo-tabla thead th.sticky-right {
+    z-index: 10;
+}
+
+/* A szűrősor sticky cellái is fedjék el az alattuk áthaladó időoszlopokat. */
+.fo-tabla .szuro-sor th.sticky-left,
+.fo-tabla .szuro-sor th.sticky-right {
+    background: var(--surface2) !important;
+}
+
+/* Összes nézetben a Végállomás sor kékes megkülönböztetése a sticky cellákon is maradjon. */
+.fo-tabla.all-view .biztor-sor > td.adat-fixed.sticky-left {
+    background: rgba(110,168,254,.055) !important;
+}
+
+/* A rendezés ikon mindig látható és biztosan a szöveg fölött van. */
+.fo-tabla .fejlec-sor th .rendez-gomb {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    right: 3px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 21px;
+    min-width: 21px;
+    max-width: 21px;
+    height: 21px;
+    min-height: 21px;
+    margin: 0;
+    padding: 0;
+    z-index: 20;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--surface2);
+    color: var(--muted);
+    line-height: 1;
+    font-size: 11px;
+}
+.fo-tabla .fejlec-sor th .rendez-gomb:hover {
+    color: var(--text);
+    background: var(--surface3);
+    border-color: var(--accent);
+}
+.fo-tabla .fejlec-sor th .rendez-gomb.active {
+    color: #fff;
+    background: var(--accent2);
+    border-color: var(--accent2);
+}
+
+/* A Valós tárolás háttere pontosan a sor többi fix cellájának hátterét kövesse.
+   Csak a szöveg és a felső/alsó szegély marad színezett. */
+.fo-tabla td.tarolas,
+.fo-tabla td.tarolas.tarolas-ok,
+.fo-tabla td.tarolas.tarolas-eltérés,
+.fo-tabla td.tarolas.tarolas-na {
+    background: var(--surface) !important;
+}
+.fo-tabla.all-view .biztor-sor > td.tarolas {
+    background: rgba(110,168,254,.055) !important;
+}
+
+/* Világos módban ugyanez a sor háttérszínéhez igazodik. */
+body.light-mode .fo-tabla td.tarolas,
+body.light-mode .fo-tabla td.tarolas.tarolas-ok,
+body.light-mode .fo-tabla td.tarolas.tarolas-eltérés,
+body.light-mode .fo-tabla td.tarolas.tarolas-na {
+    background: var(--surface) !important;
+}
+body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
+    background: rgba(110,168,254,.055) !important;
+}
+
+/* A keresők maradjanak az oszlopon belül, de ne határozzák meg annak szélességét. */
+.fo-tabla .szuro-sor th.viszonylat,
+.fo-tabla .szuro-sor th.forda,
+.fo-tabla .szuro-sor th.rendszam {
+    min-width: 0;
+}
+.fo-tabla .szuro-sor .oszlop-kereso {
+    left: 3px;
+    right: 3px;
+    width: calc(100% - 6px);
+}
+
 </style>
 
 
@@ -4477,24 +4629,42 @@ body.light-mode .fo-tabla td.tarolas-na {
   const sortButtons=Array.from(table.querySelectorAll('.rendez-gomb'));
   let sortState={col:null,dir:1};
 
+  function updateStickyOffsets(){
+    const headerCells=Array.from(table.querySelectorAll('thead tr.fejlec-sor th')).slice(0,6);
+    let offset=0;
+    headerCells.forEach((headerCell, index)=>{
+      const w=headerCell.getBoundingClientRect().width;
+      table.querySelectorAll('tr').forEach(row=>{
+        const cell=row.children[index];
+        if(cell){
+          cell.classList.add('sticky-left');
+          cell.style.setProperty('--sticky-left', offset + 'px');
+        }
+      });
+      offset += w;
+    });
+
+    /* A jobb szélső Valós tárolás oszlop minden sorban legyen sticky. */
+    table.querySelectorAll('tr').forEach(row=>{
+      const cell=row.lastElementChild;
+      if(cell) cell.classList.add('sticky-right');
+    });
+  }
+
   function setTimeWindow(){
-    const allHead=Array.from(table.querySelectorAll('thead tr.fejlec-sor th'));
-    const fixedHeads=allHead.filter(th=>!th.classList.contains('idopont'));
-    let fixed=0;
-    fixedHeads.forEach(th=>fixed += th.getBoundingClientRect().width);
-    const available=Math.max(160, scroll.clientWidth-fixed-2);
-    const minTimeWidth=30;
-    const maxVisible=totalTimes ? Math.max(1, Math.floor(available/minTimeWidth)) : 0;
-    const visibleCount=totalTimes ? Math.min(totalTimes,maxVisible) : 0;
-    const width=visibleCount ? Math.max(minTimeWidth, available/visibleCount) : minTimeWidth;
-    const maxStart=Math.max(0,totalTimes-visibleCount);
-    slider.max=String(maxStart);
-    let start=Math.min(Number(slider.value)||0,maxStart);
-    slider.value=String(start);
-    table.style.setProperty('--time-col-width', width+'px');
-    timeHeaders.forEach((el,i)=>el.style.display=(i>=start && i<start+visibleCount)?'':'none');
-    timeFilterHeaders.forEach((el,i)=>el.style.display=(i>=start && i<start+visibleCount)?'':'none');
-    timeCells.forEach(el=>{const i=Number(el.dataset.timeIndex);el.style.display=(i>=start && i<start+visibleCount)?'':'none';});
+    /*
+       Nem rejtünk el időoszlopokat és nem építünk külön időtáblát.
+       Az egész táblázat egyetlen görgethető felület, de az első 6
+       + a Valós tárolás sticky, ezért vizuálisan csak az időrész mozog.
+    */
+    updateStickyOffsets();
+
+    const maxScroll=Math.max(0, scroll.scrollWidth-scroll.clientWidth);
+    slider.max=String(maxScroll);
+
+    const current=Math.min(maxScroll, Math.max(0, Number(slider.value)||0));
+    slider.value=String(current);
+    scroll.scrollLeft=current;
   }
 
   function applyFilters(){
@@ -4574,8 +4744,21 @@ body.light-mode .fo-tabla td.tarolas-na {
   let sliderFrame=0;
   slider.addEventListener('input',()=>{
     if(sliderFrame) return;
-    sliderFrame=requestAnimationFrame(()=>{ sliderFrame=0; setTimeWindow(); });
+    sliderFrame=requestAnimationFrame(()=>{
+      sliderFrame=0;
+      const maxScroll=Math.max(0, scroll.scrollWidth-scroll.clientWidth);
+      const value=Math.min(maxScroll, Math.max(0, Number(slider.value)||0));
+      scroll.scrollLeft=value;
+    });
   });
+
+  scroll.addEventListener('scroll',()=>{
+    if(sliderFrame) return;
+    sliderFrame=requestAnimationFrame(()=>{
+      sliderFrame=0;
+      slider.value=String(Math.round(scroll.scrollLeft));
+    });
+  }, {passive:true});
   table.querySelectorAll('.oszlop-kereso').forEach(input=>input.addEventListener('input',applyFilters));
   window.addEventListener('resize',()=>requestAnimationFrame(setTimeWindow));
 
