@@ -2514,11 +2514,19 @@ def keszit_hidegtarolas_riport():
         "hidegtarolas_riport"
     ) or {}
 
-    # Már meghozott döntések: ezeket SOHA nem számoljuk újra.
+    # A döntést nem számoljuk újra, de a korábban elmentett koordinátát
+    # utólag geozónára oldjuk fel, ha valamelyik zónába esik.
     dontesek = korabbi_riport.get("dontesek", {})
 
     if not isinstance(dontesek, dict):
         dontesek = {}
+
+    for dontes in dontesek.values():
+        if not isinstance(dontes, dict):
+            continue
+        hely = str(dontes.get("tárolás helye", "")).strip()
+        if hely and hely not in ("Nincs adat", "-"):
+            dontes["tárolás helye"] = gps_geozona_vagy_koordinata(hely)
 
     pozicio_tortenet = napi_adatok.get(
         "pozicio_tortenet",
@@ -3400,9 +3408,7 @@ body {
 
 .tabla-szekcio {
 
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: flex-start;
+    display: block;
 
     margin-top: 12px;
 
@@ -4068,52 +4074,10 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
             )
 
 
-            # A tényleges kezdés előtti 15 percben az OK/NEM
-            # cella sárga hátteret kap.
+            # A kezdés előtti 15 percben is ugyanúgy fekete I/N jelenjen meg.
+            # A 15 perces előzetes figyelési ablak ettől még aktív marad,
+            # csak vizuálisan nem kap külön (sárga) színezést.
             osztaly = None
-
-            try:
-                kezdes_dt_html = datetime.strptime(
-                    str(sor["kezdés"]),
-                    "%H:%M"
-                ).time()
-
-                idopont_dt_html = datetime.strptime(
-                    idopont,
-                    "%H:%M"
-                ).time()
-
-                kezdes_perc = (
-                    kezdes_dt_html.hour * 60
-                    + kezdes_dt_html.minute
-                )
-                idopont_perc = (
-                    idopont_dt_html.hour * 60
-                    + idopont_dt_html.minute
-                )
-                vegzes_dt_html = datetime.strptime(
-                    str(sor["végzés"]),
-                    "%H:%M"
-                ).time()
-                vegzes_perc = (
-                    vegzes_dt_html.hour * 60
-                    + vegzes_dt_html.minute
-                )
-
-                prestart_sarga = (
-                    kezdes_perc - 15
-                    <= idopont_perc
-                    < kezdes_perc
-                )
-
-                if (
-                    eredmeny in ("OK", "NEM")
-                    and prestart_sarga
-                ):
-                    osztaly = "sarga"
-
-            except (ValueError, TypeError, KeyError):
-                pass
 
             if osztaly is None and eredmeny == "OK":
 
@@ -4154,8 +4118,6 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
 </tbody>
 
 </table>
-
-</div>
 
 </div>
 
@@ -4218,6 +4180,8 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
     html.append("""
 </tbody>
 </table>
+
+</div>
 
 </div>
 
@@ -4405,7 +4369,11 @@ terkepZonak.forEach(function(zona) {
         ],
 
         {
-            color: "#3388ff",
+            color: (
+                zona.nev === "ArrivaBus Andor telephely"
+                || zona.nev === "ArrivaBus Bogáncs telephely"
+                || zona.nev === "ArrivaBus Szállító telephely"
+            ) ? "#00a651" : "#3388ff",
             weight: 2,
             fillOpacity: 0.12
         }
