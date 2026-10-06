@@ -3756,6 +3756,11 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     // A mérés a tényleges DOM-szövegen történik, így nem a grid/csúszka
     // rendelkezésre álló helye dönti el az oszlop szélességét.
     if(leftTable){
+      // A bal táblát ténylegesen a saját oszlopai méretezzék.
+      // Először megőrizzük a többi oszlop természetes szélességét, majd
+      // a Hely oszlopot külön, a leghosszabb tényleges szöveghez igazítjuk.
+      const fejlecCells=Array.from(leftTable.querySelectorAll('thead tr.fejlec-sor th'));
+      const termeszetesSzelessegek=fejlecCells.map(cell=>Math.ceil(cell.getBoundingClientRect().width));
       const helyCells=Array.from(leftTable.querySelectorAll('tbody td.hely'));
       const helyHeader=leftTable.querySelector('thead th.hely');
       const canvas=document.createElement('canvas');
@@ -3777,17 +3782,31 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
           helyWidth=Math.max(helyWidth,w);
         }
         helyWidth=Math.ceil(helyWidth);
-        leftTable.querySelectorAll('th.hely,td.hely').forEach(cell=>{
-          cell.style.width=helyWidth+'px';
-          cell.style.minWidth=helyWidth+'px';
-          cell.style.maxWidth=helyWidth+'px';
+
+        // A böngésző táblázat-layoutja különben a grid rendelkezésre álló
+        // szélességéhez nyújthatja a Hely oszlopot. Fix layout + colgroup
+        // mellett ez többé nem történhet meg.
+        let colgroup=leftTable.querySelector('colgroup.fix-colgroup');
+        if(!colgroup){
+          colgroup=document.createElement('colgroup');
+          colgroup.className='fix-colgroup';
+          for(let i=0;i<6;i++) colgroup.appendChild(document.createElement('col'));
+          leftTable.insertBefore(colgroup,leftTable.firstChild);
+        }
+
+        const szelessegek=termeszetesSzelessegek.slice(0,6);
+        szelessegek[4]=helyWidth;
+        szelessegek.forEach((w,i)=>{
+          const col=colgroup.children[i];
+          col.style.width=Math.max(1,w)+'px';
         });
+
+        const teljesSzelesseg=szelessegek.reduce((a,b)=>a+b,0);
+        leftTable.style.tableLayout='fixed';
+        leftTable.style.width=teljesSzelesseg+'px';
+        leftTable.style.minWidth=teljesSzelesseg+'px';
+        leftTable.style.maxWidth=teljesSzelesseg+'px';
       }
-      // Az egész bal táblát is a saját tartalma zárja le; a középső grid-rész
-      // kapja ezután a maradék helyet.
-      leftTable.style.width=leftTable.getBoundingClientRect().width+'px';
-      leftTable.style.minWidth=leftTable.getBoundingClientRect().width+'px';
-      leftTable.style.maxWidth=leftTable.getBoundingClientRect().width+'px';
     }
 
     const leftWidth=leftTable ? Math.ceil(leftTable.getBoundingClientRect().width) : 0;
