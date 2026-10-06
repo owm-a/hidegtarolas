@@ -1116,7 +1116,7 @@ azonositas_idoszak = (
 )
 
 pozicio_idoszak = (
-    time(8, 0)
+    time(7, 30)
     < fazis_ideje
     <= time(17, 0)
 )
