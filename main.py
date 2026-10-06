@@ -3584,7 +3584,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     </div>
     <div class="fejlec-jobb">
       <div class="adat"><b>Riport készült:</b> """ + escape(str(hidegtarolas_riport.get("keszult", "-"))) + """</div>
-      <div class="adat"><b>Exportált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0)) + """</div>
+      <div class="adat"><b>Exportált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0) if hidegtarolas_riport.get("kesz", False) else 0) + """</div>
     </div>
   </div>
 </div>
@@ -3752,36 +3752,42 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     const leftTable=fixAblak.querySelector('table');
     const storageTable=storageAblak.querySelector('table');
 
-    // A Hely oszlop szélessége kizárólag a benne lévő leghosszabb szöveghez igazodjon.
-    // Nem hagyjuk, hogy a táblázat a rendelkezésre álló hely miatt mesterségesen
-    // széthúzza ezt az oszlopot. A mérés csak layoutkor fut le, nem nézetváltáskor.
+    // A Hely oszlopot ténylegesen a leghosszabb cella szélességére zárjuk.
+    // A mérés a tényleges DOM-szövegen történik, így nem a grid/csúszka
+    // rendelkezésre álló helye dönti el az oszlop szélességét.
     if(leftTable){
       const helyCells=Array.from(leftTable.querySelectorAll('tbody td.hely'));
       const helyHeader=leftTable.querySelector('thead th.hely');
       const canvas=document.createElement('canvas');
       const ctx=canvas.getContext('2d');
       let helyWidth=0;
-      const ref=helyCells[0] || helyHeader;
-      if(ref && ctx){
-        const cs=getComputedStyle(ref);
-        ctx.font=cs.font;
+      if(ctx){
         helyCells.forEach(cell=>{
-          const w=ctx.measureText(cell.textContent.trim()).width;
-          if(w>helyWidth) helyWidth=w;
+          const cs=getComputedStyle(cell);
+          ctx.font=cs.font;
+          const w=ctx.measureText(cell.textContent.trim()).width +
+                  parseFloat(cs.paddingLeft || 0) + parseFloat(cs.paddingRight || 0) + 2;
+          helyWidth=Math.max(helyWidth,w);
         });
         if(helyHeader){
           const hs=getComputedStyle(helyHeader);
           ctx.font=hs.font;
-          const headerText=ctx.measureText('Hely').width + 34;
-          helyWidth=Math.max(helyWidth,headerText);
+          const w=ctx.measureText('Hely').width +
+                  parseFloat(hs.paddingLeft || 0) + parseFloat(hs.paddingRight || 0) + 24;
+          helyWidth=Math.max(helyWidth,w);
         }
-        helyWidth=Math.ceil(helyWidth + 10);
+        helyWidth=Math.ceil(helyWidth);
         leftTable.querySelectorAll('th.hely,td.hely').forEach(cell=>{
           cell.style.width=helyWidth+'px';
           cell.style.minWidth=helyWidth+'px';
           cell.style.maxWidth=helyWidth+'px';
         });
       }
+      // Az egész bal táblát is a saját tartalma zárja le; a középső grid-rész
+      // kapja ezután a maradék helyet.
+      leftTable.style.width=leftTable.getBoundingClientRect().width+'px';
+      leftTable.style.minWidth=leftTable.getBoundingClientRect().width+'px';
+      leftTable.style.maxWidth=leftTable.getBoundingClientRect().width+'px';
     }
 
     const leftWidth=leftTable ? Math.ceil(leftTable.getBoundingClientRect().width) : 0;
