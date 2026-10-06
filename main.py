@@ -676,7 +676,7 @@ print(
 # =========================================================
 
 EXCEL_FAJL = (
-    f"data/biztor_{ev}-{honap}.xlsx"
+    f"data/biztor{ev}-{honap}.xlsx"
 )
 
 print(
@@ -4252,9 +4252,9 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
             )
 
             html.append(
-                f'<td class="ellenorzes {osztaly}">'
-                f'{escape(megjelenitett_eredmeny)}'
-                f'</td>'
+                f'<td class="ellenorzes {osztaly}"'
+                + (' style="background:#000000;color:white;"' if osztaly == "nincs" else '')
+                + f'>{escape(megjelenitett_eredmeny)}</td>'
             )
 
 
@@ -4371,11 +4371,15 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
         if idopont_g:
             garazs_sorok[kulcs_g]["ellenőrzés"][idopont_g] = rekord.get("ellenőrzés", "-")
 
-    garazs_idopontok = sorted({
+    # A garázsos mátrix ugyanazt a közös időtengelyt használja, mint a BIZTOR.
+    # Így akkor is megjelennek az időoszlopok, ha a garázsos fordáknál
+    # még nincs saját RT/pozíció rekord.
+    garazs_sajat_idopontok = {
         str(rekord.get("frissítve", ""))[:5]
         for rekord in pozicio_tortenet
         if str(rekord.get("forrás", "biztor")).strip() == "garazs" and rekord.get("frissítve")
-    })
+    }
+    garazs_idopontok = sorted(set(idopontok) | garazs_sajat_idopontok)
 
     html.append("""
 <div class="tabla-szekcio-cim">
@@ -4455,7 +4459,11 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
                     osztaly_g = "nincs"
                     megj_g = "-"
 
-            html.append(f'<td class="ellenorzes {osztaly_g}">{escape(megj_g)}</td>')
+            html.append(
+                f'<td class="ellenorzes {osztaly_g}"'
+                + (' style="background:#000000;color:white;"' if osztaly_g == "nincs" else '')
+                + f'>{escape(megj_g)}</td>'
+            )
         html.append("</tr>")
 
     html.append("""
