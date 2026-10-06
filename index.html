@@ -573,7 +573,7 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
     max-width: 100%;
 }
 .idopont-ablak { overflow: hidden; }
-.fo-tabla { table-layout:auto; width:max-content; min-width:0; }
+.fo-tabla { table-layout:auto; width:max-content; min-width:0; max-width:none; }
 .fo-tabla th, .fo-tabla td { box-sizing:border-box; white-space:nowrap; }
 .fo-tabla th.idopont, .fo-tabla td.ellenorzes, .fo-tabla th.idopont-ertek { width:var(--time-col-width,34px); min-width:var(--time-col-width,34px); max-width:var(--time-col-width,34px); text-align:center; }
 .fo-tabla th, .fo-tabla td { background:var(--surface); color:var(--text); }
@@ -679,6 +679,76 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hu
 }
 .theme-toggle:hover { background:var(--surface3); border-color:var(--accent); }
 
+/* KÉSŐBBI FINOMHANGOLÁS */
+.fejlec { background:var(--surface) !important; }
+.fejlec-top { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:12px; }
+.fejlec-top .cim { margin-bottom:0; }
+body.light-mode .fejlec, body.light-mode .tabla-szekcio { background:var(--surface) !important; border-color:var(--border) !important; }
+body.light-mode .tabla-scroll { background:var(--surface); }
+
+/* A kereső ne befolyásolja az oszlop természetes szélességét. */
+.fo-tabla .szuro-sor th { position:relative; height:29px; padding:0 3px; }
+.fo-tabla .szuro-sor th .oszlop-kereso { position:absolute; left:3px; right:3px; top:3px; width:auto; height:23px; margin:0; }
+
+/* Az időpontok és a csúszka ugyanabban a fejlécblokkban vannak. */
+.fo-tabla .idopont-slider-fejlec { padding:3px 6px; height:30px; background:var(--surface2); border-color:var(--border); }
+.fo-tabla .idopont-slider-fejlec input[type="range"] { display:block; width:100%; height:20px; margin:0; cursor:pointer; accent-color:var(--accent); }
+.fo-tabla .fejlec-sor th.idopont { background:var(--surface3); }
+.fo-tabla .szuro-sor th.idopont-ertek { background:var(--surface2); }
+
+@media(max-width:900px){
+  .fejlec-top { gap:10px; }
+}
+@media(max-width:600px){
+  .fejlec-top { align-items:flex-start; }
+  .fejlec-top .theme-toggle { margin-top:1px; }
+}
+
+
+/* MODERN STÁTUSZ / VALÓS TÁROLÁS */
+.riport-ok,
+.riport-eltérés,
+.riport-ures {
+    border-radius: 999px !important;
+    font-weight: 650 !important;
+    text-align: center;
+    vertical-align: middle;
+    padding: 4px 10px !important;
+    box-sizing: border-box;
+}
+.riport-ok {
+    background: rgba(46, 190, 115, .12) !important;
+    color: #62e6a0 !important;
+    border: 1px solid rgba(98, 230, 160, .34) !important;
+}
+.riport-eltérés {
+    background: rgba(231, 82, 92, .12) !important;
+    color: #ff7d86 !important;
+    border: 1px solid rgba(255, 125, 134, .34) !important;
+}
+.riport-ures {
+    background: transparent !important;
+    color: var(--muted) !important;
+    border: 1px solid transparent !important;
+}
+body.light-mode .riport-ok {
+    background: rgba(25, 160, 91, .09) !important;
+    color: #16824d !important;
+    border-color: rgba(25, 160, 91, .34) !important;
+}
+body.light-mode .riport-eltérés {
+    background: rgba(205, 62, 72, .08) !important;
+    color: #b52f3b !important;
+    border-color: rgba(205, 62, 72, .30) !important;
+}
+body.light-mode .riport-ures {
+    color: var(--muted) !important;
+}
+/* A teljes oldal ne lógjon ki; az időablak a látható időpontokhoz igazodik. */
+html, body { max-width:100%; overflow-x:hidden; }
+.tabla-szekcio, .tabla-scroll { max-width:100%; box-sizing:border-box; }
+.fo-tabla { box-sizing:border-box; }
+
 </style>
 
 
@@ -694,18 +764,20 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hu
 <body>
 
 <div class="fejlec">
-  <div class="cim">ArrivaBus hidegtárolás</div>
+  <div class="fejlec-top">
+    <div class="cim">ArrivaBus hidegtárolás</div>
+    <button id="theme-toggle" class="theme-toggle" type="button" title="Sötét / világos mód">☀ Világos mód</button>
+  </div>
   <div class="fejlec-adatok riport-fejlec-adatok">
     <div class="fejlec-bal">
       <div class="adat"><b>Dátum:</b> 2026.10.06.</div>
       <div class="adat"><b>Naptípus:</b> ALAP HC</div>
     </div>
     <div class="fejlec-jobb">
-      <div class="adat"><b>Utolsó futás:</b> 2026-10-06 21:51:19</div>
+      <div class="adat"><b>Utolsó futás:</b> 2026-10-06 22:06:09</div>
       <div class="adat"><b>Utolsó lekérdezés:</b> 16:55</div>
       <div class="adat"><b>Riport készült:</b> 2026-10-06 16:31:09</div>
       <div class="adat"><b>Exportált fordák:</b> 21</div>
-      <button id="theme-toggle" class="theme-toggle" type="button" title="Sötét / világos mód">☀ Világos mód</button>
     </div>
   </div>
 </div>
@@ -720,10 +792,6 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hu
 
 <div id="panel-adatok" class="nezet-panel">
 <div class="tabla-szekcio">
-  <div class="idopont-csuszkasav">
-    <div class="csuszka-info"><strong id="aktiv-sorok-szoveg">Végállomás</strong></div>
-    <input type="range" id="fo-idopont-csuszka" min="0" max="0" value="0" step="1" aria-label="Időpont görgetése">
-  </div>
   <div class="tabla-scroll" id="fo-tabla-scroll">
     <table class="fo-tabla" id="fo-tabla">
       <thead>
@@ -734,8 +802,10 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hu
           <th class="végzés sticky-left">Végzés <button class="rendez-gomb" type="button" data-sort-col="3" data-sort-type="time" title="Rendezés">↕</button></th>
           <th class="hely sticky-left">Hely <button class="rendez-gomb" type="button" data-sort-col="4" title="Rendezés">↕</button></th>
           <th class="rendszam sticky-left">Rendszám <button class="rendez-gomb" type="button" data-sort-col="5" title="Rendezés">↕</button></th>
-          <th class="idopont" data-time-index="0"></th><th class="idopont" data-time-index="1"></th><th class="idopont" data-time-index="2"></th><th class="idopont" data-time-index="3"></th><th class="idopont" data-time-index="4"></th><th class="idopont" data-time-index="5"></th><th class="idopont" data-time-index="6"></th><th class="idopont" data-time-index="7"></th><th class="idopont" data-time-index="8"></th><th class="idopont" data-time-index="9"></th><th class="idopont" data-time-index="10"></th><th class="idopont" data-time-index="11"></th><th class="idopont" data-time-index="12"></th><th class="idopont" data-time-index="13"></th><th class="idopont" data-time-index="14"></th><th class="idopont" data-time-index="15"></th><th class="idopont" data-time-index="16"></th><th class="idopont" data-time-index="17"></th><th class="idopont" data-time-index="18"></th><th class="idopont" data-time-index="19"></th><th class="idopont" data-time-index="20"></th><th class="idopont" data-time-index="21"></th><th class="idopont" data-time-index="22"></th><th class="idopont" data-time-index="23"></th><th class="idopont" data-time-index="24"></th><th class="idopont" data-time-index="25"></th><th class="idopont" data-time-index="26"></th><th class="idopont" data-time-index="27"></th><th class="idopont" data-time-index="28"></th><th class="idopont" data-time-index="29"></th><th class="idopont" data-time-index="30"></th><th class="idopont" data-time-index="31"></th><th class="idopont" data-time-index="32"></th><th class="idopont" data-time-index="33"></th><th class="idopont" data-time-index="34"></th><th class="idopont" data-time-index="35"></th><th class="idopont" data-time-index="36"></th><th class="idopont" data-time-index="37"></th><th class="idopont" data-time-index="38"></th><th class="idopont" data-time-index="39"></th><th class="idopont" data-time-index="40"></th><th class="idopont" data-time-index="41"></th><th class="idopont" data-time-index="42"></th><th class="idopont" data-time-index="43"></th><th class="idopont" data-time-index="44"></th><th class="idopont" data-time-index="45"></th><th class="idopont" data-time-index="46"></th><th class="idopont" data-time-index="47"></th><th class="idopont" data-time-index="48"></th><th class="idopont" data-time-index="49"></th><th class="idopont" data-time-index="50"></th><th class="idopont" data-time-index="51"></th><th class="idopont" data-time-index="52"></th><th class="idopont" data-time-index="53"></th><th class="idopont" data-time-index="54"></th><th class="idopont" data-time-index="55"></th><th class="idopont" data-time-index="56"></th><th class="idopont" data-time-index="57"></th><th class="idopont" data-time-index="58"></th><th class="idopont" data-time-index="59"></th><th class="idopont" data-time-index="60"></th><th class="idopont" data-time-index="61"></th><th class="idopont" data-time-index="62"></th><th class="idopont" data-time-index="63"></th><th class="idopont" data-time-index="64"></th><th class="idopont" data-time-index="65"></th><th class="idopont" data-time-index="66"></th><th class="idopont" data-time-index="67"></th><th class="idopont" data-time-index="68"></th><th class="idopont" data-time-index="69"></th><th class="idopont" data-time-index="70"></th><th class="idopont" data-time-index="71"></th><th class="idopont" data-time-index="72"></th><th class="idopont" data-time-index="73"></th><th class="idopont" data-time-index="74"></th><th class="idopont" data-time-index="75"></th><th class="idopont" data-time-index="76"></th><th class="idopont" data-time-index="77"></th><th class="idopont" data-time-index="78"></th><th class="idopont" data-time-index="79"></th><th class="idopont" data-time-index="80"></th><th class="idopont" data-time-index="81"></th><th class="idopont" data-time-index="82"></th><th class="idopont" data-time-index="83"></th><th class="idopont" data-time-index="84"></th><th class="idopont" data-time-index="85"></th><th class="idopont" data-time-index="86"></th><th class="idopont" data-time-index="87"></th><th class="idopont" data-time-index="88"></th><th class="idopont" data-time-index="89"></th><th class="idopont" data-time-index="90"></th><th class="idopont" data-time-index="91"></th><th class="idopont" data-time-index="92"></th><th class="idopont" data-time-index="93"></th><th class="idopont" data-time-index="94"></th><th class="idopont" data-time-index="95"></th><th class="idopont" data-time-index="96"></th><th class="idopont" data-time-index="97"></th><th class="idopont" data-time-index="98"></th><th class="idopont" data-time-index="99"></th><th class="idopont" data-time-index="100"></th><th class="idopont" data-time-index="101"></th><th class="idopont" data-time-index="102"></th><th class="idopont" data-time-index="103"></th><th class="idopont" data-time-index="104"></th><th class="idopont" data-time-index="105"></th><th class="idopont" data-time-index="106"></th>
-          <th class="tarolas sticky-right">Tárolás helye <button class="rendez-gomb" type="button" data-sort-col="storage" title="Rendezés">↕</button></th>
+          <th class="idopont-slider-fejlec" colspan=107>
+            <input type="range" id="fo-idopont-csuszka" min="0" max="0" value="0" step="1" aria-label="Időpont görgetése">
+          </th>
+          <th class="tarolas sticky-right">Valós tárolás <button class="rendez-gomb" type="button" data-sort-col="storage" title="Rendezés">↕</button></th>
         </tr>
         <tr class="szuro-sor">
           <th><input class="oszlop-kereso" data-col="0" placeholder="Keresés…" aria-label="Viszonylat keresése"></th>
@@ -745,7 +815,7 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hu
           <th><input class="oszlop-kereso" data-col="4" placeholder="Keresés…" aria-label="Hely keresése"></th>
           <th><input class="oszlop-kereso" data-col="5" placeholder="Keresés…" aria-label="Rendszám keresése"></th>
 <th class="idopont-ertek" data-time-index="0">08:01</th><th class="idopont-ertek" data-time-index="1">08:05</th><th class="idopont-ertek" data-time-index="2">08:10</th><th class="idopont-ertek" data-time-index="3">08:15</th><th class="idopont-ertek" data-time-index="4">08:20</th><th class="idopont-ertek" data-time-index="5">08:26</th><th class="idopont-ertek" data-time-index="6">08:31</th><th class="idopont-ertek" data-time-index="7">08:35</th><th class="idopont-ertek" data-time-index="8">08:40</th><th class="idopont-ertek" data-time-index="9">08:46</th><th class="idopont-ertek" data-time-index="10">08:50</th><th class="idopont-ertek" data-time-index="11">08:55</th><th class="idopont-ertek" data-time-index="12">09:01</th><th class="idopont-ertek" data-time-index="13">09:05</th><th class="idopont-ertek" data-time-index="14">09:10</th><th class="idopont-ertek" data-time-index="15">09:15</th><th class="idopont-ertek" data-time-index="16">09:20</th><th class="idopont-ertek" data-time-index="17">09:25</th><th class="idopont-ertek" data-time-index="18">09:30</th><th class="idopont-ertek" data-time-index="19">09:35</th><th class="idopont-ertek" data-time-index="20">09:40</th><th class="idopont-ertek" data-time-index="21">09:46</th><th class="idopont-ertek" data-time-index="22">09:50</th><th class="idopont-ertek" data-time-index="23">09:55</th><th class="idopont-ertek" data-time-index="24">10:01</th><th class="idopont-ertek" data-time-index="25">10:05</th><th class="idopont-ertek" data-time-index="26">10:10</th><th class="idopont-ertek" data-time-index="27">10:15</th><th class="idopont-ertek" data-time-index="28">10:20</th><th class="idopont-ertek" data-time-index="29">10:25</th><th class="idopont-ertek" data-time-index="30">10:30</th><th class="idopont-ertek" data-time-index="31">10:36</th><th class="idopont-ertek" data-time-index="32">10:45</th><th class="idopont-ertek" data-time-index="33">10:50</th><th class="idopont-ertek" data-time-index="34">10:55</th><th class="idopont-ertek" data-time-index="35">11:01</th><th class="idopont-ertek" data-time-index="36">11:05</th><th class="idopont-ertek" data-time-index="37">11:10</th><th class="idopont-ertek" data-time-index="38">11:15</th><th class="idopont-ertek" data-time-index="39">11:20</th><th class="idopont-ertek" data-time-index="40">11:25</th><th class="idopont-ertek" data-time-index="41">11:30</th><th class="idopont-ertek" data-time-index="42">11:35</th><th class="idopont-ertek" data-time-index="43">11:40</th><th class="idopont-ertek" data-time-index="44">11:45</th><th class="idopont-ertek" data-time-index="45">11:50</th><th class="idopont-ertek" data-time-index="46">11:55</th><th class="idopont-ertek" data-time-index="47">12:01</th><th class="idopont-ertek" data-time-index="48">12:05</th><th class="idopont-ertek" data-time-index="49">12:10</th><th class="idopont-ertek" data-time-index="50">12:15</th><th class="idopont-ertek" data-time-index="51">12:20</th><th class="idopont-ertek" data-time-index="52">12:25</th><th class="idopont-ertek" data-time-index="53">12:31</th><th class="idopont-ertek" data-time-index="54">12:35</th><th class="idopont-ertek" data-time-index="55">12:40</th><th class="idopont-ertek" data-time-index="56">12:45</th><th class="idopont-ertek" data-time-index="57">12:50</th><th class="idopont-ertek" data-time-index="58">12:55</th><th class="idopont-ertek" data-time-index="59">13:01</th><th class="idopont-ertek" data-time-index="60">13:05</th><th class="idopont-ertek" data-time-index="61">13:10</th><th class="idopont-ertek" data-time-index="62">13:15</th><th class="idopont-ertek" data-time-index="63">13:20</th><th class="idopont-ertek" data-time-index="64">13:25</th><th class="idopont-ertek" data-time-index="65">13:31</th><th class="idopont-ertek" data-time-index="66">13:35</th><th class="idopont-ertek" data-time-index="67">13:40</th><th class="idopont-ertek" data-time-index="68">13:45</th><th class="idopont-ertek" data-time-index="69">13:50</th><th class="idopont-ertek" data-time-index="70">13:55</th><th class="idopont-ertek" data-time-index="71">14:01</th><th class="idopont-ertek" data-time-index="72">14:05</th><th class="idopont-ertek" data-time-index="73">14:10</th><th class="idopont-ertek" data-time-index="74">14:15</th><th class="idopont-ertek" data-time-index="75">14:20</th><th class="idopont-ertek" data-time-index="76">14:25</th><th class="idopont-ertek" data-time-index="77">14:31</th><th class="idopont-ertek" data-time-index="78">14:35</th><th class="idopont-ertek" data-time-index="79">14:40</th><th class="idopont-ertek" data-time-index="80">14:45</th><th class="idopont-ertek" data-time-index="81">14:50</th><th class="idopont-ertek" data-time-index="82">14:55</th><th class="idopont-ertek" data-time-index="83">15:01</th><th class="idopont-ertek" data-time-index="84">15:05</th><th class="idopont-ertek" data-time-index="85">15:10</th><th class="idopont-ertek" data-time-index="86">15:15</th><th class="idopont-ertek" data-time-index="87">15:20</th><th class="idopont-ertek" data-time-index="88">15:25</th><th class="idopont-ertek" data-time-index="89">15:31</th><th class="idopont-ertek" data-time-index="90">15:35</th><th class="idopont-ertek" data-time-index="91">15:40</th><th class="idopont-ertek" data-time-index="92">15:45</th><th class="idopont-ertek" data-time-index="93">15:50</th><th class="idopont-ertek" data-time-index="94">15:55</th><th class="idopont-ertek" data-time-index="95">16:01</th><th class="idopont-ertek" data-time-index="96">16:05</th><th class="idopont-ertek" data-time-index="97">16:10</th><th class="idopont-ertek" data-time-index="98">16:15</th><th class="idopont-ertek" data-time-index="99">16:21</th><th class="idopont-ertek" data-time-index="100">16:25</th><th class="idopont-ertek" data-time-index="101">16:31</th><th class="idopont-ertek" data-time-index="102">16:35</th><th class="idopont-ertek" data-time-index="103">16:40</th><th class="idopont-ertek" data-time-index="104">16:45</th><th class="idopont-ertek" data-time-index="105">16:51</th><th class="idopont-ertek" data-time-index="106">16:55</th>
-          <th class="tarolas"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Tárolás helye keresése"></th>
+          <th class="tarolas"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Valós tárolás keresése"></th>
         </tr>
       </thead>
       <tbody>
@@ -775,7 +845,7 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hu
 
   function setTimeWindow(){
     const allHead=Array.from(table.querySelectorAll('thead tr.fejlec-sor th'));
-    const fixedHeads=allHead.filter(th=>!th.classList.contains('idopont'));
+    const fixedHeads=allHead.filter(th=>!th.classList.contains('idopont') && !th.classList.contains('idopont-slider-fejlec'));
     let fixed=0;
     fixedHeads.forEach(th=>fixed += th.getBoundingClientRect().width);
     const available=Math.max(160, scroll.clientWidth-fixed-2);
@@ -785,6 +855,7 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hu
     const width=visibleCount ? Math.max(minTimeWidth, available/visibleCount) : minTimeWidth;
     const maxStart=Math.max(0,totalTimes-visibleCount);
     slider.max=String(maxStart);
+    if(sliderHead) sliderHead.colSpan=Math.max(1,visibleCount);
     let start=Math.min(Number(slider.value)||0,maxStart);
     slider.value=String(start);
     table.style.setProperty('--time-col-width', width+'px');
