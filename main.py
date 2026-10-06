@@ -3568,7 +3568,7 @@ body {
 
 .idopont-ablak {
 
-    width: 612px;
+    width: 578px;
 
     max-width: calc(100vw - 30px);
 
@@ -3704,7 +3704,7 @@ td.ellenorzes {
 
 .idopont-csuszkasav {
 
-    width: 612px;
+    width: 578px;
 
     max-width: calc(100vw - 30px);
 
@@ -3959,6 +3959,46 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
 @media(max-width:900px){.idopont-ablak,.idopont-csuszkasav{width:var(--time-window-width,70vw)}}
 @media(max-width:600px){.idopont-ablak,.idopont-csuszkasav{width:var(--time-window-width,88vw)}.rendszam-link{padding:4px 6px}}
 
+
+/* =========================================================
+   VÉGLEGES DASHBOARD FINOMHANGOLÁS
+   ========================================================= */
+.idopont-ablak,
+.idopont-csuszkasav {
+    width: min(578px, var(--time-window-width, 578px));
+    max-width: calc(100vw - 30px);
+}
+.idopont-ablak { overflow: hidden; }
+.idopont-belső table,
+.alap-ablak table,
+.riport-tablazat { table-layout: fixed; }
+.alap-ablak th,
+.alap-ablak td,
+.idopont-belső th,
+.idopont-belső td,
+.riport-tablazat th,
+.riport-tablazat td {
+    height: 24px;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+.idopont-belső th.idopont,
+.idopont-belső td.ellenorzes {
+    width: 34px;
+    min-width: 34px;
+    max-width: 34px;
+}
+.riport-tablazat th,
+.riport-tablazat td {
+    width: 145px;
+    min-width: 145px;
+    max-width: 145px;
+}
+@media (max-width: 900px) {
+    .idopont-ablak,
+    .idopont-csuszkasav { max-width: calc(100vw - 24px); }
+}
+
 </style>
 
 
@@ -4017,7 +4057,7 @@ ArrivaBus hidegtárolás
 <div id="geozona-terkep"></div>
 
 <div class="nezet-valaszto" role="tablist" aria-label="Megjelenítés">
-<button class="nezet-gomb active" data-nezet="mindketto" type="button">Összes</button>
+<button class="nezet-gomb" data-nezet="mindketto" type="button">Összes</button>
 <button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás</button>
 <button class="nezet-gomb" data-nezet="garazs" type="button">Garázs</button>
 </div>
@@ -4589,13 +4629,25 @@ function frissitIdopontCsuszkat() {
     if (!idopontAblak || !idopontBelso || !idopontCsuszka) return;
 
     /* A látható időoszlopok száma automatikusan igazodik a kijelzőhöz. */
+    /*
+       Legfeljebb 17 időoszlop legyen egyszerre látható.
+       A tényleges szélességet a bal oldali fix oszlopok és a
+       Tárolás helye oszlop is figyelembe veszi, így asztali nézetben
+       nem lóg ki jobbra a riport.
+    */
+    const root = document.querySelector('.tabla-szekcio');
+    const tablaEgesz = root ? root.querySelector('.tabla-egesz') : null;
+    const alap = root ? root.querySelector('.alap-ablak') : null;
+    const riport = root ? root.querySelector('.riport-resz') : null;
     const w = window.innerWidth;
-    let timeWidth;
-    if (w <= 600) timeWidth = Math.max(360, Math.round(w * 0.88));
-    else if (w <= 900) timeWidth = Math.max(480, Math.round(w * 0.70));
-    else timeWidth = Math.min(1200, Math.max(560, Math.round(w * 0.62)));
+    const fixedLeft = alap ? alap.getBoundingClientRect().width : 0;
+    const storageWidth = riport ? riport.getBoundingClientRect().width : 145;
+    const available = Math.max(260, w - fixedLeft - storageWidth - 34);
+    const timeWidth = Math.min(578, available);
 
     document.documentElement.style.setProperty("--time-window-width", timeWidth + "px");
+    if (idopontAblak) idopontAblak.style.width = timeWidth + "px";
+    if (idopontCsuszka) idopontCsuszka.parentElement.style.width = timeWidth + "px";
 
     const maxScroll = Math.max(0, idopontBelso.scrollWidth - idopontAblak.clientWidth);
     idopontCsuszka.min = "0";
@@ -4637,8 +4689,7 @@ window.addEventListener(
    window.dispatchEvent(new Event('resize'));
  }
  g.forEach(x=>x.addEventListener('click',()=>setView(x.dataset.nezet)));
- let v='mindketto';
- try{const m=localStorage.getItem('arrivabus-nezet');if(['mindketto','biztor','garazs'].includes(m))v=m}catch(e){}
+ let v='biztor';
  setView(v);
 })();
 </script>
@@ -4667,12 +4718,21 @@ const map = L.map(
     11
 );
 
+// OSM Standard vizuális sötétítése – nincs külön API-kulcs vagy külső dark tile szolgáltató.
+const terkepSotetito = document.createElement("style");
+terkepSotetito.textContent = `
+  #geozona-terkep .leaflet-tile-pane {
+    filter: invert(90%) hue-rotate(180deg) brightness(78%) contrast(88%) saturate(70%);
+  }
+`;
+document.head.appendChild(terkepSotetito);
+
 
 L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
         maxZoom: 20,
-        attribution: "&copy; OpenStreetMap &copy; CARTO"
+        attribution: "&copy; OpenStreetMap contributors"
     }
 ).addTo(map);
 
