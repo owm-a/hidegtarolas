@@ -3944,6 +3944,21 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
 .ok,.riport-ok{background:var(--ok)!important}.nem,.riport-eltérés{background:var(--bad)!important}.nincs{background:var(--dark)!important;color:#f1f5f9!important}.ellenorzes.sarga{background:#a98935!important;color:white!important}.riport-ures{background:transparent!important;color:var(--muted)}.vehicle-pin.gray{background:#687384}
 @media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-adatok{display:block}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:7px}#geozona-terkep{height:42vh;min-height:280px}.nezet-valaszto{width:100%}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}.tabla-egesz{min-width:max-content}}
 @media(max-width:600px){.cim{font-size:20px}.adat{font-size:12px}#geozona-terkep{height:38vh;min-height:250px}.idopont-csuszkasav{grid-template-columns:1fr;height:auto;gap:2px;padding:6px 8px}.csuszka-info{font-size:11px}.tabla-szekcio{overflow-x:auto}}
+/* =========================================================
+   EXTRA DASHBOARD FINOMHANGOLÁS
+   ========================================================= */
+.idopont-ablak{width:var(--time-window-width,760px);max-width:none}
+.idopont-csuszkasav{width:var(--time-window-width,760px);max-width:none}
+.rendszam-link{border:0;background:transparent;color:var(--accent);font:inherit;font-weight:750;cursor:pointer;padding:2px 5px;border-radius:6px;text-decoration:underline;text-decoration-color:rgba(110,168,254,.35);text-underline-offset:2px}
+.rendszam-link:hover{background:rgba(110,168,254,.13);color:#fff;text-decoration-color:var(--accent)}
+.rendszam-link:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.idopont-timeline-jelmagy{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:11px;padding:7px 10px;background:rgba(32,39,51,.72);border:1px solid var(--border);border-top:0}
+.timeline-pelda{display:inline-flex;align-items:center;gap:5px}.timeline-pont{width:10px;height:10px;border-radius:3px;display:inline-block}.timeline-zold{background:var(--ok)}.timeline-piros{background:var(--bad)}.timeline-fekete{background:#111;border:1px solid #56606d}
+.leaflet-container{background:#11151b}.leaflet-control-zoom a{background:#202733!important;color:#e8edf3!important;border-color:#313b49!important}.leaflet-control-attribution{background:rgba(17,21,27,.82)!important;color:#aeb8c5!important}.leaflet-control-attribution a{color:#8fb9ff!important}
+.map-focus{animation:mapFocusPulse 1.2s ease-out 2}@keyframes mapFocusPulse{0%{filter:drop-shadow(0 0 0 rgba(110,168,254,0))}45%{filter:drop-shadow(0 0 12px rgba(110,168,254,.95))}100%{filter:drop-shadow(0 0 0 rgba(110,168,254,0))}}
+@media(max-width:900px){.idopont-ablak,.idopont-csuszkasav{width:var(--time-window-width,70vw)}}
+@media(max-width:600px){.idopont-ablak,.idopont-csuszkasav{width:var(--time-window-width,88vw)}.rendszam-link{padding:4px 6px}}
+
 </style>
 
 
@@ -3981,9 +3996,6 @@ ArrivaBus hidegtárolás
                 else escape(str(talalt_munkalap)) + " / " + escape(str(garazs_talalt_munkalap))
             ) + """
         </div>
-        <div class="adat">
-            <b>Utolsó lekérdezés:</b> """ + escape(utolso_ido) + """
-        </div>
     </div>
 
     <div class="fejlec-jobb">
@@ -4005,7 +4017,7 @@ ArrivaBus hidegtárolás
 <div id="geozona-terkep"></div>
 
 <div class="nezet-valaszto" role="tablist" aria-label="Megjelenítés">
-<button class="nezet-gomb active" data-nezet="mindketto" type="button">Mindkettő</button>
+<button class="nezet-gomb active" data-nezet="mindketto" type="button">Összes</button>
 <button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás</button>
 <button class="nezet-gomb" data-nezet="garazs" type="button">Garázs</button>
 </div>
@@ -4104,9 +4116,19 @@ ArrivaBus hidegtárolás
             f'</td>'
         )
 
+        rendszam_html = escape(sor["rendszám"])
+        if str(sor["rendszám"]).strip():
+            rendszam_html = (
+                f'<button type="button" class="rendszam-link" '
+                f'data-rendszam="{escape(sor["rendszám"])}" '
+                f'title="Jármű megjelenítése a térképen">'
+                f'{escape(sor["rendszám"])}'
+                f'</button>'
+            )
+
         html.append(
             f'<td class="alap rendszam">'
-            f'{escape(sor["rendszám"])}'
+            f'{rendszam_html}'
             f'</td>'
         )
 
@@ -4129,7 +4151,7 @@ ArrivaBus hidegtárolás
 
 <div class="idopont-csuszkasav">
 
-<div class="csuszka-info"><strong>Végállomáson tároló:</strong> """ + str(megtalalt_jarmuvek) + "/" + str(excel_fordak_szama) + """</div>
+<div class="csuszka-info"><strong>Végállomáson tároló:</strong> """ + str(megtalalt_jarmuvek) + "/" + str(excel_fordak_szama) + """ <span class="timeline-pelda"><span class="timeline-pont timeline-zold"></span>rendben</span><span class="timeline-pelda"><span class="timeline-pont timeline-piros"></span>eltérés</span><span class="timeline-pelda"><span class="timeline-pont timeline-fekete"></span>±15 perc</span></div>
 
 <input
     type="range"
@@ -4425,14 +4447,16 @@ ArrivaBus hidegtárolás
             f'<td class="alap kezdés">{escape(sor_g["kezdés"])}</td>'
             f'<td class="alap végzés">{escape(sor_g["végzés"])}</td>'
             f'<td class="alap hely">{escape(sor_g["hely"])}</td>'
-            f'<td class="alap rendszam">{escape(sor_g["rendszám"])}</td></tr>'
+            f'<td class="alap rendszam">'
+            f'{("<button type=\"button\" class=\"rendszam-link\" data-rendszam=\"" + escape(sor_g["rendszám"]) + "\" title=\"Jármű megjelenítése a térképen\">" + escape(sor_g["rendszám"]) + "</button>") if str(sor_g["rendszám"]).strip() else ""}'
+            f'</td></tr>'
         )
 
     html.append("""
 </tbody></table></div>
 <div class="idopont-resz">
 <div class="idopont-csuszkasav">
-<div class="csuszka-info"><strong>Garázsban tároló:</strong> """ + str(sum(1 for k in garazs_sorok if garazs_sorok[k]["rendszám"])) + "/" + str(len(figyelt_fordak_garazs)) + """</div>
+<div class="csuszka-info"><strong>Garázsban tároló:</strong> """ + str(sum(1 for k in garazs_sorok if garazs_sorok[k]["rendszám"])) + "/" + str(len(figyelt_fordak_garazs)) + """ <span class="timeline-pelda"><span class="timeline-pont timeline-zold"></span>rendben</span><span class="timeline-pelda"><span class="timeline-pont timeline-piros"></span>eltérés</span><span class="timeline-pelda"><span class="timeline-pont timeline-fekete"></span>±15 perc</span></div>
 <input type="range" id="garazs-idopont-csuszka" min="0" max="1000" value="1000" step="1">
 </div>
 <div class="idopont-ablak" id="garazs-idopont-ablak">
@@ -4545,7 +4569,7 @@ ArrivaBus hidegtárolás
    Az időtábla NEM használ böngészős vízszintes görgetősávot.
 
    A második táblázatban minden időoszlop benne van,
-   de egyszerre csak 18 oszlopnyi terület látszik.
+   de egyszerre csak dinamikusan meghatározott időablak látszik.
 
    A külön csúszka mozgatja az időtáblát.
 */
@@ -4562,52 +4586,25 @@ const idopontCsuszka =
 
 function frissitIdopontCsuszkat() {
 
-    if (
-        !idopontAblak
-        || !idopontBelso
-        || !idopontCsuszka
-    ) {
+    if (!idopontAblak || !idopontBelso || !idopontCsuszka) return;
 
-        return;
+    /* A látható időoszlopok száma automatikusan igazodik a kijelzőhöz. */
+    const w = window.innerWidth;
+    let timeWidth;
+    if (w <= 600) timeWidth = Math.max(360, Math.round(w * 0.88));
+    else if (w <= 900) timeWidth = Math.max(480, Math.round(w * 0.70));
+    else timeWidth = Math.min(1200, Math.max(560, Math.round(w * 0.62)));
 
-    }
+    document.documentElement.style.setProperty("--time-window-width", timeWidth + "px");
 
-
-    const maxScroll =
-        Math.max(
-            0,
-            idopontBelso.scrollWidth
-            - idopontAblak.clientWidth
-        );
-
-
-    /*
-       A csúszka értéke 0–1000 között mozog.
-       Így független az időoszlopok számától.
-    */
-
+    const maxScroll = Math.max(0, idopontBelso.scrollWidth - idopontAblak.clientWidth);
     idopontCsuszka.min = "0";
-
     idopontCsuszka.max = "1000";
-
     idopontCsuszka.value = "1000";
-
-
     idopontCsuszka.oninput = function() {
-
-        const arany =
-            Number(this.value) / 1000;
-
-        idopontAblak.scrollLeft =
-            maxScroll * arany;
-
+        idopontAblak.scrollLeft = maxScroll * (Number(this.value) / 1000);
     };
-
-
-    /* Induláskor mindig a legutolsó 18 oszlop látszódjon. */
-
     idopontAblak.scrollLeft = maxScroll;
-
 }
 
 
@@ -4672,15 +4669,16 @@ const map = L.map(
 
 
 L.tileLayer(
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
     {
-        maxZoom: 19,
-        attribution: "&copy; OpenStreetMap"
+        maxZoom: 20,
+        attribution: "&copy; OpenStreetMap &copy; CARTO"
     }
 ).addTo(map);
 
 
 const terkepElemek = [];
+const jarmuMarkerek = {};
 
 
 function escapeHtml(value) {
@@ -4839,8 +4837,36 @@ terkepJarmuvek.forEach(function(jarmu) {
     );
 
 
+    const rendszamKulcs = String(jarmu.rendszam || "").trim().toUpperCase();
+    if (rendszamKulcs) {
+        jarmuMarkerek[rendszamKulcs] = marker;
+    }
+
     terkepElemek.push(marker);
 
+});
+
+function fokuszJarmure(rendszam) {
+    const kulcs = String(rendszam || "").trim().toUpperCase();
+    const marker = jarmuMarkerek[kulcs];
+    if (!marker) return;
+    const pos = marker.getLatLng();
+    map.flyTo(pos, Math.max(map.getZoom(), 15), {duration: 0.7});
+    setTimeout(function(){
+        marker.openPopup();
+        const el = marker.getElement();
+        if (el) {
+            el.classList.remove("map-focus");
+            void el.offsetWidth;
+            el.classList.add("map-focus");
+        }
+    }, 700);
+}
+
+document.querySelectorAll(".rendszam-link").forEach(function(btn){
+    btn.addEventListener("click", function(){
+        fokuszJarmure(this.dataset.rendszam);
+    });
 });
 
 
@@ -4869,11 +4895,18 @@ const garazsBelso = document.getElementById("garazs-idopont-belső");
 const garazsCsuszka = document.getElementById("garazs-idopont-csuszka");
 function frissitGarazsCsuszkat() {
     if (!garazsAblak || !garazsBelso || !garazsCsuszka) return;
+    const w = window.innerWidth;
+    let timeWidth;
+    if (w <= 600) timeWidth = Math.max(360, Math.round(w * 0.88));
+    else if (w <= 900) timeWidth = Math.max(480, Math.round(w * 0.70));
+    else timeWidth = Math.min(1200, Math.max(560, Math.round(w * 0.62)));
+    document.documentElement.style.setProperty("--time-window-width", timeWidth + "px");
     const maxScroll = Math.max(0, garazsBelso.scrollWidth - garazsAblak.clientWidth);
     garazsCsuszka.value = "1000";
     garazsCsuszka.oninput = function() { garazsAblak.scrollLeft = maxScroll * (Number(this.value) / 1000); };
     garazsAblak.scrollLeft = maxScroll;
 }
+window.addEventListener("resize", frissitGarazsCsuszkat);
 window.addEventListener("load", frissitGarazsCsuszkat);
 
 </script>
