@@ -1201,96 +1201,107 @@ print(
 # =========================================================
 # 10/e. GTFS-RT AZONOSÍTÁSI ADAT LEKÉRÉSE
 #
-# Fontos:
-# A GTFS-RT itt NEM pozícióforrásként szolgál.
-# Csak az aktív trip alapján azonosítjuk a járművet,
-# és elmentjük a rendszám + jármű ID párost.
+# A GTFS-RT csak a 07:00–13:30 azonosítási fázisban szükséges.
+# 13:30 után nem kérjük le többé, mert a már elmentett
+# forda → rendszám + jármű ID kapcsolatot használjuk tovább.
 # =========================================================
 
-url = (
-    "https://go.bkk.hu/api/query/v1/ws/"
-    "gtfs-rt/full/VehiclePositions.txt"
-)
-
-response = requests.get(
-    url,
-    params={"key": API_KEY},
-    timeout=30
-)
-
-if response.status_code != 200:
-    raise Exception(
-        f"GTFS-RT lekérési hiba. "
-        f"HTTP státusz: {response.status_code}"
+if azonositas_idoszak:
+    url = (
+        "https://go.bkk.hu/api/query/v1/ws/"
+        "gtfs-rt/full/VehiclePositions.txt"
     )
 
-print(
-    "GTFS-RT HTTP státusz:",
-    response.status_code
-)
-print(
-    "Kapott adatmennyiség:",
-    len(response.content),
-    "byte"
-)
+    response = requests.get(
+        url,
+        params={"key": API_KEY},
+        timeout=30
+    )
 
+    if response.status_code != 200:
+        raise Exception(
+            f"GTFS-RT lekérési hiba. "
+            f"HTTP státusz: {response.status_code}"
+        )
 
-feed = gtfs_realtime_pb2.FeedMessage()
+    print(
+        "GTFS-RT HTTP státusz:",
+        response.status_code
+    )
+    print(
+        "Kapott adatmennyiség:",
+        len(response.content),
+        "byte"
+    )
 
-text_format.Parse(
-    torol_nem_regisztralt_bkk_extensionok(response.text),
-    feed
-)
+    feed = gtfs_realtime_pb2.FeedMessage()
 
-print(
-    "GTFS-RT entitások száma:",
-    len(feed.entity)
-)
+    text_format.Parse(
+        torol_nem_regisztralt_bkk_extensionok(response.text),
+        feed
+    )
 
+    print(
+        "GTFS-RT entitások száma:",
+        len(feed.entity)
+    )
 
-# =========================================================
-# 10/f. GTFS-RT JÁRMŰVEK
-# =========================================================
+    # =========================================================
+    # 10/f. GTFS-RT JÁRMŰVEK
+    # =========================================================
 
-jarmuvek = []
+    jarmuvek = []
 
-for entity in feed.entity:
+    for entity in feed.entity:
 
-    if not entity.HasField("vehicle"):
-        continue
+        if not entity.HasField("vehicle"):
+            continue
 
-    v = entity.vehicle
+        v = entity.vehicle
 
-    rendszam = str(
-        v.vehicle.license_plate
-    ).strip().upper()
+        rendszam = str(
+            v.vehicle.license_plate
+        ).strip().upper()
 
-    jarmu_id = str(
-        v.vehicle.id
-    ).strip()
+        jarmu_id = str(
+            v.vehicle.id
+        ).strip()
 
-    trip_id = str(
-        v.trip.trip_id
-    ).strip()
+        trip_id = str(
+            v.trip.trip_id
+        ).strip()
 
-    if not jarmu_id or not trip_id:
-        continue
+        if not jarmu_id or not trip_id:
+            continue
 
-    jarmuvek.append({
-        "rendszám": rendszam,
-        "jármű_id": jarmu_id,
-        "trip_id": trip_id,
-        "route_id": v.trip.route_id,
-        "direction_id": v.trip.direction_id
-    })
+        jarmuvek.append({
+            "rendszám": rendszam,
+            "jármű_id": jarmu_id,
+            "trip_id": trip_id,
+            "route_id": v.trip.route_id,
+            "direction_id": v.trip.direction_id
+        })
 
+    jarmuvek = pd.DataFrame(jarmuvek)
 
-jarmuvek = pd.DataFrame(jarmuvek)
-
-print(
-    "GTFS-RT trip + jármű ID kapcsolatok:",
-    len(jarmuvek)
-)
+    print(
+        "GTFS-RT trip + jármű ID kapcsolatok:",
+        len(jarmuvek)
+    )
+else:
+    # 13:30 után nincs GTFS-RT azonosítási lekérés.
+    jarmuvek = pd.DataFrame(
+        columns=[
+            "rendszám",
+            "jármű_id",
+            "trip_id",
+            "route_id",
+            "direction_id"
+        ]
+    )
+    print(
+        "GTFS-RT azonosítás nem fut: a 07:00–13:30 azonosítási fázis lezárult."
+    )
 
 
 # =========================================================
@@ -2961,21 +2972,38 @@ def html_export():
 
 
     # --------------------------------------------------------
-    # Online járművek száma a nézetekhez
+    # A kapcsolóban megjelenő járműszám
     # --------------------------------------------------------
-    # Y = az adott Excel-részhez jelenleg hozzárendelt, egyedi rendszámok száma.
-    # X = ezek közül hány szerepel az aktuális GTFS-RT járműpozíciók között.
+    # Az első szám azt mutatja, hány figyelt fordához van már
+    # elmentett rendszám + jármű ID. Ha egyszer azonosítottuk,
+    # az később is érvényes marad; nem az aktuális GTFS-RT
+    # pillanatnyi tartalmához hasonlítjuk.
+    # A második szám az adott nézet összes figyelt fordája.
     def online_jarmu_szamlalo(forras):
-        plates = set()
-        for _, fs in (figyelt_fordak_biztor if forras == "biztor" else figyelt_fordak_garazs).iterrows():
-            adat = forda_rendszamok.get(forda_kulcs_adat(fs), {})
-            plate = str(adat.get("rendszám", "")).strip().upper()
-            if plate:
-                plates.add(plate)
-        current = set()
-        if isinstance(jarmuvek, pd.DataFrame) and not jarmuvek.empty and "rendszám" in jarmuvek.columns:
-            current = {str(x).strip().upper() for x in jarmuvek["rendszám"].tolist() if str(x).strip()}
-        return len(plates & current), len(plates)
+        fordak = (
+            figyelt_fordak_biztor
+            if forras == "biztor"
+            else figyelt_fordak_garazs
+        )
+
+        azonosított_fordak = 0
+
+        for _, fs in fordak.iterrows():
+            adat = forda_rendszamok.get(
+                forda_kulcs_adat(fs),
+                {}
+            )
+            plate = str(
+                adat.get("rendszám", "")
+            ).strip().upper()
+            jarmu_id = str(
+                adat.get("jármű_id", "")
+            ).strip()
+
+            if plate and jarmu_id:
+                azonosított_fordak += 1
+
+        return azonosított_fordak, len(fordak)
 
     biz_online, biz_osszes = online_jarmu_szamlalo("biztor")
     garazs_online, garazs_osszes = online_jarmu_szamlalo("garazs")
@@ -4045,7 +4073,7 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
 .fo-tabla th.idopont, .fo-tabla td.ellenorzes, .fo-tabla th.idopont-ertek { width:var(--time-col-width,34px); min-width:var(--time-col-width,34px); max-width:var(--time-col-width,34px); text-align:center; }
 .fo-tabla th, .fo-tabla td { background:var(--surface); color:var(--text); }
 .fo-tabla .szuro-sor th { padding:3px 4px; background:var(--surface2); }
-.fo-tabla .szuro-sor th:empty { background:var(--surface2); }
+.fo-tabla .szuro-sor th:empty { background:var(--surface2) !important; }
 .fo-tabla .all-view .biztor-sor > td.adat-fixed { background:rgba(110,168,254,.055); }
 .fo-tabla.all-view .biztor-sor > td.adat-fixed { background:rgba(110,168,254,.055); }
 .oszlop-kereso { width:100%; min-width:0; box-sizing:border-box; border:1px solid var(--border); background:var(--surface); color:var(--text); border-radius:5px; padding:4px 5px; font:inherit; font-size:11px; outline:none; }
@@ -4156,7 +4184,7 @@ body.light-mode .tabla-scroll { background:var(--surface); }
 
 /* A kereső ne befolyásolja az oszlop természetes szélességét. */
 .fo-tabla .szuro-sor th { position:relative; height:29px; padding:0 3px; }
-.fo-tabla .szuro-sor th .oszlop-kereso { position:absolute; left:3px; right:3px; top:3px; width:auto; height:23px; margin:0; }
+.fo-tabla .szuro-sor th .oszlop-kereso { position:static; display:block; width:100%; max-width:100%; height:23px; margin:0; }
 
 /* Az időpontok és a csúszka ugyanabban a fejlécblokkban vannak. */
 .fo-tabla .idopont-slider-fejlec { padding:3px 6px; height:30px; background:var(--surface2); border-color:var(--border); }
@@ -4214,7 +4242,7 @@ body.light-mode .riport-ures {
 }
 /* A teljes oldal ne lógjon ki; az időablak a látható időpontokhoz igazodik. */
 html, body { max-width:100%; overflow-x:hidden; }
-.tabla-szekcio, .tabla-scroll { max-width:100%; box-sizing:border-box; }
+.tabla-szekcio, .tabla-scroll { width:100%; max-width:100%; box-sizing:border-box; }
 .fo-tabla { box-sizing:border-box; }
 
 
@@ -4332,17 +4360,17 @@ body.light-mode .fo-tabla td.tarolas.riport-ures { color:var(--muted) !important
         forras = sor.get("forrás", "biztor")
         sor_class = "biztor-sor" if forras == "biztor" else "garazs-sor"
         html.append(f'<tr class="{sor_class}" data-forras="{forras}">')
-        html.append(f'<td class="viszonylat adat-fixed">{escape(sor["viszonylat"])}</td>')
-        html.append(f'<td class="forda adat-fixed">{escape(sor["forda"])}</td>')
-        html.append(f'<td class="kezdés adat-fixed">{escape(sor["kezdés"])}</td>')
-        html.append(f'<td class="végzés adat-fixed">{escape(sor["végzés"])}</td>')
-        html.append(f'<td class="hely adat-fixed">{escape(sor["hely"])}</td>')
+        html.append(f'<td class="viszonylat adat-fixed sticky-left">{escape(sor["viszonylat"])}</td>')
+        html.append(f'<td class="forda adat-fixed sticky-left">{escape(sor["forda"])}</td>')
+        html.append(f'<td class="kezdés adat-fixed sticky-left">{escape(sor["kezdés"])}</td>')
+        html.append(f'<td class="végzés adat-fixed sticky-left">{escape(sor["végzés"])}</td>')
+        html.append(f'<td class="hely adat-fixed sticky-left">{escape(sor["hely"])}</td>')
         rs = str(sor.get("rendszám", "")).strip()
         if rs:
             rs_html = f'<button type="button" class="rendszam-link" data-rendszam="{escape(rs)}" title="Jármű megjelenítése a térképen">{escape(rs)}</button>'
         else:
             rs_html = ""
-        html.append(f'<td class="rendszam adat-fixed">{rs_html}</td>')
+        html.append(f'<td class="rendszam adat-fixed sticky-left">{rs_html}</td>')
 
         for time_index, idopont in enumerate(idopontok):
             eredmeny = sor.get("ellenőrzés", {}).get(idopont, "-")
@@ -4409,18 +4437,14 @@ body.light-mode .fo-tabla td.tarolas.riport-ures { color:var(--muted) !important
 
   function updateStickyOffsets(){
     let left=0;
-    const leftCells=Array.from(table.querySelectorAll('.sticky-left'));
-    leftCells.forEach((cell, index)=>{
-      // A hat fix oszlop minden sora ugyanazt az oszlopszélességet használja.
-      // A fejléc első sorából vesszük az aktuális szélességet, majd ezt
-      // alkalmazzuk az összes azonos sorszámú sticky cellára.
-      if(index < 6) {
-        const headCell=table.querySelector('thead tr.fejlec-sor th:nth-child('+(index+1)+')');
-        const width=headCell ? headCell.getBoundingClientRect().width : cell.getBoundingClientRect().width;
-        table.querySelectorAll('.sticky-left:nth-child('+(index+1)+')').forEach(el=>{ el.style.left=left+'px'; });
-        left += width;
-      }
-    });
+    for(let i=1;i<=6;i++){
+      const headCell=table.querySelector('thead tr.fejlec-sor th:nth-child('+i+')');
+      const width=headCell ? headCell.getBoundingClientRect().width : 0;
+      table.querySelectorAll('tr > .sticky-left:nth-child('+i+')').forEach(el=>{
+        el.style.left=left+'px';
+      });
+      left += width;
+    }
   }
 
   function setTimeWindow(){
@@ -4544,10 +4568,12 @@ body.light-mode .fo-tabla td.tarolas.riport-ures { color:var(--muted) !important
     try{localStorage.setItem('arrivabus-theme',light?'light':'dark')}catch(e){}
     window.dispatchEvent(new Event('resize'));
   }
-  let light=false;
-  try{light=localStorage.getItem('arrivabus-theme')==='light'}catch(e){}
-  applyTheme(light);
-  btn.addEventListener('click',()=>applyTheme(!document.body.classList.contains('light-mode')));
+  // Minden új betöltés alapból sötét módból indul.
+  // A felhasználó ettől még szabadon átkapcsolhat világos módra.
+  applyTheme(false);
+  btn.addEventListener('click',()=>{
+    applyTheme(!document.body.classList.contains('light-mode'));
+  });
 })();
 </script>
 
