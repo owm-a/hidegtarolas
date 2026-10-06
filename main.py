@@ -3751,6 +3751,39 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     // számolja ki a ténylegesen görgethető időtábla-szélességet.
     const leftTable=fixAblak.querySelector('table');
     const storageTable=storageAblak.querySelector('table');
+
+    // A Hely oszlop szélessége kizárólag a benne lévő leghosszabb szöveghez igazodjon.
+    // Nem hagyjuk, hogy a táblázat a rendelkezésre álló hely miatt mesterségesen
+    // széthúzza ezt az oszlopot. A mérés csak layoutkor fut le, nem nézetváltáskor.
+    if(leftTable){
+      const helyCells=Array.from(leftTable.querySelectorAll('tbody td.hely'));
+      const helyHeader=leftTable.querySelector('thead th.hely');
+      const canvas=document.createElement('canvas');
+      const ctx=canvas.getContext('2d');
+      let helyWidth=0;
+      const ref=helyCells[0] || helyHeader;
+      if(ref && ctx){
+        const cs=getComputedStyle(ref);
+        ctx.font=cs.font;
+        helyCells.forEach(cell=>{
+          const w=ctx.measureText(cell.textContent.trim()).width;
+          if(w>helyWidth) helyWidth=w;
+        });
+        if(helyHeader){
+          const hs=getComputedStyle(helyHeader);
+          ctx.font=hs.font;
+          const headerText=ctx.measureText('Hely').width + 34;
+          helyWidth=Math.max(helyWidth,headerText);
+        }
+        helyWidth=Math.ceil(helyWidth + 10);
+        leftTable.querySelectorAll('th.hely,td.hely').forEach(cell=>{
+          cell.style.width=helyWidth+'px';
+          cell.style.minWidth=helyWidth+'px';
+          cell.style.maxWidth=helyWidth+'px';
+        });
+      }
+    }
+
     const leftWidth=leftTable ? Math.ceil(leftTable.getBoundingClientRect().width) : 0;
     const storageWidth=storageTable ? Math.ceil(storageTable.getBoundingClientRect().width) : 0;
     const section=document.querySelector('.tabla-szekcio');
