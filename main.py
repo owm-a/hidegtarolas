@@ -3500,7 +3500,7 @@ table{border-collapse:collapse;background:var(--surface);color:var(--text);font-
 th,td{border:1px solid var(--border);padding:3px 5px;text-align:center;height:24px;box-sizing:border-box;white-space:nowrap}
 th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .fix-tabla,.storage-tabla{width:max-content;min-width:0}
-.fix-tabla th.hely,.fix-tabla td.hely{text-align:left}
+.fix-tabla th.hely,.fix-tabla td.hely{text-align:left;width:max-content;min-width:0}
 .fix-tabla th.rendszam,.fix-tabla td.rendszam{text-align:right}
 .fix-tabla td.rendszam{font-weight:bold}
 .fix-tabla th.viszonylat,.fix-tabla td.viszonylat,
@@ -3530,7 +3530,7 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .status-pill.nem{color:#ff858d;background:rgba(218,75,84,.16);border-color:rgba(255,113,124,.34)}
 .status-pill.neutral{color:var(--muted);background:rgba(148,163,184,.10);border-color:rgba(148,163,184,.20)}
 .fix-tabla td.ellenorzes{background:var(--surface);padding:2px 3px}
-.storage-tabla th{min-width:120px}.storage-tabla td.tarolas{min-width:120px;font-weight:750;padding:5px 8px;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.storage-tabla th{width:max-content;min-width:0;white-space:nowrap}.storage-tabla td.tarolas{width:max-content;min-width:0;white-space:nowrap;font-weight:750;padding:5px 8px;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
 .storage-tabla td.tarolas-ok{color:#6ee7a8;border-top-color:rgba(92,220,150,.48);border-bottom-color:rgba(92,220,150,.48)}
 .storage-tabla td.tarolas-eltérés{color:#ff858d;border-top-color:rgba(255,113,124,.48);border-bottom-color:rgba(255,113,124,.48)}
 .storage-tabla td.tarolas-na{color:var(--text);border-top-color:var(--border);border-bottom-color:var(--border)}
