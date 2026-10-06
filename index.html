@@ -314,9 +314,36 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     document.documentElement.style.setProperty('--left-width',leftWidth+'px');
     document.documentElement.style.setProperty('--storage-width',storageWidth+'px');
 
-    const middle=Math.max(0,available-leftWidth-storageWidth-2);
+    // Mobilon ne szűküljön nullára az időtábla a bal + jobb fix rész miatt.
+    // 340 px = kb. 10 db 34 px-es időoszlop, így a külön csúszka
+    // mobilon is ténylegesen használható marad. A teljes táblázat
+    // ettől még kívülről vízszintesen húzható.
+    const mobil = window.innerWidth <= 900;
+    const middle = mobil
+        ? 340
+        : Math.max(0, available-leftWidth-storageWidth-2);
+
     document.documentElement.style.setProperty('--time-viewport-width',middle+'px');
-    if(sliderBar) sliderBar.style.gridTemplateColumns=leftWidth+'px minmax(0,1fr) '+storageWidth+'px';
+
+    if(sliderBar){
+      sliderBar.style.gridTemplateColumns=leftWidth+'px '+middle+'px '+storageWidth+'px';
+      if(mobil){
+        sliderBar.style.width=(leftWidth+middle+storageWidth)+'px';
+        sliderBar.style.minWidth=(leftWidth+middle+storageWidth)+'px';
+      }else{
+        sliderBar.style.width='100%';
+        sliderBar.style.minWidth='0';
+      }
+    }
+
+    if(mobil){
+      const teljesTablaSzelesseg=leftWidth+middle+storageWidth;
+      document.querySelectorAll('.tabla-egesz').forEach(el=>{
+        el.style.width=teljesTablaSzelesseg+'px';
+        el.style.minWidth=teljesTablaSzelesseg+'px';
+        el.style.maxWidth='none';
+      });
+    }
 
     // Az időoszlopok szélessége már adott; a csúszka ezt a tényleges középső
     // viewportot követi, nem fordítva.
