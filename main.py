@@ -676,7 +676,7 @@ print(
 # =========================================================
 
 EXCEL_FAJL = (
-    f"data/biztor_{ev}-{honap}.xlsx"
+    f"data/{ev}-{honap}.xlsx"
 )
 
 print(
@@ -3666,6 +3666,9 @@ th.hely,
 td.hely {
 
     text-align: left;
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
 
 }
 
@@ -4468,6 +4471,7 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
 
     html.append("""
 </tbody></table></div>
+</div>
 <div class="riport-resz">
 <div class="tabla-fejlec-hely"></div>
 <table class="riport-tablazat"><thead><tr><th>Eredmény</th><th>Tárolás helye</th></tr></thead><tbody>
