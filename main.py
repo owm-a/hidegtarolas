@@ -3382,8 +3382,13 @@ def html_export():
 
 
     # --------------------------------------------------------
-    # GARÁZS SOROK – a megjelenítéshez közös táblába kerülnek
+    # RIport eredmények – a megjelenítéshez közös táblába kerülnek
     # --------------------------------------------------------
+
+    riport_eredmenyek = {
+        (str(sor.get("viszonylat", "")).strip(), str(sor.get("forda", "")).strip()): sor
+        for sor in hidegtarolas_riport.get("eredmenyek", [])
+    } if hidegtarolas_riport else {}
 
     garazs_riport_eredmenyek = {
         (str(sor.get("viszonylat", "")).strip(), str(sor.get("forda", "")).strip()): sor
