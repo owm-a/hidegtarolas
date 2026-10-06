@@ -1116,7 +1116,7 @@ azonositas_idoszak = (
 )
 
 pozicio_idoszak = (
-    time(7, 30)
+    time(8, 0)
     < fazis_ideje
     <= time(17, 0)
 )
@@ -2722,8 +2722,11 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             else:
                 export_eredmeny = "N"
 
-            export_tarolas_helye = str(sor.get("tárolás helye", "")).strip()
-            if not export_tarolas_helye or export_tarolas_helye == "-":
+            export_tarolas_helye = str(
+                sor.get("tárolás helye", "")
+            ).strip()
+
+            if not export_tarolas_helye:
                 export_tarolas_helye = "Nincs adat"
 
             export_ws.append([
@@ -2857,10 +2860,9 @@ def html_export():
     if not pozicio_tortenet:
 
         print(
-            "Nincs pozíciótörténet, HTML export nem készül."
+            "Nincs pozíciótörténet, a HTML export az Excel-listát "
+            "adat nélkül is elkészíti."
         )
-
-        return
 
 
     # --------------------------------------------------------
@@ -2943,13 +2945,15 @@ def html_export():
     # A 18 oszlopos megjelenítést a HTML/CSS/JS kezeli.
     # --------------------------------------------------------
 
-    # Az időoszlopok a ténylegesen eltárolt FUTÁR/pozíciólekérdezések
-    # időpontjaiból készülnek. Ezért egy már lefutott, visszamenőlegesen
-    # eltárolt 15 perces rekord is a megfelelő fekete ablakba kerül.
     idopontok = sorted(
         {
-            rekord.get("frissítve", "")[:5]
+            rekord.get(
+                "frissítve",
+                ""
+            )[:5]
+
             for rekord in pozicio_tortenet
+
             if str(rekord.get("forrás", "biztor")).strip() == "biztor"
             and rekord.get("frissítve")
         }
@@ -2959,163 +2963,58 @@ def html_export():
     # --------------------------------------------------------
     # Sorok
     # --------------------------------------------------------
-    #
-    # FONTOS:
-    # Az első Excel ÖSSZES sora jelenjen meg már akkor is,
-    # ha még nincs hozzá GTFS-RT / FUTÁR adat.
-    #
-    # A pozíciótörténet csak kiegészíti ezeket a sorokat:
-    # - rendszám
-    # - időpontonkénti I/N
-    #
-    # Így egy újonnan felkerült forda nem tűnik el csak azért,
-    # mert még nincs hozzá RT találat.
-    # --------------------------------------------------------
+    # MINDEN, az első Excelben szereplő forda előre bekerül.
+    # A pozíciótörténet ezeket a sorokat csak kiegészíti/frissíti.
+    # Így GTFS-RT / FUTÁR adat nélkül is látszik az Excel-sor.
 
     sorok = {}
 
-
-    # 1. MINDEN BIZTOR EXCEL-SOR ELŐRE FELVÉTELE
-
     for _, forda_sor in figyelt_fordak_biztor.iterrows():
 
-        viszonylat = str(
-            forda_sor.get(
-                "viszonylat",
-                ""
-            )
-        ).strip()
+        viszonylat = str(forda_sor.get("viszonylat", "")).strip()
+        forda = str(forda_sor.get("forda", "")).strip()
+        kulcs = (viszonylat, forda)
 
-        forda = str(
-            forda_sor.get(
-                "forda",
-                ""
-            )
-        ).strip()
-
-        if not viszonylat or not forda:
-            continue
-
-        kezdes_ertek = forda_sor.get("kezdés")
-        vegzes_ertek = forda_sor.get("végzés")
-
-        kezdes = (
-            kezdes_ertek.strftime("%H:%M")
-            if pd.notna(kezdes_ertek)
-            and hasattr(kezdes_ertek, "strftime")
-            else str(kezdes_ertek)[:5]
-        )
-
-        vegzes = (
-            vegzes_ertek.strftime("%H:%M")
-            if pd.notna(vegzes_ertek)
-            and hasattr(vegzes_ertek, "strftime")
-            else str(vegzes_ertek)[:5]
-        )
-
-        hely = str(
-            forda_sor.get(
-                "hely",
-                ""
-            )
-        ).strip()
-
-        kulcs = (
-            viszonylat,
-            forda
-        )
-
-        mentett = forda_rendszamok.get(
+        forda_adat = forda_rendszamok.get(
             forda_kulcs_adat(forda_sor),
             {}
         )
 
         sorok[kulcs] = {
-
             "viszonylat": viszonylat,
-
             "forda": forda,
-
-            "kezdés": kezdes,
-
-            "végzés": vegzes,
-
-            "hely": hely,
-
-            "rendszám": str(
-                mentett.get(
-                    "rendszám",
-                    ""
-                )
-            ).strip(),
-
+            "kezdés": str(forda_sor.get("kezdés", ""))[:5],
+            "végzés": str(forda_sor.get("végzés", ""))[:5],
+            "hely": str(forda_sor.get("hely", "")),
+            "rendszám": str(forda_adat.get("rendszám", "")).strip(),
             "forrás": "biztor",
-
             "ellenőrzés": {}
-
         }
 
-
-    # 2. POZÍCIÓTÖRTÉNET RÁÉPÍTÉSE AZ EXCEL-SOROKRA
-
+    # A történeti rekordok rákerülnek az előre létrehozott Excel-sorokra.
     for rekord in pozicio_tortenet:
 
-        if str(
-            rekord.get(
-                "forrás",
-                "biztor"
-            )
-        ).strip() != "biztor":
+        if str(rekord.get("forrás", "biztor")).strip() != "biztor":
             continue
 
-        viszonylat = str(
-            rekord.get(
-                "viszonylat",
-                ""
-            )
-        ).strip()
+        viszonylat = str(rekord.get("viszonylat", "")).strip()
+        forda = str(rekord.get("forda", "")).strip()
+        kulcs = (viszonylat, forda)
 
-        forda = str(
-            rekord.get(
-                "forda",
-                ""
-            )
-        ).strip()
-
-        kulcs = (
-            viszonylat,
-            forda
-        )
-
-        # Ha a rekord régi/árva adat lenne, ne hozzon létre
-        # külön sort az Excel-listán kívül.
+        # Árva történeti rekordot nem hozunk létre az Excel-listán kívül.
         if kulcs not in sorok:
             continue
 
-        # Rendszám frissítése, ha a történeti rekordban van.
-        rendszam = str(
-            rekord.get(
-                "rendszám",
-                ""
-            )
-        ).strip()
+        rendszam = str(rekord.get("rendszám", "")).strip()
 
         if rendszam:
             sorok[kulcs]["rendszám"] = rendszam
 
-        idopont = str(
-            rekord.get(
-                "frissítve",
-                ""
-            )
-        )[:5]
+        idopont = str(rekord.get("frissítve", "")).strip()[:5]
 
         if idopont:
             sorok[kulcs]["ellenőrzés"][idopont] = (
-                rekord.get(
-                    "ellenőrzés",
-                    "-"
-                )
+                rekord.get("ellenőrzés", "-")
             )
 
 
@@ -4276,37 +4175,58 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
             )
 
 
-            # MEGJELENÍTÉSI LOGIKA (a számítási logikától függetlenül):
-            # - kezdés -15 perc ... kezdés: fekete I/N
-            # - kezdés ... végzés: OK = zöld I, NEM = piros N
-            # - végzés ... végzés +15 perc: fekete I/N
-            # A fekete ablak akkor is visszamenőleg kirajzolódik, ha az
-            # adott futás már bekerült a pozíciótörténetbe.
+            # A kezdés előtti 15 percben és a végzés utáni 15 percben
+            # az I/N mindig fekete legyen. A tényleges kezdéstől a
+            # végzésig marad a zöld/piros színezés.
+            #
+            # Ez itt szándékosan felülírja az OK/NEM alapú osztályozást,
+            # mert különben egy későbbi általános .ok/.nem szabály újra
+            # zöldre/pirosra színezné a 15 perces ablakot.
             osztaly = "nincs"
 
             try:
                 idopont_dt = datetime.strptime(idopont, "%H:%M")
-                kezdes_dt = datetime.strptime(str(sor.get("kezdés", "")), "%H:%M:%S")
-                vegzes_dt = datetime.strptime(str(sor.get("végzés", "")), "%H:%M:%S")
+                kezdes_dt = datetime.strptime(
+                    str(sor.get("kezdés", "")),
+                    "%H:%M:%S"
+                )
+                vegzes_dt = datetime.strptime(
+                    str(sor.get("végzés", "")),
+                    "%H:%M:%S"
+                )
 
                 ellenorzes_kezdete = kezdes_dt - timedelta(minutes=15)
                 ellenorzes_vege = vegzes_dt + timedelta(minutes=15)
 
-                if eredmeny in ("OK", "NEM"):
-                    if ellenorzes_kezdete <= idopont_dt < kezdes_dt:
-                        osztaly = "nincs"
-                    elif kezdes_dt <= idopont_dt <= vegzes_dt:
-                        osztaly = "ok" if eredmeny == "OK" else "nem"
-                    elif vegzes_dt < idopont_dt <= ellenorzes_vege:
-                        osztaly = "nincs"
+                # A megjelenítés sorrendje szándékosan:
+                # 1. ±15 perces ellenőrzési ablak = mindig fekete I/N
+                # 2. tényleges kezdés–végzés = OK zöld / NEM piros
+                # A számítási/logikai eredmény ettől nem változik.
+                if (
+                    ellenorzes_kezdete <= idopont_dt < kezdes_dt
+                    or vegzes_dt < idopont_dt <= ellenorzes_vege
+                ):
+                    osztaly = "nincs"
+
+                elif kezdes_dt <= idopont_dt <= vegzes_dt:
+                    if eredmeny == "OK":
+                        osztaly = "ok"
+                    elif eredmeny == "NEM":
+                        osztaly = "nem"
                     else:
                         eredmeny = "-"
+
                 else:
                     eredmeny = "-"
 
             except (ValueError, TypeError):
-                eredmeny = "-"
-                osztaly = "nincs"
+                if eredmeny == "OK":
+                    osztaly = "ok"
+                elif eredmeny == "NEM":
+                    osztaly = "nem"
+                else:
+                    osztaly = "nincs"
+                    eredmeny = "-"
 
 
             megjelenitett_eredmeny = {
@@ -4377,23 +4297,26 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
         eredmeny = str(riport_sor.get("eredmény", "")).strip()
         tarolas_helye = str(riport_sor.get("tárolás helye", "")).strip()
 
-        # A HTML-ben csak a tárolási hely látszik.
-        # Ha nincs tényleges helyadat, üres marad és nem kap színt.
+        # HTML-ben nincs "Nincs adat": adat hiányában maradjon üres.
         if tarolas_helye in ("Nincs adat", "-"):
-            tarolas_megjelenites = ""
-            osztaly = "riport-ures"
+            tarolas_helye = ""
+
+        if (
+            tarolas_helye
+            and eredmeny == "RENDBEN TÁROLT"
+        ):
+            osztaly = "riport-ok"
+        elif (
+            tarolas_helye
+            and eredmeny == "ELTÉRÉS TÖRTÉNT"
+        ):
+            osztaly = "riport-eltérés"
         else:
-            tarolas_megjelenites = tarolas_helye
-            if eredmeny == "RENDBEN TÁROLT":
-                osztaly = "riport-ok"
-            elif eredmeny == "ELTÉRÉS TÖRTÉNT":
-                osztaly = "riport-eltérés"
-            else:
-                osztaly = "riport-ures"
+            osztaly = "riport-ures"
 
         html.append(
             f'<tr>'
-            f'<td class="{osztaly}">{escape(tarolas_megjelenites)}</td>'
+            f'<td class="{osztaly}">{escape(tarolas_helye)}</td>'
             f'</tr>'
         )
 
@@ -4498,10 +4421,11 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
             osztaly_g = "nincs"
             megj_g = {"OK": "I", "NEM": "N"}.get(eredmeny_g, "-")
 
-            # A garázs mátrix ugyanazt a megjelenítési logikát használja:
-            # - kezdés -15 ... kezdés: fekete I/N
-            # - kezdés ... végzés: zöld/piros I/N
-            # - végzés ... +15: fekete I/N
+            # A garázs mátrix időszínezése pontosan ugyanaz, mint
+            # a fő (BIZTOR) mátrixé:
+            # - kezdés előtt 15 perc: fekete I/N
+            # - kezdéstől végzésig: OK = zöld, NEM = piros
+            # - végzés után 15 perc: fekete I/N
             try:
                 t = datetime.strptime(idopont_g, "%H:%M")
                 k = datetime.strptime(sor_g["kezdés"], "%H:%M")
@@ -4509,20 +4433,32 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
                 ellenorzes_kezdete = k - timedelta(minutes=15)
                 ellenorzes_vege = v + timedelta(minutes=15)
 
-                if eredmeny_g in ("OK", "NEM"):
-                    if ellenorzes_kezdete <= t < k:
-                        osztaly_g = "nincs"
-                    elif k <= t <= v:
-                        osztaly_g = "ok" if eredmeny_g == "OK" else "nem"
-                    elif v < t <= ellenorzes_vege:
-                        osztaly_g = "nincs"
+                # A garázs mátrixban is elsőbbséget kap a ±15 perces
+                # ellenőrzési ablak: ott mindig fekete I/N.
+                if (
+                    ellenorzes_kezdete <= t < k
+                    or v < t <= ellenorzes_vege
+                ):
+                    osztaly_g = "nincs"
+
+                elif k <= t <= v:
+                    if eredmeny_g == "OK":
+                        osztaly_g = "ok"
+                    elif eredmeny_g == "NEM":
+                        osztaly_g = "nem"
                     else:
                         megj_g = "-"
+
                 else:
                     megj_g = "-"
             except (ValueError, TypeError):
-                megj_g = "-"
-                osztaly_g = "nincs"
+                if eredmeny_g == "OK":
+                    osztaly_g = "ok"
+                elif eredmeny_g == "NEM":
+                    osztaly_g = "nem"
+                else:
+                    osztaly_g = "nincs"
+                    megj_g = "-"
 
             html.append(
                 f'<td class="ellenorzes {osztaly_g}"'
