@@ -2707,7 +2707,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         export_ws.cell(1, 3).value = "Forda"
         export_ws.cell(1, 4).value = "Rendszám"
         export_ws.cell(1, 5).value = "Eredmény"
-        export_ws.cell(1, 6).value = "Tárolás helye"
+        export_ws.cell(1, 6).value = "Valós tárolás"
 
         zold_toltes = openpyxl.styles.PatternFill(fill_type="solid", fgColor="00B050")
         piros_toltes = openpyxl.styles.PatternFill(fill_type="solid", fgColor="FF0000")
@@ -2751,7 +2751,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
                 eredmeny_cella.fill = piros_toltes
                 eredmeny_cella.font = feher_betu
 
-            # A napi riportban a Tárolás helye is az eredmény szerint
+            # A napi riportban a Valós tárolás is az eredmény szerint
             # színeződik. Ha nincs tényleges tárolási adat, nincs szín.
             tarolas_helye = str(sor.get("tárolás helye", "")).strip()
             van_tarolas_adat = (
@@ -4033,7 +4033,7 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
     max-width: 100%;
 }
 .idopont-ablak { overflow: hidden; }
-.fo-tabla { table-layout:auto; width:max-content; min-width:0; }
+.fo-tabla { table-layout:auto; width:max-content; min-width:0; max-width:none; }
 .fo-tabla th, .fo-tabla td { box-sizing:border-box; white-space:nowrap; }
 .fo-tabla th.idopont, .fo-tabla td.ellenorzes, .fo-tabla th.idopont-ertek { width:var(--time-col-width,34px); min-width:var(--time-col-width,34px); max-width:var(--time-col-width,34px); text-align:center; }
 .fo-tabla th, .fo-tabla td { background:var(--surface); color:var(--text); }
@@ -4139,6 +4139,76 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hu
 }
 .theme-toggle:hover { background:var(--surface3); border-color:var(--accent); }
 
+/* KÉSŐBBI FINOMHANGOLÁS */
+.fejlec { background:var(--surface) !important; }
+.fejlec-top { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:12px; }
+.fejlec-top .cim { margin-bottom:0; }
+body.light-mode .fejlec, body.light-mode .tabla-szekcio { background:var(--surface) !important; border-color:var(--border) !important; }
+body.light-mode .tabla-scroll { background:var(--surface); }
+
+/* A kereső ne befolyásolja az oszlop természetes szélességét. */
+.fo-tabla .szuro-sor th { position:relative; height:29px; padding:0 3px; }
+.fo-tabla .szuro-sor th .oszlop-kereso { position:absolute; left:3px; right:3px; top:3px; width:auto; height:23px; margin:0; }
+
+/* Az időpontok és a csúszka ugyanabban a fejlécblokkban vannak. */
+.fo-tabla .idopont-slider-fejlec { padding:3px 6px; height:30px; background:var(--surface2); border-color:var(--border); }
+.fo-tabla .idopont-slider-fejlec input[type="range"] { display:block; width:100%; height:20px; margin:0; cursor:pointer; accent-color:var(--accent); }
+.fo-tabla .fejlec-sor th.idopont { background:var(--surface3); }
+.fo-tabla .szuro-sor th.idopont-ertek { background:var(--surface2); }
+
+@media(max-width:900px){
+  .fejlec-top { gap:10px; }
+}
+@media(max-width:600px){
+  .fejlec-top { align-items:flex-start; }
+  .fejlec-top .theme-toggle { margin-top:1px; }
+}
+
+
+/* MODERN STÁTUSZ / VALÓS TÁROLÁS */
+.riport-ok,
+.riport-eltérés,
+.riport-ures {
+    border-radius: 999px !important;
+    font-weight: 650 !important;
+    text-align: center;
+    vertical-align: middle;
+    padding: 4px 10px !important;
+    box-sizing: border-box;
+}
+.riport-ok {
+    background: rgba(46, 190, 115, .12) !important;
+    color: #62e6a0 !important;
+    border: 1px solid rgba(98, 230, 160, .34) !important;
+}
+.riport-eltérés {
+    background: rgba(231, 82, 92, .12) !important;
+    color: #ff7d86 !important;
+    border: 1px solid rgba(255, 125, 134, .34) !important;
+}
+.riport-ures {
+    background: transparent !important;
+    color: var(--muted) !important;
+    border: 1px solid transparent !important;
+}
+body.light-mode .riport-ok {
+    background: rgba(25, 160, 91, .09) !important;
+    color: #16824d !important;
+    border-color: rgba(25, 160, 91, .34) !important;
+}
+body.light-mode .riport-eltérés {
+    background: rgba(205, 62, 72, .08) !important;
+    color: #b52f3b !important;
+    border-color: rgba(205, 62, 72, .30) !important;
+}
+body.light-mode .riport-ures {
+    color: var(--muted) !important;
+}
+/* A teljes oldal ne lógjon ki; az időablak a látható időpontokhoz igazodik. */
+html, body { max-width:100%; overflow-x:hidden; }
+.tabla-szekcio, .tabla-scroll { max-width:100%; box-sizing:border-box; }
+.fo-tabla { box-sizing:border-box; }
+
 </style>
 
 
@@ -4154,7 +4224,10 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hu
 <body>
 
 <div class="fejlec">
-  <div class="cim">ArrivaBus hidegtárolás</div>
+  <div class="fejlec-top">
+    <div class="cim">ArrivaBus hidegtárolás</div>
+    <button id="theme-toggle" class="theme-toggle" type="button" title="Sötét / világos mód">☀ Világos mód</button>
+  </div>
   <div class="fejlec-adatok riport-fejlec-adatok">
     <div class="fejlec-bal">
       <div class="adat"><b>Dátum:</b> """ + escape(futas_datum) + """</div>
@@ -4172,7 +4245,6 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hu
       <div class="adat"><b>Utolsó lekérdezés:</b> """ + escape(str(idopontok[-1] if idopontok else "-")) + """</div>
       <div class="adat"><b>Riport készült:</b> """ + escape(str(hidegtarolas_riport.get("keszult", "-"))) + """</div>
       <div class="adat"><b>Exportált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0)) + """</div>
-      <button id="theme-toggle" class="theme-toggle" type="button" title="Sötét / világos mód">☀ Világos mód</button>
     </div>
   </div>
 </div>
@@ -4187,10 +4259,6 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hu
 
 <div id="panel-adatok" class="nezet-panel">
 <div class="tabla-szekcio">
-  <div class="idopont-csuszkasav">
-    <div class="csuszka-info"><strong id="aktiv-sorok-szoveg">Végállomás</strong></div>
-    <input type="range" id="fo-idopont-csuszka" min="0" max="0" value="0" step="1" aria-label="Időpont görgetése">
-  </div>
   <div class="tabla-scroll" id="fo-tabla-scroll">
     <table class="fo-tabla" id="fo-tabla">
       <thead>
@@ -4201,13 +4269,10 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hu
           <th class="végzés sticky-left">Végzés <button class="rendez-gomb" type="button" data-sort-col="3" data-sort-type="time" title="Rendezés">↕</button></th>
           <th class="hely sticky-left">Hely <button class="rendez-gomb" type="button" data-sort-col="4" title="Rendezés">↕</button></th>
           <th class="rendszam sticky-left">Rendszám <button class="rendez-gomb" type="button" data-sort-col="5" title="Rendezés">↕</button></th>
-          """ )
-
-    for time_index, idopont in enumerate(idopontok):
-        html.append(f'<th class="idopont" data-time-index="{time_index}"></th>')
-
-    html.append("""
-          <th class="tarolas sticky-right">Tárolás helye <button class="rendez-gomb" type="button" data-sort-col="storage" title="Rendezés">↕</button></th>
+          <th class="idopont-slider-fejlec" colspan=""" + str(len(idopontok)) + """>
+            <input type="range" id="fo-idopont-csuszka" min="0" max="0" value="0" step="1" aria-label="Időpont görgetése">
+          </th>
+          <th class="tarolas sticky-right">Valós tárolás <button class="rendez-gomb" type="button" data-sort-col="storage" title="Rendezés">↕</button></th>
         </tr>
         <tr class="szuro-sor">
           <th><input class="oszlop-kereso" data-col="0" placeholder="Keresés…" aria-label="Viszonylat keresése"></th>
@@ -4222,7 +4287,7 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hu
         html.append(f'<th class="idopont-ertek" data-time-index="{time_index}">{escape(idopont)}</th>')
 
     html.append("""
-          <th class="tarolas"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Tárolás helye keresése"></th>
+          <th class="tarolas"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Valós tárolás keresése"></th>
         </tr>
       </thead>
       <tbody>
@@ -4306,7 +4371,7 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hu
 
   function setTimeWindow(){
     const allHead=Array.from(table.querySelectorAll('thead tr.fejlec-sor th'));
-    const fixedHeads=allHead.filter(th=>!th.classList.contains('idopont'));
+    const fixedHeads=allHead.filter(th=>!th.classList.contains('idopont') && !th.classList.contains('idopont-slider-fejlec'));
     let fixed=0;
     fixedHeads.forEach(th=>fixed += th.getBoundingClientRect().width);
     const available=Math.max(160, scroll.clientWidth-fixed-2);
@@ -4316,6 +4381,7 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane { filter:invert(90%) hu
     const width=visibleCount ? Math.max(minTimeWidth, available/visibleCount) : minTimeWidth;
     const maxStart=Math.max(0,totalTimes-visibleCount);
     slider.max=String(maxStart);
+    if(sliderHead) sliderHead.colSpan=Math.max(1,visibleCount);
     let start=Math.min(Number(slider.value)||0,maxStart);
     slider.value=String(start);
     table.style.setProperty('--time-col-width', width+'px');
