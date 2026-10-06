@@ -1032,6 +1032,72 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
     margin:0;
 }
 
+/*
+   A sticky cellák táblázaton belüli rétegzése collapse módban böngészőfüggő.
+   Külön cellaszegélyes (separate) táblázattal a fix bal/jobb oszlopok
+   megbízhatóan a mozgó időoszlopok fölött maradnak.
+*/
+.fo-tabla {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+.fo-tabla th,
+.fo-tabla td {
+    border-right: 1px solid var(--border) !important;
+    border-bottom: 1px solid var(--border) !important;
+    border-left: 0 !important;
+    border-top: 0 !important;
+}
+.fo-tabla tr:first-child th {
+    border-top: 1px solid var(--border) !important;
+}
+.fo-tabla th:first-child,
+.fo-tabla td:first-child {
+    border-left: 1px solid var(--border) !important;
+}
+
+/* A mozgó időcellák semmilyen körülmények között ne kerüljenek a fix részek fölé. */
+.fo-tabla tbody td.ellenorzes,
+.fo-tabla thead th.idopont,
+.fo-tabla thead th.idopont-ertek {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* A fix részek saját, átlátszatlan réteget kapnak. */
+.fo-tabla tbody td.sticky-left,
+.fo-tabla tbody td.sticky-right {
+    z-index: 100 !important;
+    background-color: var(--surface) !important;
+    background-clip: border-box !important;
+}
+.fo-tabla thead th.sticky-left,
+.fo-tabla thead th.sticky-right {
+    z-index: 200 !important;
+    background-color: var(--surface) !important;
+    background-clip: border-box !important;
+}
+.fo-tabla .szuro-sor th.sticky-left,
+.fo-tabla .szuro-sor th.sticky-right {
+    z-index: 190 !important;
+    background-color: var(--surface2) !important;
+}
+
+/* Összes nézetben a Végállomás sor fix cellái maradjanak kékesek,
+   de továbbra is teljesen fedjék az időoszlopokat. */
+.fo-tabla.all-view .biztor-sor > td.adat-fixed.sticky-left,
+.fo-tabla.all-view .biztor-sor > td.tarolas.sticky-right {
+    background: rgba(110,168,254,.055) !important;
+}
+
+/* A Valós tárolás jobb oldali takarófelülete legyen teljesen tömör. */
+.fo-tabla td.tarolas.sticky-right {
+    background-color: var(--surface) !important;
+}
+.fo-tabla.all-view .biztor-sor > td.tarolas.sticky-right {
+    background-color: rgba(110,168,254,.055) !important;
+}
+
 /* A fix oszlopok valóban takarják az alattuk elhaladó időoszlopokat. */
 .tabla-scroll {
     position:relative;
@@ -1131,7 +1197,7 @@ body.light-mode .fo-tabla.all-view .biztor-sor > td.tarolas {
       <div class="adat"><b>Utolsó lekérdezés:</b> 16:55</div>
     </div>
     <div class="fejlec-jobb">
-      <div class="adat"><b>Utolsó futás:</b> 2026-10-06 23:14:26</div>
+      <div class="adat"><b>Utolsó futás:</b> 2026-10-06 23:19:11</div>
       <div class="adat"><b>Riport készült:</b> 2026-10-06 16:31:09</div>
       <div class="adat"><b>Exportált fordák:</b> 21</div>
     </div>
