@@ -81,6 +81,13 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 #fo-tabla.view-garazs .storage-tabla tbody tr[data-forras="biztor"]{display:none}
 #fo-tabla tbody tr[data-filter-match="0"]{display:none}
 
+/* Mobilon a teljes nagy táblázat vízszintesen görgethető legyen. */
+@media (max-width:900px){
+    .tabla-szekcio{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;}
+    .tabla-egesz{width:max-content;max-width:none;min-width:max-content;}
+    .idopont-csuszkasav{width:max-content;min-width:max-content;}
+}
+
 .ido-tabla .status-pill{height:20px;line-height:1}
 .ido-tabla th.idopont-fejlec{font-size:0;color:transparent;padding:0}
 .ido-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px}
