@@ -4270,6 +4270,44 @@ body.light-mode .fo-tabla td.tarolas.riport-ures { color:var(--muted) !important
 .fo-tabla.all-view .biztor-sor > td.tarolas.riport-ures {
     background:rgba(110,168,254,.055) !important;
 }
+/* IDŐFEJLÉC JAVÍTÁS – az időpontok a felső fejlécsorban legyenek, és az I/N oszlopokkal együtt mozogjanak. */
+.fo-tabla .fejlec-sor th.idopont {
+    font-size:11px !important;
+    color:var(--text) !important;
+    background:var(--surface3) !important;
+    padding:3px 1px !important;
+    text-align:center;
+    overflow:hidden;
+    text-overflow:clip;
+    white-space:nowrap;
+}
+.fo-tabla .szuro-sor th.idopont-ertek {
+    font-size:0 !important;
+    color:transparent !important;
+    background:var(--surface2) !important;
+    padding:0 !important;
+}
+.fo-tabla .szuro-sor th:not(.idopont-ertek) {
+    background:var(--surface2) !important;
+}
+.fo-tabla .szuro-sor th.sticky-left,
+.fo-tabla .szuro-sor th.sticky-right {
+    background:var(--surface2) !important;
+}
+.fo-tabla .szuro-sor .oszlop-kereso {
+    background:var(--surface) !important;
+    color:var(--text) !important;
+}
+.fo-tabla .szuro-sor th:empty {
+    background:var(--surface2) !important;
+}
+.fo-tabla .fejlec-sor th.idopont,
+.fo-tabla .szuro-sor th.idopont-ertek,
+.fo-tabla td.ellenorzes {
+    width:42px !important;
+    min-width:42px !important;
+    max-width:42px !important;
+}
 </style>
 
 
@@ -4335,7 +4373,7 @@ body.light-mode .fo-tabla td.tarolas.riport-ures { color:var(--muted) !important
           <th class="végzés sticky-left">Végzés <button class="rendez-gomb" type="button" data-sort-col="3" data-sort-type="time" title="Rendezés">↕</button></th>
           <th class="hely sticky-left">Hely <button class="rendez-gomb" type="button" data-sort-col="4" title="Rendezés">↕</button></th>
           <th class="rendszam sticky-left">Rendszám <button class="rendez-gomb" type="button" data-sort-col="5" title="Rendezés">↕</button></th>
-          """ + "".join('<th class="idopont fejlec-idopont" aria-hidden="true"></th>' for _ in idopontok) + """
+          """ + "".join(f'<th class="idopont fejlec-idopont" data-time-index="{i}">{escape(idopont)}</th>' for i, idopont in enumerate(idopontok)) + """
           <th class="tarolas sticky-right">Valós tárolás <button class="rendez-gomb" type="button" data-sort-col="storage" title="Rendezés">↕</button></th>
         </tr>
         <tr class="szuro-sor">
@@ -4348,7 +4386,9 @@ body.light-mode .fo-tabla td.tarolas.riport-ures { color:var(--muted) !important
 """)
 
     for time_index, idopont in enumerate(idopontok):
-        html.append(f'<th class="idopont-ertek" data-time-index="{time_index}">{escape(idopont)}</th>')
+        # Az időpontok már a felső fejlécsorban vannak. Ez a sor csak az első 6 + jobb oldali
+        # fix keresőmezők sorával együtt mozog; az időrészben szándékosan üres.
+        html.append(f'<th class="idopont-ertek" data-time-index="{time_index}"></th>')
 
     html.append("""
           <th class="tarolas sticky-right"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Valós tárolás keresése"></th>
@@ -4433,9 +4473,9 @@ body.light-mode .fo-tabla td.tarolas.riport-ures { color:var(--muted) !important
   const sortButtons=Array.from(table.querySelectorAll('.rendez-gomb'));
   let sortState={col:null,dir:1};
 
-  const timeFilterHeaders=Array.from(table.querySelectorAll('thead tr.szuro-sor th.idopont-ertek'));
+  const timeHeaders=Array.from(table.querySelectorAll('thead tr.fejlec-sor th.idopont'));
   const timeCells=Array.from(table.querySelectorAll('tbody td.ellenorzes'));
-  const totalTimes=timeFilterHeaders.length;
+  const totalTimes=timeHeaders.length;
 
   function updateStickyOffsets(){
     let left=0;
