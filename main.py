@@ -982,18 +982,106 @@ for i in range(7, len(excel)):
 
         "hely": hely,
 
-        "helyszín": helyszin
+        "helyszín": helyszin,
+
+        "forrás": "biztor"
 
     })
 
 
 # =========================================================
-# 9/l. ELLENŐRZÉS
+# 9/l. MÁSODIK EXCEL FORRÁS – GARÁZSMENET / JBK
 # =========================================================
 
-figyelt_fordak = pd.DataFrame(
-    figyelt_fordak
-)
+GARAZS_EXCEL_FAJL = f"data/garazs_{ev}.{honap}.xlsx"
+
+if not os.path.exists(GARAZS_EXCEL_FAJL):
+    raise FileNotFoundError(f"Nem található a második Excel fájl:\n{GARAZS_EXCEL_FAJL}")
+
+wb_garazs = openpyxl.load_workbook(GARAZS_EXCEL_FAJL, read_only=True, data_only=True)
+garazs_talalt_munkalap = None
+
+for nev in wb_garazs.sheetnames:
+    ws = wb_garazs[nev]
+    c1 = "" if ws["C1"].value is None else str(ws["C1"].value).strip()
+    d1 = "" if ws["D1"].value is None else str(ws["D1"].value).strip()
+    if ev_honap not in c1:
+        continue
+    napok = [x.strip() for x in d1.replace(",", " ").split()]
+    if nap_keresett in napok:
+        garazs_talalt_munkalap = nev
+        break
+
+if garazs_talalt_munkalap is None:
+    raise ValueError(f"Nem található a második Excelben az aktuális naphoz tartozó munkalap.\nKeresett C1: {ev_honap}\nKeresett D1 nap: {nap_keresett}")
+
+print("Második Excel munkalap:", garazs_talalt_munkalap)
+
+excel_garazs = pd.read_excel(GARAZS_EXCEL_FAJL, sheet_name=garazs_talalt_munkalap, header=None)
+figyelt_fordak_garazs = []
+
+for i in range(5, len(excel_garazs)):
+    a_ertek = excel_garazs.iloc[i, 0]
+    if pd.isna(a_ertek) or not str(a_ertek).strip():
+        break
+
+    viszonylat = excel_garazs.iloc[i, 0]
+    forda = excel_garazs.iloc[i, 4]
+    kezdes = excel_garazs.iloc[i, 9]
+    vegzes = excel_garazs.iloc[i, 10]
+    hely = excel_garazs.iloc[i, 12]
+
+    if pd.isna(viszonylat) or pd.isna(forda):
+        continue
+
+    viszonylat = str(viszonylat).strip()
+    forda = str(forda).strip()
+    if viszonylat.endswith(".0"): viszonylat = viszonylat[:-2]
+    if forda.endswith(".0"): forda = forda[:-2]
+
+    kezdes = ido_konvertalasa(kezdes)
+    vegzes = ido_konvertalasa(vegzes)
+    hely = str(hely).strip() if pd.notna(hely) else ""
+
+    helyszin_talalatok = []
+    for helyszin_kulcs, adat in HELYSZINEK.items():
+        if hely.casefold().startswith(adat["kulcsszo"].casefold()):
+            helyszin_talalatok.append(helyszin_kulcs)
+
+    if len(helyszin_talalatok) > 1:
+        raise ValueError(f"Több helyszín illeszkedik ehhez: {hely}\nTalálatok: {helyszin_talalatok}")
+
+    figyelt_fordak_garazs.append({
+        "viszonylat": viszonylat,
+        "forda": forda,
+        "kezdés": kezdes,
+        "végzés": vegzes,
+        "hely": hely,
+        "helyszín": helyszin_talalatok[0] if helyszin_talalatok else "",
+        "forrás": "garazs"
+    })
+
+figyelt_fordak_garazs = pd.DataFrame(figyelt_fordak_garazs)
+figyelt_fordak_biztor = pd.DataFrame(figyelt_fordak)
+figyelt_fordak = pd.concat([figyelt_fordak_biztor, figyelt_fordak_garazs], ignore_index=True)
+
+def forda_kulcs_adat(forda_sor):
+    viszonylat = str(forda_sor.get("viszonylat", "")).strip()
+    forda = str(forda_sor.get("forda", "")).strip()
+    forrás = str(forda_sor.get("forrás", "biztor")).strip() or "biztor"
+    return f"garazs|{viszonylat}|{forda}" if forrás == "garazs" else f"{viszonylat}|{forda}"
+
+def forda_kulcs_rekord(rekord):
+    forrás = str(rekord.get("forrás", "biztor")).strip() or "biztor"
+    viszonylat = str(rekord.get("viszonylat", "")).strip()
+    forda = str(rekord.get("forda", "")).strip()
+    return f"garazs|{viszonylat}|{forda}" if forrás == "garazs" else f"{viszonylat}|{forda}"
+
+# =========================================================
+# 9/m. ELLENŐRZÉS
+# =========================================================
+
+figyelt_fordak = figyelt_fordak.reset_index(drop=True)
 
 
 print(
@@ -1250,7 +1338,7 @@ for _, forda_sor in (
         forda_sor["forda"]
     ).strip()
 
-    forda_kulcs = f"{viszonylat}|{forda}"
+    forda_kulcs = forda_kulcs_adat(forda_sor)
 
 
     # -----------------------------------------------------
@@ -1924,6 +2012,7 @@ if pozicio_idoszak:
             "végzés": adat["végzés"],
             "hely": adat["hely"],
             "helyszín": adat["helyszín"],
+            "forrás": adat.get("forrás", "biztor"),
             "rendszám": rendszam,
             "jármű_id": jarmu_id,
             "pozíció": pozicio,
@@ -2455,6 +2544,8 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
             continue
         if str(rekord.get("forda", "")).strip() != str(forda_sor.get("forda", "")).strip():
             continue
+        if str(rekord.get("forrás", "biztor")).strip() != str(forda_sor.get("forrás", "biztor")).strip():
+            continue
 
         idopont = str(rekord.get("frissítve", "")).strip()
         if not idopont:
@@ -2499,7 +2590,7 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
     return döntés["eredmény"]
 
 
-def keszit_hidegtarolas_riport():
+def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_kulcs="hidegtarolas_riport"):
     """
     A 70%-os döntéseket minden futáskor ellenőrzi és véglegesen elmenti.
 
@@ -2511,7 +2602,7 @@ def keszit_hidegtarolas_riport():
     most = budapesti_most()
 
     korabbi_riport = napi_adatok.get(
-        "hidegtarolas_riport"
+        napi_kulcs
     ) or {}
 
     # A döntést nem számoljuk újra, de a korábban elmentett koordinátát
@@ -2533,12 +2624,14 @@ def keszit_hidegtarolas_riport():
         []
     )
 
+    figyelt_forras = figyelt_fordak_garazs if forrás == "garazs" else figyelt_fordak_biztor
+
     uj_dontes = 0
 
-    for _, forda_sor in figyelt_fordak.iterrows():
+    for _, forda_sor in figyelt_forras.iterrows():
         viszonylat = str(forda_sor["viszonylat"]).strip()
         forda = str(forda_sor["forda"]).strip()
-        kulcs = f"{viszonylat}|{forda}"
+        kulcs = forda_kulcs_adat(forda_sor)
 
         # Ha már döntöttünk róla, az eredmény és a hely végleges.
         if kulcs in dontesek:
@@ -2562,10 +2655,10 @@ def keszit_hidegtarolas_riport():
 
     eredmenyek = []
 
-    for _, forda_sor in figyelt_fordak.iterrows():
+    for _, forda_sor in figyelt_forras.iterrows():
         viszonylat = str(forda_sor["viszonylat"]).strip()
         forda = str(forda_sor["forda"]).strip()
-        kulcs = f"{viszonylat}|{forda}"
+        kulcs = forda_kulcs_adat(forda_sor)
 
         forda_adat = forda_rendszamok.get(kulcs, {})
         rendszam = str(forda_adat.get("rendszám", "")).strip()
@@ -2583,8 +2676,8 @@ def keszit_hidegtarolas_riport():
 
     # Excel csak akkor készüljön el, amikor minden forda döntése megvan.
     minden_döntött = (
-        len(figyelt_fordak) == 0
-        or len(dontesek) >= len(figyelt_fordak)
+        len(figyelt_forras) == 0
+        or len(dontesek) >= len(figyelt_forras)
     )
 
     excel_mar_mentve = (
@@ -2597,8 +2690,8 @@ def keszit_hidegtarolas_riport():
     if minden_döntött and not excel_mar_mentve:
         os.makedirs("data", exist_ok=True)
 
-        if os.path.exists(RIport_XLSX):
-            export_wb = openpyxl.load_workbook(RIport_XLSX)
+        if os.path.exists(export_fajl):
+            export_wb = openpyxl.load_workbook(export_fajl)
             if "Riport" in export_wb.sheetnames:
                 export_ws = export_wb["Riport"]
             else:
@@ -2659,7 +2752,7 @@ def keszit_hidegtarolas_riport():
                 openpyxl.utils.get_column_letter(oszlop)
             ].width = min(max_hossz + 2, 35)
 
-        export_wb.save(RIport_XLSX)
+        export_wb.save(export_fajl)
         riport_idopont = most.strftime("%Y-%m-%d %H:%M:%S")
         excel_mar_mentve = True
 
@@ -2670,11 +2763,12 @@ def keszit_hidegtarolas_riport():
         "keszult": riport_idopont,
         "utolso_futas": most.strftime("%Y-%m-%d %H:%M:%S"),
         "vizsgalt_fordak": len(eredmenyek),
+        "forrás": forrás,
         "dontesek": dontesek,
         "eredmenyek": eredmenyek
     }
 
-    napi_adatok["hidegtarolas_riport"] = riportok
+    napi_adatok[napi_kulcs] = riportok
 
     with open(NAPI_ADATOK_FAJL, "w", encoding="utf-8") as f:
         json.dump(napi_adatok, f, ensure_ascii=False, indent=2)
@@ -2689,7 +2783,9 @@ def keszit_hidegtarolas_riport():
 
 
 # A 70%-os döntések minden futáskor ellenőrzésre kerülnek.
-hidegtarolas_riport = keszit_hidegtarolas_riport()
+hidegtarolas_riport = keszit_hidegtarolas_riport("biztor", RIport_XLSX, "hidegtarolas_riport")
+GARAZS_RIPORT_XLSX = "data/garazstarolas_export.xlsx"
+garazstarolas_riport = keszit_hidegtarolas_riport("garazs", GARAZS_RIPORT_XLSX, "garazstarolas_riport")
 
 
 # ============================================================
@@ -2806,12 +2902,14 @@ def html_export():
     # Összesítés a fejléc számára
     # --------------------------------------------------------
 
-    excel_fordak_szama = len(figyelt_fordak)
+    excel_fordak_szama = len(figyelt_fordak_biztor)
+    garazs_fordak_szama = len(figyelt_fordak_garazs)
 
     megtalalt_jarmuvek = len({
         str(rekord.get("rendszám", "")).strip().upper()
         for rekord in pozicio_tortenet
-        if str(rekord.get("rendszám", "")).strip()
+        if str(rekord.get("forrás", "biztor")).strip() == "biztor"
+        and str(rekord.get("rendszám", "")).strip()
     })
 
 
@@ -2832,7 +2930,8 @@ def html_export():
 
             for rekord in pozicio_tortenet
 
-            if rekord.get("frissítve")
+            if str(rekord.get("forrás", "biztor")).strip() == "biztor"
+            and rekord.get("frissítve")
         }
     )
 
@@ -2845,6 +2944,9 @@ def html_export():
 
 
     for rekord in pozicio_tortenet:
+
+        if str(rekord.get("forrás", "biztor")).strip() != "biztor":
+            continue
 
         viszonylat = str(
             rekord.get(
@@ -2915,7 +3017,7 @@ def html_export():
                 "hely": hely,
 
                 "rendszám": rendszam,
-
+                "forrás": "biztor",
                 "ellenőrzés": {}
 
             }
@@ -3421,6 +3523,13 @@ body {
 }
 
 
+.garazs-matrix-cim {
+    margin-top: 18px;
+    padding: 8px 10px 4px 10px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
 .tabla-szekcio-cim {
 
     padding: 0 10px 8px 10px;
@@ -3859,6 +3968,9 @@ ArrivaBus hidegtárolás
             <b>Naptípus:</b> """ + escape(str(talalt_munkalap)) + """
         </div>
         <div class="adat">
+            <b>Munkalap:</b> """ + escape(str(talalt_munkalap)) + " / " + escape(str(garazs_talalt_munkalap)) + """
+        </div>
+        <div class="adat">
             <b>Utolsó lekérdezés:</b> """ + escape(utolso_ido) + """
         </div>
     </div>
@@ -4224,6 +4336,129 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
 </div>
 """)
 
+    # --------------------------------------------------------
+    # MÁSODIK (GARÁZSMENET / JBK) MÁTRIX
+    # --------------------------------------------------------
+
+    garazs_riport_eredmenyek = {
+        (str(sor.get("viszonylat", "")).strip(), str(sor.get("forda", "")).strip()): sor
+        for sor in garazstarolas_riport.get("eredmenyek", [])
+    } if garazstarolas_riport else {}
+
+    garazs_sorok = {}
+    for _, forda_sor_g in figyelt_fordak_garazs.iterrows():
+        visz_g = str(forda_sor_g.get("viszonylat", "")).strip()
+        forda_g = str(forda_sor_g.get("forda", "")).strip()
+        kulcs_g = (visz_g, forda_g)
+        garazs_sorok[kulcs_g] = {
+            "viszonylat": visz_g,
+            "forda": forda_g,
+            "kezdés": str(forda_sor_g.get("kezdés", ""))[:5],
+            "végzés": str(forda_sor_g.get("végzés", ""))[:5],
+            "hely": str(forda_sor_g.get("hely", "")),
+            "rendszám": str(forda_rendszamok.get(forda_kulcs_adat(forda_sor_g), {}).get("rendszám", "")),
+            "ellenőrzés": {}
+        }
+
+    for rekord in pozicio_tortenet:
+        if str(rekord.get("forrás", "biztor")).strip() != "garazs":
+            continue
+        kulcs_g = (str(rekord.get("viszonylat", "")).strip(), str(rekord.get("forda", "")).strip())
+        if kulcs_g not in garazs_sorok:
+            continue
+        idopont_g = str(rekord.get("frissítve", ""))[:5]
+        if idopont_g:
+            garazs_sorok[kulcs_g]["ellenőrzés"][idopont_g] = rekord.get("ellenőrzés", "-")
+
+    garazs_idopontok = sorted({
+        str(rekord.get("frissítve", ""))[:5]
+        for rekord in pozicio_tortenet
+        if str(rekord.get("forrás", "biztor")).strip() == "garazs" and rekord.get("frissítve")
+    })
+
+    html.append("""
+<div class="garazs-matrix-cim">
+  Garázsmenet / JBK – Munkalap: """ + escape(str(garazs_talalt_munkalap)) + """
+</div>
+<div class="tabla-szekcio-cim">
+  Végállomáson tároló online járművek: """ + str(sum(1 for k in garazs_sorok if garazs_sorok[k]["rendszám"])) + "/" + str(len(figyelt_fordak_garazs)) + """
+</div>
+<div class="tabla-egesz">
+<div class="alap-ablak">
+<div class="tabla-fejlec-hely"></div>
+<table><thead><tr>
+<th class="viszonylat">Viszonylat</th><th class="forda">Forda</th><th class="kezdés">Kezdés</th><th class="végzés">Végzés</th><th class="hely">Hely</th><th class="rendszam">Rendszám</th>
+</tr></thead><tbody>
+""")
+
+    garazs_rendezett = sorted(garazs_sorok.items(), key=lambda x: (x[1].get("kezdés", ""), x[1].get("viszonylat", ""), x[1].get("forda", "")))
+    for _, sor_g in garazs_rendezett:
+        html.append(
+            f'<tr><td class="alap viszonylat">{escape(sor_g["viszonylat"])}</td>'
+            f'<td class="alap forda">{escape(sor_g["forda"])}</td>'
+            f'<td class="alap kezdés">{escape(sor_g["kezdés"])}</td>'
+            f'<td class="alap végzés">{escape(sor_g["végzés"])}</td>'
+            f'<td class="alap hely">{escape(sor_g["hely"])}</td>'
+            f'<td class="alap rendszam">{escape(sor_g["rendszám"])}</td></tr>'
+        )
+
+    html.append("""
+</tbody></table></div>
+<div class="idopont-resz">
+<div class="idopont-csuszkasav">
+<input type="range" id="garazs-idopont-csuszka" min="0" max="1000" value="1000" step="1">
+</div>
+<div class="idopont-ablak" id="garazs-idopont-ablak">
+<div class="idopont-belső" id="garazs-idopont-belső">
+<table><thead><tr>
+""")
+
+    for idopont_g in garazs_idopontok:
+        html.append(f'<th class="idopont">{escape(idopont_g)}</th>')
+
+    html.append("</tr></thead><tbody>")
+
+    for _, sor_g in garazs_rendezett:
+        html.append("<tr>")
+        for idopont_g in garazs_idopontok:
+            eredmeny_g = sor_g["ellenőrzés"].get(idopont_g, "-")
+            osztaly_g = "nincs"
+            try:
+                t = datetime.strptime(idopont_g, "%H:%M")
+                k = datetime.strptime(sor_g["kezdés"], "%H:%M")
+                v = datetime.strptime(sor_g["végzés"], "%H:%M")
+                if k <= t <= v and eredmeny_g == "OK":
+                    osztaly_g = "ok"
+                elif k <= t <= v and eredmeny_g == "NEM":
+                    osztaly_g = "nem"
+            except (ValueError, TypeError):
+                pass
+            megj_g = {"OK": "I", "NEM": "N"}.get(eredmeny_g, "-")
+            html.append(f'<td class="ellenorzes {osztaly_g}">{escape(megj_g)}</td>')
+        html.append("</tr>")
+
+    html.append("""
+</tbody></table></div></div>
+<div class="riport-resz">
+<div class="tabla-fejlec-hely"></div>
+<table class="riport-tablazat"><thead><tr><th>Eredmény</th><th>Tárolás helye</th></tr></thead><tbody>
+""")
+
+    for _, sor_g in garazs_rendezett:
+        rs = garazs_riport_eredmenyek.get((sor_g["viszonylat"], sor_g["forda"]), {})
+        e = str(rs.get("eredmény", "")).strip()
+        h = str(rs.get("tárolás helye", "")).strip()
+        cls = "riport-ok" if e == "RENDBEN TÁROLT" else "riport-eltérés" if e == "ELTÉRÉS TÖRTÉNT" else "riport-ures"
+        html.append(f'<tr><td class="{cls}">{escape(e)}</td><td>{escape(h)}</td></tr>')
+
+    html.append("""
+</tbody></table>
+</div>
+</div>
+</div>
+
+""")
+
     html.append("""
 </div>
 
@@ -4525,6 +4760,18 @@ if (terkepElemek.length > 0) {
     }
 
 }
+
+const garazsAblak = document.getElementById("garazs-idopont-ablak");
+const garazsBelso = document.getElementById("garazs-idopont-belső");
+const garazsCsuszka = document.getElementById("garazs-idopont-csuszka");
+function frissitGarazsCsuszkat() {
+    if (!garazsAblak || !garazsBelso || !garazsCsuszka) return;
+    const maxScroll = Math.max(0, garazsBelso.scrollWidth - garazsAblak.clientWidth);
+    garazsCsuszka.value = "1000";
+    garazsCsuszka.oninput = function() { garazsAblak.scrollLeft = maxScroll * (Number(this.value) / 1000); };
+    garazsAblak.scrollLeft = maxScroll;
+}
+window.addEventListener("load", frissitGarazsCsuszkat);
 
 </script>
 
