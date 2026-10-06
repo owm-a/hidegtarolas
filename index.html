@@ -363,6 +363,31 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     };
   }
 
+  function frissitAlapKeresok(view){
+    const helyInput=document.querySelector('.oszlop-kereso[data-col="4"]');
+    const storageInput=document.querySelector('.oszlop-kereso[data-col="storage"]');
+    const alapSzoveg='ArrivaBus ';
+
+    [helyInput,storageInput].forEach(input=>{
+      if(!input) return;
+
+      if(view==='mindketto' || view==='garazs'){
+        // Csak Összes/Garázs nézetben jelenik meg alapértékként.
+        // Ez az alapérték önmagában NEM szűr.
+        if(!input.value || input.dataset.defaultArrivabus==='1'){
+          input.value=alapSzoveg;
+          input.dataset.defaultArrivabus='1';
+        }
+      }else{
+        // Végállomás nézetben ne legyen benne az alapérték.
+        if(input.dataset.defaultArrivabus==='1'){
+          input.value='';
+          input.dataset.defaultArrivabus='0';
+        }
+      }
+    });
+  }
+
   function applyView(view){
     currentView=view;
     buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===view));
@@ -372,8 +397,10 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     tabla.classList.toggle('all-view',view==='mindketto');
     if(label) label.textContent=view==='biztor'?'Végállomás':view==='garazs'?'Garázs':'Összes';
 
-    // A szűrés külön kezeli a sorok filterMatch állapotát. A nézetváltás
-    // itt kizárólag egy CSS-osztály váltás, így nem történik soronkénti DOM-írás.
+    frissitAlapKeresok(view);
+
+    // A szűrés külön kezeli a sorok filterMatch állapotát.
+    // A nézetváltás az alap ArrivaBus szöveget nem tekinti aktív szűrőnek.
   }
 
   function applyFilters(){
@@ -382,6 +409,13 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
       let ok=true;
       inputs.forEach(input=>{
         if(!ok) return;
+
+        // Az Összes/Garázs nézetben megjelenő alap "ArrivaBus "
+        // csak előre kitöltött segítség, önmagában nem szűr.
+        if(input.dataset.defaultArrivabus==='1'){
+          return;
+        }
+
         const q=input.value.trim().toLocaleLowerCase('hu-HU');
         if(!q) return;
         const col=input.dataset.col;
@@ -447,9 +481,18 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   idoAblak.addEventListener('scroll',()=>{slider.value=String(Math.round(idoAblak.scrollLeft));},{passive:true});
   buttons.forEach(b=>b.addEventListener('click',()=>applyView(b.dataset.nezet)));
   sortButtons.forEach(b=>b.addEventListener('click',()=>sortRows(b)));
-  document.querySelectorAll('.oszlop-kereso').forEach(input=>input.addEventListener('input',applyFilters));
+  document.querySelectorAll('.oszlop-kereso').forEach(input=>{
+    input.addEventListener('input',()=>{
+      // Ha a felhasználó beleír vagy töröl az ArrivaBus alapértékből,
+      // onnantól valódi keresésként kezeljük.
+      input.dataset.defaultArrivabus='0';
+      applyFilters();
+    });
+  });
   window.addEventListener('resize',()=>requestAnimationFrame(setLayout));
   allRows().forEach(r=>r.dataset.filterMatch='1');
+
+  // A kezdő nézet Végállomás marad, ezért ott nincs ArrivaBus alapérték.
   applyView('biztor');
   setLayout();
 })();
