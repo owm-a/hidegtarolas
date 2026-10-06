@@ -371,8 +371,8 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     [helyInput,storageInput].forEach(input=>{
       if(!input) return;
 
-      if(view==='mindketto' || view==='garazs'){
-        // Csak Összes/Garázs nézetben jelenik meg alapértékként.
+      if(view==='garazs'){
+        // Csak Garázs nézetben jelenik meg alapértékként.
         // Ez az alapérték önmagában NEM szűr.
         if(!input.value || input.dataset.defaultArrivabus==='1'){
           input.value=alapSzoveg;
@@ -410,7 +410,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
       inputs.forEach(input=>{
         if(!ok) return;
 
-        // Az Összes/Garázs nézetben megjelenő alap "ArrivaBus "
+        // A Garázs nézetben megjelenő alap "ArrivaBus "
         // csak előre kitöltött segítség, önmagában nem szűr.
         if(input.dataset.defaultArrivabus==='1'){
           return;
