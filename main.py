@@ -676,7 +676,7 @@ print(
 # =========================================================
 
 EXCEL_FAJL = (
-    f"data/biztor_{ev}-{honap}.xlsx"
+    f"data/{ev}-{honap}.xlsx"
 )
 
 print(
@@ -993,7 +993,7 @@ for i in range(7, len(excel)):
 # 9/l. MÁSODIK EXCEL FORRÁS – GARÁZSMENET / JBK
 # =========================================================
 
-GARAZS_EXCEL_FAJL = f"data/garazs_{ev}-{honap}.xlsx"
+GARAZS_EXCEL_FAJL = f"data/garazs_{ev}.{honap}.xlsx"
 
 if not os.path.exists(GARAZS_EXCEL_FAJL):
     raise FileNotFoundError(f"Nem található a második Excel fájl:\n{GARAZS_EXCEL_FAJL}")
@@ -3965,10 +3965,11 @@ ArrivaBus hidegtárolás
             <b>Dátum:</b> """ + escape(futas_datum) + """
         </div>
         <div class="adat">
-            <b>Naptípus:</b> """ + escape(str(talalt_munkalap)) + """
-        </div>
-        <div class="adat">
-            <b>Munkalap:</b> """ + escape(str(talalt_munkalap)) + " / " + escape(str(garazs_talalt_munkalap)) + """
+            <b>Naptípus:</b> """ + (
+                escape(str(talalt_munkalap))
+                if str(talalt_munkalap).strip() == str(garazs_talalt_munkalap).strip()
+                else escape(str(talalt_munkalap)) + " / " + escape(str(garazs_talalt_munkalap))
+            ) + """
         </div>
         <div class="adat">
             <b>Utolsó lekérdezés:</b> """ + escape(utolso_ido) + """
@@ -4377,11 +4378,8 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
     })
 
     html.append("""
-<div class="garazs-matrix-cim">
-  Garázsmenet / JBK – Munkalap: """ + escape(str(garazs_talalt_munkalap)) + """
-</div>
 <div class="tabla-szekcio-cim">
-  Végállomáson tároló online járművek: """ + str(sum(1 for k in garazs_sorok if garazs_sorok[k]["rendszám"])) + "/" + str(len(figyelt_fordak_garazs)) + """
+  Garázsban tároló online járművek: """ + str(sum(1 for k in garazs_sorok if garazs_sorok[k]["rendszám"])) + "/" + str(len(figyelt_fordak_garazs)) + """
 </div>
 <div class="tabla-egesz">
 <div class="alap-ablak">
@@ -4461,7 +4459,7 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
         html.append("</tr>")
 
     html.append("""
-</tbody></table></div></div>
+</tbody></table></div>
 <div class="riport-resz">
 <div class="tabla-fejlec-hely"></div>
 <table class="riport-tablazat"><thead><tr><th>Eredmény</th><th>Tárolás helye</th></tr></thead><tbody>
