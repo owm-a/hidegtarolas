@@ -471,26 +471,26 @@ HELYSZINEK = {
 
     "csepel_szent_imre": {
         "kulcsszo": "Csepel, Szent Imre tér",
-        "lat_min": 47.429951,
-        "lat_max": 47.43243232977707,
-        "lon_min": 19.06724687678164,
-        "lon_max": 19.071954
+        "lat_min": 47.430462715266955,
+        "lat_max": 47.431423515348,
+        "lon_min": 19.07051806889125,
+        "lon_max": 19.07169262649567
     },
 
     "kobanya_also": {
         "kulcsszo": "Kőbánya alsó",
-        "lat_min": 47.480344536874036,
-        "lat_max": 47.48496905192861,
-        "lon_min": 19.12579241045692,
-        "lon_max": 19.13233189188759
+        "lat_min": 47.48261593267198,
+        "lat_max": 47.48462411413879,
+        "lon_min": 19.12645422616769,
+        "lon_max": 19.128730058590182
     },   
 
     "kobanya_kispest": {
         "kulcsszo": "Kőbánya-Kispest",
-        "lat_min": 47.46056181065333,
-        "lat_max": 47.46311789175215,
-        "lon_min": 19.148986720880558,
-        "lon_max": 19.152668092551284
+        "lat_min": 47.461787898640296,
+        "lat_max": 47.462689191826485,
+        "lon_min": 19.15019439393539,
+        "lon_max": 19.151124752353716
     },
 
     "mexikoi_ut": {
@@ -523,10 +523,58 @@ HELYSZINEK = {
         "lat_max": 47.45651651124522,
         "lon_min": 19.178530697809354,
         "lon_max": 19.18350366084327
+    },
+
+    "andor": {
+        "kulcsszo": "ArrivaBus Andor telephely",
+        "lat_min": 47.45703696628262,
+        "lat_max": 47.45974359947361,
+        "lon_min": 19.025296690497736,
+        "lon_max": 19.02988619533237
+    },
+
+    "bogancs": {
+        "kulcsszo": "ArrivaBus Bogáncs telephely",
+        "lat_min": 47.569747494207284,
+        "lat_max": 47.5731577937613,
+        "lon_min": 19.131368356259316,
+        "lon_max": 19.137645363043006
+    },
+
+    "csepel": {
+        "kulcsszo": "ArrivaBus Szállító telephely",
+        "lat_min": 47.441927955392465,
+        "lat_max": 47.4437481894374,
+        "lon_min": 19.081122238879782,
+        "lon_max": 19.084841859297306
     }
 
 }
 
+
+
+def tarolas_helye_pozicio_alapjan(pozicio):
+    """Geozóna nevét adja vissza a GPS alapján, egyébként a koordinátát."""
+
+    pozicio_szoveg = str(pozicio or "").strip()
+    if not pozicio_szoveg:
+        return "Nincs adat"
+
+    try:
+        latitude_szoveg, longitude_szoveg = pozicio_szoveg.split(",", 1)
+        latitude = float(latitude_szoveg.strip())
+        longitude = float(longitude_szoveg.strip())
+    except (ValueError, TypeError):
+        return pozicio_szoveg
+
+    for helyszin in HELYSZINEK.values():
+        if (
+            helyszin["lat_min"] <= latitude <= helyszin["lat_max"]
+            and helyszin["lon_min"] <= longitude <= helyszin["lon_max"]
+        ):
+            return str(helyszin.get("kulcsszo", "")).strip() or pozicio_szoveg
+
+    return pozicio_szoveg
 
 print(
     "Helyszín-konfiguráció betöltve:",
@@ -1000,7 +1048,7 @@ fazis_ideje = budapesti_most().time()
 azonositas_idoszak = (
     time(7, 0)
     <= fazis_ideje
-    <= time(17, 0)
+    <= time(13, 30)
 )
 
 pozicio_idoszak = (
@@ -1227,6 +1275,44 @@ for _, forda_sor in (
     ).strip()
 
     forda_kulcs = f"{viszonylat}|{forda}"
+
+
+    # -----------------------------------------------------
+    # GTFS-RT azonosítás csak a táblázatos kezdési időig
+    #
+    # Ha a forda kezdési ideje már eltelt, az adott fordát
+    # nem azonosítjuk tovább GTFS-RT alapján. A korábban
+    # elmentett rendszám + jármű ID változatlan marad, és
+    # innentől kizárólag a FUTÁR pozícióforrást használjuk.
+    # -----------------------------------------------------
+
+    forda_kezdese = forda_sor["kezdés"]
+
+    if pd.isna(forda_kezdese):
+        continue
+
+    if fazis_ideje >= forda_kezdese:
+
+        elozo = forda_rendszamok.get(
+            forda_kulcs,
+            {}
+        )
+
+        if elozo:
+            print(
+                f"{forda_kulcs}: kezdési idő ({forda_kezdese.strftime('%H:%M:%S')}) "
+                f"már eltelt → GTFS-RT azonosítás lezárva, "
+                f"mentett jármű marad: "
+                f"{elozo.get('rendszám', '')} / "
+                f"BKK_{elozo.get('jármű_id', '')}"
+            )
+        else:
+            print(
+                f"{forda_kulcs}: kezdési idő ({forda_kezdese.strftime('%H:%M:%S')}) "
+                f"már eltelt, de nincs korábban mentett GTFS-RT azonosítás."
+            )
+
+        continue
 
 
     # -----------------------------------------------------
@@ -2394,7 +2480,9 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
         _, rekord = rekordok[-1]
         állapot = str(rekord.get("ellenőrzés", "-")).strip().upper()
         eredmény = "RENDBEN TÁROLT" if állapot == "OK" else "ELTÉRÉS TÖRTÉNT"
-        tárolás_helye = str(rekord.get("pozíció", "")).strip() or "-"
+        tárolás_helye = tarolas_helye_pozicio_alapjan(
+            rekord.get("pozíció", "")
+        )
     else:
         eredmény = "ELTÉRÉS TÖRTÉNT"
         tárolás_helye = "Nincs adat"
@@ -3305,6 +3393,20 @@ body {
 }
 
 
+.tarolt-jarmuvek-cim {
+
+    margin-top: 12px;
+    margin-bottom: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    background: white;
+    border: 1px solid #cccccc;
+    padding: 8px 10px;
+    width: fit-content;
+
+}
+
+
 .adat {
 
     font-size: 13px;
@@ -3339,6 +3441,7 @@ body {
 .alap-ablak {
 
     flex: 0 0 auto;
+    margin-right: 8px;
 
 }
 
@@ -3744,22 +3847,7 @@ ArrivaBus hidegtárolás
             <b>Naptípus:</b> """ + escape(str(talalt_munkalap)) + """
         </div>
         <div class="adat">
-            <b>Utolsó lekérdezés:</b> """ + escape(utolso_ido) + """
-        </div>
-        <div class="adat">
-            <b>Járművek száma:</b> """ + str(megtalalt_jarmuvek) + "/" + str(excel_fordak_szama) + """
-        </div>
-    </div>
-
-    <div class="fejlec-jobb">
-        <div class="adat">
-            <b>Riport készült:</b> """ + escape(str(hidegtarolas_riport.get("keszult", "-"))) + """
-        </div>
-        <div class="adat">
-            <b>Vizsgált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0)) + """
-        </div>
-        <div class="adat">
-            <b>Utolsó futás:</b> """ + escape(str(hidegtarolas_riport.get("utolso_futas", "-"))) + """
+            <b>Exportált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0)) + """
         </div>
     </div>
 
@@ -3771,6 +3859,11 @@ ArrivaBus hidegtárolás
      ========================================================= -->
 
 <div id="geozona-terkep"></div>
+
+
+<div class="tarolt-jarmuvek-cim">
+    Végállomáson tárolt járművek: """ + str(megtalalt_jarmuvek) + "/" + str(excel_fordak_szama) + """
+</div>
 
 
 <!-- =========================================================
