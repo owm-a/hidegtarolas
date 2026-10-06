@@ -3699,9 +3699,6 @@ th.hely,
 td.hely {
 
     text-align: left;
-    width: 200px;
-    min-width: 200px;
-    max-width: 200px;
 
 }
 
@@ -4013,34 +4010,28 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
     max-width: 100%;
 }
 .idopont-ablak { overflow: hidden; }
-.fo-tabla { table-layout: auto; width: 100%; }
+.fo-tabla { table-layout:auto; width:max-content; min-width:0; }
 .fo-tabla th, .fo-tabla td { box-sizing:border-box; white-space:nowrap; }
 .fo-tabla th.idopont, .fo-tabla td.ellenorzes, .fo-tabla th.szuro-idopont { width:var(--time-col-width,34px); min-width:var(--time-col-width,34px); max-width:var(--time-col-width,34px); text-align:center; }
-.fo-tabla .biztor-sor > td.adat-fixed { background:rgba(110,168,254,.045); }
+.fo-tabla th, .fo-tabla td { background:var(--surface); color:var(--text); }
 .fo-tabla .szuro-sor th { padding:3px 4px; background:var(--surface2); }
+.fo-tabla .szuro-sor th:empty { background:var(--surface2); }
+.fo-tabla .all-view .biztor-sor > td.adat-fixed { background:rgba(110,168,254,.055); }
+.fo-tabla.all-view .biztor-sor > td.adat-fixed { background:rgba(110,168,254,.055); }
 .oszlop-kereso { width:100%; min-width:0; box-sizing:border-box; border:1px solid var(--border); background:var(--surface); color:var(--text); border-radius:5px; padding:4px 5px; font:inherit; font-size:11px; outline:none; }
 .oszlop-kereso:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(110,168,254,.12); }
 .fo-tabla .tipus { display:none!important; }
-.alap-ablak th,
-.alap-ablak td,
-.idopont-belső th,
-.idopont-belső td,
-.riport-tablazat th,
-.riport-tablazat td {
-    height: 24px;
-    white-space: nowrap;
-    box-sizing: border-box;
-}
-.riport-tablazat th,
-.riport-tablazat td {
-    width: 145px;
-    min-width: 145px;
-    max-width: 145px;
-}
-@media (max-width: 900px) {
-    .idopont-ablak,
-    .idopont-csuszkasav { max-width: calc(100vw - 24px); }
-}
+.fo-tabla .rendez-gomb { border:1px solid var(--border); background:transparent; color:var(--muted); width:20px; height:20px; padding:0; margin-left:4px; border-radius:5px; cursor:pointer; font-size:11px; line-height:18px; vertical-align:middle; }
+.fo-tabla th.idopont .rendez-gomb { width:15px; height:15px; margin-left:1px; padding:0; border-radius:4px; font-size:9px; line-height:13px; }
+.fo-tabla th.idopont { padding-left:1px; padding-right:1px; }
+.fo-tabla .rendez-gomb:hover { color:var(--text); background:var(--surface2); border-color:var(--accent); }
+.fo-tabla .rendez-gomb.active { color:#fff; background:var(--accent2); border-color:var(--accent2); }
+.fo-tabla .fejlec-sor th { vertical-align:middle; }
+.fo-tabla .tarolas { min-width:120px; }
+.tabla-scroll { width:100%; max-width:100%; overflow-x:auto; overflow-y:hidden; }
+.alap-ablak th, .alap-ablak td, .idopont-belső th, .idopont-belső td, .riport-tablazat th, .riport-tablazat td { height:24px; white-space:nowrap; box-sizing:border-box; }
+.riport-tablazat th, .riport-tablazat td { width:145px; min-width:145px; max-width:145px; }
+@media (max-width:900px) { .idopont-ablak, .idopont-csuszkasav { max-width:calc(100vw - 24px); } }
 
 </style>
 
@@ -4096,31 +4087,31 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
     <table class="fo-tabla" id="fo-tabla">
       <thead>
         <tr class="fejlec-sor">
-          <th class="viszonylat sticky-left">Viszonylat</th>
-          <th class="forda sticky-left">Forda</th>
-          <th class="kezdés sticky-left">Kezdés</th>
-          <th class="végzés sticky-left">Végzés</th>
-          <th class="hely sticky-left">Hely</th>
-          <th class="rendszam sticky-left">Rendszám</th>
+          <th class="viszonylat sticky-left">Viszonylat <button class="rendez-gomb" type="button" data-sort-col="0" title="Rendezés">↕</button></th>
+          <th class="forda sticky-left">Forda <button class="rendez-gomb" type="button" data-sort-col="1" title="Rendezés">↕</button></th>
+          <th class="kezdés sticky-left">Kezdés <button class="rendez-gomb" type="button" data-sort-col="2" data-sort-type="time" title="Rendezés">↕</button></th>
+          <th class="végzés sticky-left">Végzés <button class="rendez-gomb" type="button" data-sort-col="3" data-sort-type="time" title="Rendezés">↕</button></th>
+          <th class="hely sticky-left">Hely <button class="rendez-gomb" type="button" data-sort-col="4" title="Rendezés">↕</button></th>
+          <th class="rendszam sticky-left">Rendszám <button class="rendez-gomb" type="button" data-sort-col="5" title="Rendezés">↕</button></th>
           """ )
 
     for time_index, idopont in enumerate(idopontok):
-        html.append(f'<th class="idopont" data-time-index="{time_index}">{escape(idopont)}</th>')
+        html.append(f'<th class="idopont" data-time-index="{time_index}">{escape(idopont)} <button class="rendez-gomb" type="button" data-sort-col="{6 + time_index}" data-sort-type="time" title="Rendezés">↕</button></th>')
 
     html.append("""
-          <th class="tarolas sticky-right">Tárolás helye</th>
+          <th class="tarolas sticky-right">Tárolás helye <button class="rendez-gomb" type="button" data-sort-col="storage" title="Rendezés">↕</button></th>
         </tr>
         <tr class="szuro-sor">
           <th><input class="oszlop-kereso" data-col="0" placeholder="Keresés…" aria-label="Viszonylat keresése"></th>
           <th><input class="oszlop-kereso" data-col="1" placeholder="Keresés…" aria-label="Forda keresése"></th>
-          <th><input class="oszlop-kereso" data-col="2" placeholder="Keresés…" aria-label="Kezdés keresése"></th>
-          <th><input class="oszlop-kereso" data-col="3" placeholder="Keresés…" aria-label="Végzés keresése"></th>
+          <th></th>
+          <th></th>
           <th><input class="oszlop-kereso" data-col="4" placeholder="Keresés…" aria-label="Hely keresése"></th>
           <th><input class="oszlop-kereso" data-col="5" placeholder="Keresés…" aria-label="Rendszám keresése"></th>
 """)
 
     for time_index, idopont in enumerate(idopontok):
-        html.append(f'<th class="szuro-idopont" data-time-index="{time_index}"><input class="oszlop-kereso" data-time-col="{time_index}" placeholder="" aria-label="{escape(idopont)} keresése"></th>')
+        html.append('<th class="szuro-idopont" data-time-index="%s"></th>' % time_index)
 
     html.append("""
           <th class="tarolas"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Tárolás helye keresése"></th>
@@ -4201,16 +4192,20 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
   const timeFilterHeaders=Array.from(table.querySelectorAll('thead tr.szuro-sor th.szuro-idopont'));
   const timeCells=Array.from(table.querySelectorAll('tbody td.ellenorzes'));
   const totalTimes=timeHeaders.length;
+  const tbody=table.querySelector('tbody');
+  const sortButtons=Array.from(table.querySelectorAll('.rendez-gomb'));
+  let sortState={col:null,dir:1};
 
   function setTimeWindow(){
     const allHead=Array.from(table.querySelectorAll('thead tr.fejlec-sor th'));
+    const fixedHeads=allHead.filter(th=>!th.classList.contains('idopont'));
     let fixed=0;
-    allHead.forEach(th=>{ if(!th.classList.contains('idopont')) fixed += th.getBoundingClientRect().width; });
-    const available=Math.max(180, scroll.clientWidth-fixed-2);
+    fixedHeads.forEach(th=>fixed += th.getBoundingClientRect().width);
+    const available=Math.max(160, scroll.clientWidth-fixed-2);
     const minTimeWidth=30;
-    let visibleCount=totalTimes ? Math.min(totalTimes, Math.max(1, Math.floor(available/minTimeWidth))) : 0;
-    let width=visibleCount ? available/visibleCount : minTimeWidth;
-    if(width < minTimeWidth){ width=minTimeWidth; visibleCount=Math.min(totalTimes, Math.max(1, Math.floor(available/minTimeWidth))); }
+    const maxVisible=totalTimes ? Math.max(1, Math.floor(available/minTimeWidth)) : 0;
+    const visibleCount=totalTimes ? Math.min(totalTimes,maxVisible) : 0;
+    const width=visibleCount ? Math.max(minTimeWidth, available/visibleCount) : minTimeWidth;
     const maxStart=Math.max(0,totalTimes-visibleCount);
     slider.max=String(maxStart);
     let start=Math.min(Number(slider.value)||0,maxStart);
@@ -4223,7 +4218,6 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
 
   function applyFilters(){
     const fixedInputs=Array.from(table.querySelectorAll('.oszlop-kereso[data-col]:not([data-col="storage"])'));
-    const timeInputs=Array.from(table.querySelectorAll('.oszlop-kereso[data-time-col]'));
     const storageInput=table.querySelector('.oszlop-kereso[data-col="storage"]');
     const rows=Array.from(table.querySelectorAll('tbody tr'));
     rows.forEach(row=>{
@@ -4236,17 +4230,6 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
         const txt=cell ? cell.textContent.trim().toLocaleLowerCase('hu-HU') : '';
         if(!txt.includes(q)) ok=false;
       });
-      if(ok){
-        timeInputs.forEach(input=>{
-          if(!ok) return;
-          const q=input.value.trim().toLocaleLowerCase('hu-HU');
-          if(!q) return;
-          const idx=Number(input.dataset.timeCol);
-          const cell=row.querySelector('td.ellenorzes[data-time-index="'+idx+'"]');
-          const txt=cell ? cell.textContent.trim().toLocaleLowerCase('hu-HU') : '';
-          if(!txt.includes(q)) ok=false;
-        });
-      }
       if(ok && storageInput){
         const q=storageInput.value.trim().toLocaleLowerCase('hu-HU');
         if(q){
@@ -4260,11 +4243,42 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
     applyView(currentView);
   }
 
+  function valueForSort(row,col){
+    if(col==='storage') return row.lastElementChild ? row.lastElementChild.textContent.trim() : '';
+    const idx=Number(col);
+    const cell=row.children[idx];
+    return cell ? cell.textContent.trim() : '';
+  }
+
+  function compareValues(a,b,type){
+    if(type==='time'){
+      const ma=/^(\\d{1,2}):(\\d{2})$/.exec(a), mb=/^(\\d{1,2}):(\\d{2})$/.exec(b);
+      if(ma && mb) return (Number(ma[1])*60+Number(ma[2]))-(Number(mb[1])*60+Number(mb[2]));
+    }
+    const na=Number(a.replace(',','.')), nb=Number(b.replace(',','.'));
+    if(a!=='' && b!=='' && Number.isFinite(na) && Number.isFinite(nb)) return na-nb;
+    return a.localeCompare(b,'hu',{numeric:true,sensitivity:'base'});
+  }
+
+  function sortRows(button){
+    const col=button.dataset.sortCol;
+    const type=button.dataset.sortType||'';
+    if(sortState.col===col) sortState.dir*=-1; else {sortState.col=col;sortState.dir=1;}
+    sortButtons.forEach(b=>{b.classList.remove('active');b.textContent='↕';});
+    button.classList.add('active');
+    button.textContent=sortState.dir===1?'↑':'↓';
+    const rows=Array.from(tbody.querySelectorAll('tr'));
+    rows.sort((ra,rb)=>compareValues(valueForSort(ra,col),valueForSort(rb,col),type)*sortState.dir);
+    rows.forEach(r=>tbody.appendChild(r));
+    requestAnimationFrame(setTimeWindow);
+  }
+
   let currentView='biztor';
   function applyView(view){
     currentView=view;
     buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===view));
-    rowsForView=Array.from(table.querySelectorAll('tbody tr'));
+    table.classList.toggle('all-view',view==='mindketto');
+    const rowsForView=Array.from(table.querySelectorAll('tbody tr'));
     rowsForView.forEach(tr=>{
       const viewOk=view==='mindketto' || tr.dataset.forras===view;
       const filterOk=tr.dataset.filterMatch!=='0';
@@ -4274,13 +4288,13 @@ body{margin:0;padding:18px;background:radial-gradient(circle at 10% 0%,rgba(110,
     requestAnimationFrame(setTimeWindow);
   }
 
-  let rowsForView=[];
   buttons.forEach(b=>b.addEventListener('click',()=>applyView(b.dataset.nezet)));
+  sortButtons.forEach(b=>b.addEventListener('click',()=>sortRows(b)));
   slider.addEventListener('input',setTimeWindow);
   table.querySelectorAll('.oszlop-kereso').forEach(input=>input.addEventListener('input',applyFilters));
   window.addEventListener('resize',()=>requestAnimationFrame(setTimeWindow));
 
-  // Mindig Végállomás legyen az alapértelmezett nézet.
+  table.querySelectorAll('tbody tr').forEach(r=>r.dataset.filterMatch='1');
   applyView('biztor');
   setTimeWindow();
 })();
