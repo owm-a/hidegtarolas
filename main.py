@@ -4074,26 +4074,60 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
             )
 
 
-            # A kezdés előtti 15 percben is ugyanúgy fekete I/N jelenjen meg.
-            # A 15 perces előzetes figyelési ablak ettől még aktív marad,
-            # csak vizuálisan nem kap külön (sárga) színezést.
-            osztaly = None
+            # A kezdés előtti 15 percben és a végzés utáni 15 percben
+            # az I/N mindig fekete legyen. A tényleges kezdéstől a
+            # végzésig marad a zöld/piros színezés.
+            #
+            # Ez itt szándékosan felülírja az OK/NEM alapú osztályozást,
+            # mert különben egy későbbi általános .ok/.nem szabály újra
+            # zöldre/pirosra színezné a 15 perces ablakot.
+            osztaly = "nincs"
 
-            if osztaly is None and eredmeny == "OK":
+            try:
+                idopont_dt = datetime.strptime(idopont, "%H:%M")
+                kezdes_dt = datetime.strptime(
+                    str(sor.get("kezdés", "")),
+                    "%H:%M:%S"
+                )
+                vegzes_dt = datetime.strptime(
+                    str(sor.get("végzés", "")),
+                    "%H:%M:%S"
+                )
 
-                osztaly = "ok"
+                ellenorzes_kezdete = kezdes_dt - timedelta(minutes=15)
+                ellenorzes_vege = vegzes_dt + timedelta(minutes=15)
 
+                if (
+                    kezdes_dt <= idopont_dt <= vegzes_dt
+                    and eredmeny == "OK"
+                ):
+                    osztaly = "ok"
 
-            elif osztaly is None and eredmeny == "NEM":
+                elif (
+                    kezdes_dt <= idopont_dt <= vegzes_dt
+                    and eredmeny == "NEM"
+                ):
+                    osztaly = "nem"
 
-                osztaly = "nem"
+                elif (
+                    ellenorzes_kezdete <= idopont_dt < kezdes_dt
+                ) or (
+                    vegzes_dt < idopont_dt <= ellenorzes_vege
+                ):
+                    # 15 perces elő-/utóablak: fekete I/N.
+                    osztaly = "nincs"
 
+                elif eredmeny not in ("OK", "NEM"):
+                    eredmeny = "-"
 
-            elif osztaly is None:
-
-                osztaly = "nincs"
-
-                eredmeny = "-"
+            except (ValueError, TypeError):
+                if eredmeny == "OK":
+                    osztaly = "ok"
+                elif eredmeny == "NEM":
+                    osztaly = "nem"
+                else:
+                    osztaly = "nincs"
+                    eredmeny = "-"
 
 
             megjelenitett_eredmeny = {
@@ -4118,6 +4152,8 @@ Végállomáson tároló online járművek: """ + str(megtalalt_jarmuvek) + "/" 
 </tbody>
 
 </table>
+
+</div>
 
 </div>
 
