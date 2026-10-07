@@ -336,6 +336,55 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
    továbbra is a táblával együtt görgethető. */
 </style>
 <style>
+
+/* =========================================================
+   MOBIL – 12 időoszlopos ablak
+   A bal 6 oszlop és a Valós tárolás fix marad.
+   A csúszka a 12 látható időoszlop ablakát mozgatja.
+   ========================================================= */
+@media (max-width:900px){
+    .tabla-egesz{
+        overflow-x:auto;
+        overflow-y:hidden;
+        -webkit-overflow-scrolling:touch;
+    }
+
+    .fo-kozos-tabla .mobile-time-hidden{
+        display:none!important;
+    }
+
+    .fo-kozos-tabla .idopont-fejlec,
+    .fo-kozos-tabla .idopont-ertek,
+    .fo-kozos-tabla .idopont-cella{
+        width:42px!important;
+        min-width:42px!important;
+        max-width:42px!important;
+    }
+
+    .fo-kozos-tabla .sticky-jobb.storage{
+        position:sticky!important;
+        right:0!important;
+        z-index:55!important;
+        background:var(--surface)!important;
+        background-clip:padding-box;
+    }
+
+    .fo-kozos-tabla thead .sticky-jobb.storage{
+        z-index:70!important;
+        background:var(--surface3)!important;
+    }
+}
+
+@media (max-width:600px){
+    .fo-kozos-tabla .idopont-fejlec,
+    .fo-kozos-tabla .idopont-ertek,
+    .fo-kozos-tabla .idopont-cella{
+        width:40px!important;
+        min-width:40px!important;
+        max-width:40px!important;
+    }
+}
+
 /* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
 .rejtett-poen{
   position:fixed;
@@ -510,13 +559,63 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
       left+=w;
     }
   }
+  const MOBILE_TIME_WINDOW=12;
+
+  function isMobile(){
+    return window.matchMedia('(max-width:900px)').matches;
+  }
+
+  function setMobileTimeWindow(startIndex){
+    if(!isMobile()) return;
+
+    const timeCells=table.querySelectorAll('[data-time-index]');
+    let maxIndex=-1;
+
+    timeCells.forEach(function(cell){
+      const idx=Number(cell.dataset.timeIndex);
+      if(Number.isFinite(idx)) maxIndex=Math.max(maxIndex,idx);
+    });
+
+    const maxStart=Math.max(0,maxIndex-MOBILE_TIME_WINDOW+1);
+    startIndex=Math.max(0,Math.min(maxStart,Number(startIndex)||0));
+
+    timeCells.forEach(function(cell){
+      const idx=Number(cell.dataset.timeIndex);
+      cell.classList.toggle(
+        'mobile-time-hidden',
+        idx < startIndex || idx >= startIndex + MOBILE_TIME_WINDOW
+      );
+    });
+
+    slider.min='0';
+    slider.max=String(maxStart);
+    slider.step='1';
+    slider.value=String(startIndex);
+  }
+
   function layoutScroll(){
+    if(isMobile()){
+      setMobileTimeWindow(+slider.value||0);
+      fo.scrollLeft=0;
+      return;
+    }
+
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
     slider.max=String(max);
     if (fo.scrollLeft > max) fo.scrollLeft=max;
   }
+
   function layout(){
     sticky();
+
+    if(isMobile()){
+      // Mobilon a csúszka nem pixelben görget, hanem a 12 időoszlopos
+      // látható ablak kezdő időoszlopát választja ki.
+      setMobileTimeWindow(999999);
+      fo.scrollLeft=0;
+      return;
+    }
+
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
     slider.max=String(max);
     slider.value=String(max);
@@ -564,8 +663,24 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     rows().sort((a,b)=>cmp(val(a,c),val(b,c),t)*sortState.dir).forEach(r=>tbody.appendChild(r));
     requestAnimationFrame(()=>{sticky();layoutScroll();});
   }
-  slider.addEventListener('input',()=>{fo.scrollLeft=Math.min(fo.scrollWidth-fo.clientWidth,Math.max(0,+slider.value||0));});
-  fo.addEventListener('scroll',()=>{slider.value=String(Math.round(fo.scrollLeft));},{passive:true});
+  slider.addEventListener('input',()=>{
+    if(isMobile()){
+      setMobileTimeWindow(+slider.value||0);
+      fo.scrollLeft=0;
+      return;
+    }
+
+    fo.scrollLeft=Math.min(
+      fo.scrollWidth-fo.clientWidth,
+      Math.max(0,+slider.value||0)
+    );
+  });
+
+  fo.addEventListener('scroll',()=>{
+    if(!isMobile()){
+      slider.value=String(Math.round(fo.scrollLeft));
+    }
+  },{passive:true});
   buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet)));
   document.querySelectorAll('.rendez-gomb').forEach(b=>b.addEventListener('click',()=>sort(b)));
   document.querySelectorAll('.oszlop-kereso').forEach(i=>i.addEventListener('input',filters));
@@ -598,7 +713,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 
 const terkepJarmuvek = [];
 
-const terkepZonak = [{"kulcs": "bekasmegyer", "nev": "Békásmegyer", "lat_min": 47.602215, "lat_max": 47.603865, "lon_min": 19.06499, "lon_max": 19.067875}, {"kulcs": "csepel_szent_imre", "nev": "Csepel, Szent Imre tér", "lat_min": 47.430462715266955, "lat_max": 47.431423515348, "lon_min": 19.07051806889125, "lon_max": 19.07169262649567}, {"kulcs": "andor", "nev": "ArrivaBus Andor telephely", "lat_min": 47.456897452614015, "lat_max": 47.45974359947361, "lon_min": 19.025296690497736, "lon_max": 19.03053059847878}, {"kulcs": "bogancs", "nev": "ArrivaBus Bogáncs telephely", "lat_min": 47.569747494207284, "lat_max": 47.5731577937613, "lon_min": 19.131368356259316, "lon_max": 19.137645363043006}, {"kulcs": "csepel", "nev": "ArrivaBus Szállító telephely", "lat_min": 47.441927955392465, "lat_max": 47.4437481894374, "lon_min": 19.081122238879782, "lon_max": 19.084841859297306}, {"kulcs": "kobanya_also", "nev": "Kőbánya alsó", "lat_min": 47.48261593267198, "lat_max": 47.48462411413879, "lon_min": 19.12645422616769, "lon_max": 19.128730058590182}, {"kulcs": "kobanya_kispest", "nev": "Kőbánya-Kispest", "lat_min": 47.461787898640296, "lat_max": 47.462689191826485, "lon_min": 19.15019439393539, "lon_max": 19.151124752353716}, {"kulcs": "mexikoi_ut", "nev": "Mexikói út", "lat_min": 47.51961606697856, "lat_max": 47.52095851759252, "lon_min": 19.08940531844454, "lon_max": 19.092618832603126}, {"kulcs": "ors_vezer_E", "nev": "Örs vezér tere M+H (észak", "lat_min": 47.5037844857071, "lat_max": 47.505753039404794, "lon_min": 19.135811875938057, "lon_max": 19.137435732899583}, {"kulcs": "ors_vezer_D", "nev": "Örs vezér tere M+H (dél", "lat_min": 47.49940180349382, "lat_max": 47.50073054813034, "lon_min": 19.134581747988502, "lon_max": 19.136151481399818}, {"kulcs": "pestszentlorinc", "nev": "Pestszentlőrinc", "lat_min": 47.45337269162761, "lat_max": 47.45651651124522, "lon_min": 19.178530697809354, "lon_max": 19.18350366084327}];
+const terkepZonak = [{"kulcs": "bekasmegyer", "nev": "Békásmegyer", "lat_min": 47.602215, "lat_max": 47.603865, "lon_min": 19.06499, "lon_max": 19.067875}, {"kulcs": "csepel_szent_imre", "nev": "Csepel, Szent Imre tér", "lat_min": 47.430462715266955, "lat_max": 47.431423515348, "lon_min": 19.07051806889125, "lon_max": 19.07169262649567}, {"kulcs": "andor", "nev": "ArrivaBus Andor telephely", "lat_min": 47.45703696628262, "lat_max": 47.45974359947361, "lon_min": 19.025296690497736, "lon_max": 19.02988619533237}, {"kulcs": "bogancs", "nev": "ArrivaBus Bogáncs telephely", "lat_min": 47.569747494207284, "lat_max": 47.5731577937613, "lon_min": 19.131368356259316, "lon_max": 19.137645363043006}, {"kulcs": "csepel", "nev": "ArrivaBus Szállító telephely", "lat_min": 47.441927955392465, "lat_max": 47.4437481894374, "lon_min": 19.081122238879782, "lon_max": 19.084841859297306}, {"kulcs": "kobanya_also", "nev": "Kőbánya alsó", "lat_min": 47.48261593267198, "lat_max": 47.48462411413879, "lon_min": 19.12645422616769, "lon_max": 19.128730058590182}, {"kulcs": "kobanya_kispest", "nev": "Kőbánya-Kispest", "lat_min": 47.461787898640296, "lat_max": 47.462689191826485, "lon_min": 19.15019439393539, "lon_max": 19.151124752353716}, {"kulcs": "mexikoi_ut", "nev": "Mexikói út", "lat_min": 47.51961606697856, "lat_max": 47.52095851759252, "lon_min": 19.08940531844454, "lon_max": 19.092618832603126}, {"kulcs": "ors_vezer_E", "nev": "Örs vezér tere M+H (észak", "lat_min": 47.5037844857071, "lat_max": 47.505753039404794, "lon_min": 19.135811875938057, "lon_max": 19.137435732899583}, {"kulcs": "ors_vezer_D", "nev": "Örs vezér tere M+H (dél", "lat_min": 47.49940180349382, "lat_max": 47.50073054813034, "lon_min": 19.134581747988502, "lon_max": 19.136151481399818}, {"kulcs": "pestszentlorinc", "nev": "Pestszentlőrinc", "lat_min": 47.45337269162761, "lat_max": 47.45651651124522, "lon_min": 19.178530697809354, "lon_max": 19.18350366084327}];
 
 
 
