@@ -3855,7 +3855,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 }
 /* A rendszám jobb oldalán legyen egy jól látható függőleges elválasztó. */
 .fo-kozos-tabla .rendszam.sticky-bal{
-  box-shadow:inset -1px 0 rgba(255,255,255,.16),2px 0 0 var(--border)!important;
+  box-shadow:inset -1px 0 var(--border),2px 0 0 var(--border)!important;
 }
 /* A bal 6 oszlop sorai között is legyen ugyanaz a finom vízszintes szegély,
    mint a többi táblaterületen. */
@@ -3971,22 +3971,25 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   margin:0;
   padding:0 5px;
 }
-/* A Viszonylat és Forda szélességét a fejléc + rendezőikon adja,
-   ne a hosszabb adatcellák húzzák szét. */
+/* A Viszonylat és Forda oszlop szélességét a fejléc + rendezőikon
+   határozza meg. A tényleges szélességet a JS a kész fejlécből méri,
+   így a hosszabb adatcellák nem tudják széthúzni ezeket az oszlopokat. */
 .fo-kozos-tabla th.viszonylat,
-.fo-kozos-tabla th.forda{
-  width:1px!important;
-  min-width:0!important;
-  max-width:0!important;
+.fo-kozos-tabla th.forda,
+.fo-kozos-tabla td.viszonylat,
+.fo-kozos-tabla td.forda{
   white-space:nowrap;
 }
 .fo-kozos-tabla td.viszonylat,
 .fo-kozos-tabla td.forda{
-  width:1px!important;
-  min-width:0!important;
-  max-width:0!important;
-  white-space:nowrap;
-  overflow:visible;
+  overflow:hidden;
+  text-overflow:clip;
+}
+/* Minden bal oldali fix oszlopon legyen saját, folytonos jobb oldali
+   elválasztószegély. A box-shadow azért kell, hogy a sticky rétegben
+   se takarja el a szomszédos cella. */
+.fo-kozos-tabla .sticky-bal{
+  box-shadow:inset -1px 0 var(--border);
 }
 /* A Kezdés és Végzés között legyen határozott, de finom függőleges szegély. */
 .fo-kozos-tabla th.kezdés,
@@ -4131,7 +4134,33 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   let currentView='biztor',sortState={col:null,dir:1};
 
   function rows(){return Array.from(tbody.children);}
+  function headerDrivenColumns(){
+    if(!table) return;
+    const head=table.querySelector('thead tr:first-child');
+    if(!head) return;
+    ['viszonylat','forda'].forEach(function(cls){
+      const th=head.querySelector('th.'+cls);
+      if(!th) return;
+
+      // A fejléc saját tartalmának természetes szélességét mérjük,
+      // nem a teljes táblázat által már kiszámolt oszlopszélességet.
+      const probe=th.cloneNode(true);
+      probe.style.cssText += ';position:absolute;left:-10000px;top:-10000px;display:inline-block;width:max-content;min-width:0;max-width:none;white-space:nowrap;visibility:hidden;';
+      document.body.appendChild(probe);
+      const width=Math.ceil(probe.getBoundingClientRect().width);
+      probe.remove();
+
+      if(!width) return;
+      table.querySelectorAll('th.'+cls+', td.'+cls).forEach(function(cell){
+        cell.style.width=width+'px';
+        cell.style.minWidth=width+'px';
+        cell.style.maxWidth=width+'px';
+      });
+    });
+  }
+
   function sticky(){
+    headerDrivenColumns();
     const head=table.querySelector('thead tr:first-child');
     if(!head)return;
     const heads=Array.from(head.children).slice(0,6);
@@ -4257,6 +4286,7 @@ L.tileLayer(
 
 const terkepElemek = [];
 const jarmuMarkerek = {};
+const TERKEP_MAX_ZOOM = 14;
 
 
 function escapeHtml(value) {
@@ -4438,7 +4468,7 @@ function frissitTerkepNezet(view) {
     latszo.forEach(function(marker){ marker.addTo(map); });
     if (latszo.length) {
         const bounds = L.featureGroup(latszo).getBounds();
-        if (bounds.isValid()) map.fitBounds(bounds.pad(0.08));
+        if (bounds.isValid()) map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_MAX_ZOOM});
     }
 }
 
@@ -4453,7 +4483,7 @@ function fokuszJarmure(rendszam) {
     const marker = jarmuMarkerek[kulcs];
     if (!marker) return;
     const pos = marker.getLatLng();
-    map.flyTo(pos, Math.max(map.getZoom(), 15), {duration: 0.7});
+    map.flyTo(pos, Math.min(TERKEP_MAX_ZOOM, Math.max(map.getZoom(), 15)), {duration: 0.7});
     setTimeout(function(){
         marker.openPopup();
         const el = marker.getElement();
