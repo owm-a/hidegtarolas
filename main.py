@@ -3947,6 +3947,56 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   color:#fff;
   background:#3b82f6;
 }
+
+/* V10 – finomhangolás */
+/* A keresősáv pontosan kitölti a szűrőcellát, de nem lóg ki belőle. */
+.fo-kozos-tabla .szuro-sor .oszlop-kereso{
+  top:3px;
+  bottom:3px;
+  height:auto;
+  padding-top:0;
+  padding-bottom:0;
+}
+/* A rendszám gombja nem növelheti meg a sor magasságát. */
+.fo-kozos-tabla .rendszam-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:20px;
+  min-height:20px;
+  max-height:20px;
+  line-height:18px;
+  box-sizing:border-box;
+  vertical-align:middle;
+  margin:0;
+  padding:0 5px;
+}
+/* A Viszonylat és Forda szélességét a fejléc + rendezőikon adja,
+   ne a hosszabb adatcellák húzzák szét. */
+.fo-kozos-tabla th.viszonylat,
+.fo-kozos-tabla th.forda{
+  width:1px!important;
+  min-width:0!important;
+  max-width:0!important;
+  white-space:nowrap;
+}
+.fo-kozos-tabla td.viszonylat,
+.fo-kozos-tabla td.forda{
+  width:1px!important;
+  min-width:0!important;
+  max-width:0!important;
+  white-space:nowrap;
+  overflow:visible;
+}
+/* A Kezdés és Végzés között legyen határozott, de finom függőleges szegély. */
+.fo-kozos-tabla th.kezdés,
+.fo-kozos-tabla td.kezdés{
+  border-right:1px solid var(--border)!important;
+}
+.fo-kozos-tabla th.végzés,
+.fo-kozos-tabla td.végzés{
+  border-left:1px solid var(--border)!important;
+}
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 </head>
@@ -3982,7 +4032,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 <div id="panel-adatok" class="nezet-panel">
 <div class="tabla-szekcio">
   <div class="idopont-csuszkasav" id="fo-csuszkasav">
-    <div class="csuszka-info"><strong id="aktiv-sorok-szoveg">Idővonal</strong></div>
+    <div class="csuszka-info"><strong id="aktiv-sorok-szoveg">Idővonal&nbsp;</strong></div>
     <input type="range" id="fo-idopont-csuszka" min="0" max="0" value="0" step="1" aria-label="Időpont görgetése">
     <div></div>
   </div>
@@ -4087,8 +4137,8 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     const heads=Array.from(head.children).slice(0,6);
     let left=0;
     for(let i=0;i<6;i++){
-      const w=heads[i]?.offsetWidth||0;
-      const px=Math.round(left)+'px';
+      const w=heads[i]?.getBoundingClientRect().width||0;
+      const px=left.toFixed(3)+'px';
       table.querySelectorAll('.bal-'+(i+1)).forEach(c=>c.style.left=px);
       document.documentElement.style.setProperty('--bal-'+(i+1),px);
       left+=w;
@@ -4160,13 +4210,18 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 (function(){
   const btn=document.getElementById('theme-toggle');
   if(!btn) return;
-  function applyTheme(light){
+  function applyTheme(light, save=true){
     document.body.classList.toggle('light-mode',light);
     btn.textContent=light?'☾ Sötét mód':'☀ Világos mód';
+    if(save){
+      try{localStorage.setItem('futar-theme', light ? 'light' : 'dark');}catch(e){}
+    }
     window.dispatchEvent(new Event('resize'));
   }
-  applyTheme(false);
-  btn.addEventListener('click',()=>applyTheme(!document.body.classList.contains('light-mode')));
+  let savedTheme=null;
+  try{savedTheme=localStorage.getItem('futar-theme');}catch(e){}
+  applyTheme(savedTheme==='light', false);
+  btn.addEventListener('click',()=>applyTheme(!document.body.classList.contains('light-mode'), true));
 })();
 </script>
 
