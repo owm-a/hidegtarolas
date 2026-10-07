@@ -4400,7 +4400,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     html.append('<th class="sticky-bal bal-2"><input class="oszlop-kereso" data-col="1" placeholder="Keresés…" aria-label="Forda keresése"></th>')
     html.append('<th class="sticky-bal bal-3"></th><th class="sticky-bal bal-4"></th>')
     html.append('<th class="sticky-bal bal-5"><input class="oszlop-kereso" data-col="4" placeholder="Keresés…" aria-label="Hely keresése"></th>')
-    html.append('<th class="sticky-bal bal-6"><input class="oszlop-kereso" data-col="5" placeholder="Keresés…" aria-label="Rendszám keresése"></th>')
+    html.append('<th class="rendszam sticky-bal bal-6"><input class="oszlop-kereso" data-col="5" placeholder="Keresés…" aria-label="Rendszám keresése"></th>')
     for time_index, idopont in enumerate(idopontok):
         html.append(f'<th class="idopont-ertek" data-time-index="{time_index}">{escape(idopont)}</th>')
     html.append('<th class="sticky-jobb storage"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Valós tárolás keresése"></th></tr></thead><tbody id="fix-tbody-common">')
