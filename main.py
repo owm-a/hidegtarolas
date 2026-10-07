@@ -4254,11 +4254,11 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
    MOBIL – keresőmezők maradjanak a saját szűrőcellájukban
    ========================================================= */
 @media (max-width:900px){
-  /* Mobilon a szűrősor ne legyen sticky.
-     A keresőmező maradjon a saját cellájában. */
+  /* Mobilon a szűrősor ne legyen sticky, de a cella maradjon
+     pozicionálási viszonyítási pont a saját keresőmezőjének. */
   .fo-kozos-tabla .szuro-sor th.sticky-bal,
   .fo-kozos-tabla .szuro-sor th.sticky-jobb{
-    position:static!important;
+    position:relative!important;
     top:auto!important;
     right:auto!important;
     bottom:auto!important;
@@ -4266,6 +4266,17 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     z-index:auto!important;
     overflow:hidden!important;
   }
+
+  /* A jobb oldali "Valós tárolás" oszlop mobilon ne legyen sticky.
+     Ez okozza a függőleges görgetés közbeni jobbra ugrást. */
+  .fo-kozos-tabla .sticky-jobb{
+    position:static!important;
+    right:auto!important;
+    box-shadow:none!important;
+  }
+
+  /* A keresőmező a saját szűrőcelláján belül maradjon, és ne
+     járuljon hozzá a cella természetes szélességéhez. */
   .fo-kozos-tabla .szuro-sor th .oszlop-kereso,
   .fo-kozos-tabla .szuro-sor .oszlop-kereso{
     position:absolute!important;
