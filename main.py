@@ -3904,8 +3904,6 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 /* Mobil: valódi, egyszerűen görgethető táblázat.
    Nincs sticky/átfedés; a Valós tárolás az időoszlopok elé kerül. */
 @media(max-width:600px){
-  .tabla-szekcio{height:auto!important;min-height:0!important}
-  .tabla-egesz{height:auto!important;min-height:0!important}
   .idopont-csuszkasav{display:none!important}
   .fo-kozos-tabla .sticky-bal,
   .fo-kozos-tabla .sticky-jobb{
@@ -3944,7 +3942,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla th,.fo-kozos-tabla td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap;background:var(--surface)}
 .fo-kozos-tabla th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .fo-kozos-tabla thead tr{height:31px}.fo-kozos-tabla thead th{height:31px}
-.fo-kozos-tabla tbody tr{height:24px}.fo-kozos-tabla tbody td{height:24px;line-height:22px;padding-top:0;padding-bottom:0;overflow:hidden;vertical-align:middle}
+.fo-kozos-tabla tbody tr{height:24px;content-visibility:auto;contain-intrinsic-size:24px}.fo-kozos-tabla tbody td{height:24px;line-height:22px;padding-top:0;padding-bottom:0;overflow:hidden;vertical-align:middle}
 /* A 6 bal oldali oszlop mindig csak a saját tartalmának helyét foglalja. */
 .fo-kozos-tabla .viszonylat,.fo-kozos-tabla .forda,.fo-kozos-tabla .rendszam,.fo-kozos-tabla .kezdés,.fo-kozos-tabla .végzés,.fo-kozos-tabla .hely{width:1px;min-width:0;white-space:nowrap}
 .fo-kozos-tabla .hely{text-align:left}.fo-kozos-tabla .rendszam{text-align:right;font-weight:bold}
@@ -4157,19 +4155,20 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   color:var(--accent)!important;
 }
 
-/* Végső mobil javítás: a 2. sor soha ne legyen sticky; az egész tábla együtt görög. */
+
+/* MOBIL – a 2. (szűrő/időérték) sor is teljesen együtt görög a táblával. */
 @media(max-width:600px){
-  .fo-kozos-tabla thead .szuro-sor th,
+  .fo-kozos-tabla .szuro-sor th,
   .fo-kozos-tabla .szuro-sor th.sticky-bal,
   .fo-kozos-tabla .szuro-sor th.sticky-jobb{
     position:static!important;
-    top:auto!important;
-    bottom:auto!important;
     left:auto!important;
     right:auto!important;
     z-index:auto!important;
+    box-shadow:none!important;
   }
 }
+
 </style>
 <style>
 /* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
@@ -4256,7 +4255,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 <span class="rejtett-poen">de ki az a Korporéjsön?</span>
 <div class="fejlec">
   <div class="fejlec-top">
-    <div class="cim"><b>ArrivaBus hidegtárolás</b></div>
+    <div class="cim" id="oldal-cim" role="button" tabindex="0" title="Oldal frissítése"><b>ArrivaBus hidegtárolás</b></div>
     <button id="theme-toggle" class="theme-toggle" type="button" title="Sötét / világos mód">☀ Sötét mód</button>
   </div>
   <div class="fejlec-adatok riport-fejlec-adatok">
@@ -4433,9 +4432,16 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   function layout(){
     sticky();
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
+    const mobil=window.matchMedia('(max-width:600px)').matches;
+    const current=Math.min(max,Math.max(0,fo.scrollLeft||0));
     slider.max=String(max);
-    slider.value=String(max);
-    fo.scrollLeft=max;
+    if(mobil){
+      fo.scrollLeft=current;
+      slider.value=String(current);
+    }else{
+      slider.value=String(max);
+      fo.scrollLeft=max;
+    }
   }
   function view(v){
     currentView=v;
@@ -4492,24 +4498,20 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet)));
   sortButtons.forEach(b=>b.addEventListener('click',()=>sort(b)));
   filterInputs.forEach(i=>i.addEventListener('input',filters));
-  window.addEventListener('resize',()=>requestAnimationFrame(()=>{
-    mobilTablaSorrend();
-    if(window.matchMedia('(max-width:600px)').matches){
-      sticky();
-      layoutScroll();
-    }else{
+  window.addEventListener('resize',()=>{
+    const oldScroll=fo.scrollLeft;
+    requestAnimationFrame(()=>{
+      mobilTablaSorrend();
       layout();
-    }
-  }));
+      if(window.matchMedia('(max-width:600px)').matches){
+        const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
+        fo.scrollLeft=Math.min(max,Math.max(0,oldScroll||0));
+        slider.value=String(fo.scrollLeft);
+      }
+    });
+  });
   rowList.forEach(r=>r.dataset.filterMatch='1');
-  view('biztor');
-  if(window.matchMedia('(max-width:600px)').matches){
-    sticky();
-    layoutScroll();
-    fo.scrollLeft=0;
-  }else{
-    layout();
-  }
+  view('biztor');layout();
 })();
 (function(){
   const btn=document.getElementById('theme-toggle');
@@ -4526,6 +4528,18 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   try{savedTheme=localStorage.getItem('futar-theme');}catch(e){}
   applyTheme(savedTheme==='light', false);
   btn.addEventListener('click',()=>applyTheme(!document.body.classList.contains('light-mode'), true));
+})();
+(function(){
+  const cim=document.getElementById('oldal-cim');
+  if(!cim) return;
+  const frissit=()=>window.location.reload();
+  cim.addEventListener('click',frissit);
+  cim.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){
+      e.preventDefault();
+      frissit();
+    }
+  });
 })();
 </script>
 
@@ -4809,28 +4823,6 @@ function frissitGarazsCsuszkat() {
 }
 window.addEventListener("resize", frissitGarazsCsuszkat);
 window.addEventListener("load", frissitGarazsCsuszkat);
-
-// A GitHub Actions 5 percenként frissíti az oldalt; a böngésző is töltsön be új adatot.
-// Mobilon az aktuális vízszintes táblapozíciót megőrizzük újratöltéskor.
-(function(){
-  const tabla=document.getElementById('fo-tabla');
-  if(tabla){
-    try{
-      const mentett=sessionStorage.getItem('futar-table-scroll-left');
-      if(mentett!==null){
-        requestAnimationFrame(()=>{
-          const x=Math.max(0,Math.min(tabla.scrollWidth-tabla.clientWidth,Number(mentett)||0));
-          tabla.scrollLeft=x;
-        });
-      }
-    }catch(e){}
-    const mentes=()=>{
-      try{sessionStorage.setItem('futar-table-scroll-left',String(Math.round(tabla.scrollLeft)));}catch(e){}
-    };
-    window.addEventListener('pagehide',mentes);
-  }
-  setTimeout(()=>window.location.reload(),300000);
-})();
 
 </script>
 
