@@ -127,7 +127,7 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .biztor-sor .adat-fixed{}
 .all-view .fix-tabla tr[data-forras="biztor"] > td,.all-view .storage-tabla tr[data-forras="biztor"] > td{background:rgba(110,168,254,.055)}
 .all-view .fix-tabla tr[data-forras="biztor"] > td,.all-view .storage-tabla tr[data-forras="biztor"] > td{color:#82b4ff;font-weight:700}
-.all-view .biztor-sor > td .rendszam-link{color:#82b4ff;font-weight:800}
+.all-view .biztor-sor > td .rendszam-link{font-weight:800}
 .map-focus{animation:mapPulse .9s ease-out}.vehicle-pin{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 1px 5px rgba(0,0,0,.45);box-sizing:border-box}.vehicle-pin::after{content:"";display:block;width:7px;height:7px;margin:5px auto 0;border-radius:50%;background:white}.vehicle-pin.green{background:#00b050}.vehicle-pin.red{background:#ff0000}.vehicle-pin.yellow{background:#ffd966}.vehicle-pin.blue{background:#4da3ff}.vehicle-pin.gray{background:#687384}
 @keyframes mapPulse{0%{filter:brightness(1.8)}100%{filter:brightness(1)}}
 .leaflet-popup-content{line-height:1.45}
@@ -137,8 +137,8 @@ body.light-mode .cim,body.light-mode .adat b{color:var(--text)}
 body.light-mode .status-pill.ok{color:#198754;background:rgba(25,135,84,.10);border-color:rgba(25,135,84,.28)}
 body.light-mode .status-pill.nem{color:#c93f49;background:rgba(201,63,73,.09);border-color:rgba(201,63,73,.26)}
 body.light-mode .status-pill.neutral{color:#667085;background:rgba(102,112,133,.08);border-color:rgba(102,112,133,.20)}
-body.light-mode .storage-tabla td.tarolas-ok{color:#198754;border-top-color:rgba(25,135,84,.34);border-bottom-color:rgba(25,135,84,.34)}
-body.light-mode .storage-tabla td.tarolas-eltérés{color:#c93f49;border-top-color:rgba(201,63,73,.34);border-bottom-color:rgba(201,63,73,.34)}
+body.light-mode .storage-tabla td.tarolas-ok{color:#167347;border-top-color:rgba(25,135,84,.34);border-bottom-color:rgba(25,135,84,.34)}
+body.light-mode .storage-tabla td.tarolas-eltérés{color:#ad3540;border-top-color:rgba(201,63,73,.34);border-bottom-color:rgba(201,63,73,.34)}
 body.light-mode .storage-tabla td.tarolas-na{color:var(--text);border-top-color:var(--border);border-bottom-color:var(--border)}
 body:not(.light-mode) #geozona-terkep .leaflet-tile-pane{filter:invert(90%) hue-rotate(180deg) brightness(78%) contrast(88%) saturate(70%)}
 body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
@@ -463,6 +463,36 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   border-left:1px solid var(--border)!important;
 }
 </style>
+
+<style>
+body.light-mode .fo-kozos-tabla td.tarolas-ok{color:#167347!important}
+body.light-mode .fo-kozos-tabla td.tarolas-eltérés{color:#ad3540!important}
+body.light-mode .fo-kozos-tabla .rendszam-link{color:#1f4f8f}
+body.light-mode .all-view .biztor-sor > td .rendszam-link{color:#1f4f8f}
+</style>
+
+
+<style>
+@media (max-width:900px){
+  .tabla-szekcio{
+    overflow:visible!important;
+  }
+  .tabla-egesz{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-x pan-y;
+  }
+  .fo-kozos-tabla{
+    width:max-content!important;
+    min-width:max-content!important;
+  }
+}
+</style>
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 </head>
 <body>
@@ -596,7 +626,6 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   function layoutScroll(){
     if(isMobile()){
       setMobileTimeWindow(+slider.value||0);
-      fo.scrollLeft=0;
       return;
     }
 
@@ -612,7 +641,6 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
       // Mobilon a csúszka nem pixelben görget, hanem a 12 időoszlopos
       // látható ablak kezdő időoszlopát választja ki.
       setMobileTimeWindow(999999);
-      fo.scrollLeft=0;
       return;
     }
 
@@ -666,7 +694,6 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   slider.addEventListener('input',()=>{
     if(isMobile()){
       setMobileTimeWindow(+slider.value||0);
-      fo.scrollLeft=0;
       return;
     }
 
