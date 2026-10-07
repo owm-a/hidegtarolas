@@ -3746,6 +3746,78 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-eltérés{color:#ff858d}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-na{color:var(--text)}
 #fo-tabla.view-biztor .fo-kozos-tabla tbody tr[data-forras="garazs"],#fo-tabla.view-garazs .fo-kozos-tabla tbody tr[data-forras="biztor"],#fo-tabla .fo-kozos-tabla tbody tr[data-filter-match="0"]{display:none}
+/* =========================================================
+   VÉGLEGES KÖZÖS TÁBLA MÉRETEZÉS / STICKY RÉTEG
+   ========================================================= */
+.fo-kozos-tabla{
+  width:max-content;
+  min-width:100%;
+  table-layout:auto;
+}
+.fo-kozos-tabla .viszonylat,
+.fo-kozos-tabla .forda,
+.fo-kozos-tabla .kezdés,
+.fo-kozos-tabla .végzés,
+.fo-kozos-tabla .hely,
+.fo-kozos-tabla .rendszam{
+  width:max-content;
+  min-width:max-content;
+  max-width:none;
+  white-space:nowrap;
+}
+.fo-kozos-tabla .sticky-bal{
+  position:sticky;
+  z-index:100;
+  background-color:var(--surface) !important;
+  background-image:none !important;
+  background-clip:border-box;
+}
+.fo-kozos-tabla thead .sticky-bal{
+  z-index:110;
+  background-color:var(--surface3) !important;
+}
+.fo-kozos-tabla .sticky-jobb.storage{
+  width:max-content;
+  min-width:max-content;
+  max-width:none;
+  white-space:nowrap;
+}
+.fo-kozos-tabla .sticky-jobb{
+  position:sticky;
+  right:0;
+  z-index:100;
+  background-color:var(--surface) !important;
+  background-image:none !important;
+  background-clip:border-box;
+  box-shadow:-2px 0 0 var(--border);
+}
+.fo-kozos-tabla thead .sticky-jobb{
+  z-index:110;
+  background-color:var(--surface3) !important;
+}
+/* Az Összes nézet kék kiemelése csak a szöveget érintse;
+   ne legyen áttetsző háttér, mert azon át az időcellák látszanának. */
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td{
+  background-color:var(--surface) !important;
+  background-image:none !important;
+  color:#82b4ff;
+  font-weight:700;
+}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.sticky-bal,
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.sticky-jobb{
+  background-color:var(--surface) !important;
+}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-ok{color:#6ee7a8}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-eltérés{color:#ff858d}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-na{color:var(--text)}
+.fo-kozos-tabla td.tarolas{
+  font-weight:750;
+  white-space:nowrap;
+}
+.fo-kozos-tabla td.tarolas-na{color:var(--text)}
+/* A negatív z-indexű fedő pszeudoelem már nem szükséges,
+   a sticky cella saját teljesen opák háttere takar. */
+.fo-kozos-tabla .sticky-bal::after{content:none !important}
 </style>
 <style>
 /* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
@@ -3875,10 +3947,20 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
         eredmeny_riport = str(rr.get("eredmény", "")).strip()
         tarolas = str(rr.get("tárolás helye", "")).strip()
         if not rr or not eredmeny_riport:
-            tarolas = "n.a"; rcls = "tarolas-na"
+            tarolas = "n.a"
+            rcls = "tarolas-na"
+        elif tarolas in ("Nincs adat", "-"):
+            # Az ELTÉRÉS lehet valódi ellenőrzési eredmény, de ha
+            # nincs hozzá tényleges tárolási hely, az n.a nem lehet
+            # piros: nincs megjeleníthető helyadat.
+            tarolas = "n.a"
+            rcls = "tarolas-na"
+        elif eredmeny_riport == "RENDBEN TÁROLT":
+            rcls = "tarolas-ok"
+        elif eredmeny_riport == "ELTÉRÉS TÖRTÉNT":
+            rcls = "tarolas-eltérés"
         else:
-            if tarolas in ("Nincs adat", "-"): tarolas = "n.a"
-            rcls = "tarolas-ok" if eredmeny_riport == "RENDBEN TÁROLT" else "tarolas-eltérés" if eredmeny_riport == "ELTÉRÉS TÖRTÉNT" else "tarolas-na"
+            rcls = "tarolas-na"
         html.append(f'<td class="sticky-jobb storage tarolas {rcls}">{escape(tarolas)}</td></tr>')
 
     html.append('</tbody></table></div></div></div>')
@@ -3910,10 +3992,17 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
       left+=w;
     }
   }
+  function layoutScroll(){
+    const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
+    slider.max=String(max);
+    if (fo.scrollLeft > max) fo.scrollLeft=max;
+  }
   function layout(){
     sticky();
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
-    slider.max=String(max);slider.value=String(max);fo.scrollLeft=max;
+    slider.max=String(max);
+    slider.value=String(max);
+    fo.scrollLeft=max;
   }
   function view(v){
     currentView=v;
@@ -3921,6 +4010,11 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     fo.classList.remove('view-biztor','view-garazs','view-mindketto');
     fo.classList.add('view-'+v);fo.classList.toggle('all-view',v==='mindketto');
     if(label)label.textContent=v==='biztor'?'Végállomás':v==='garazs'?'Garázs':'Összes';
+
+    // A display:none miatt a böngésző a jelenlegi nézet látható sorai
+    // alapján újraméretezi a természetes oszlopszélességeket. Ezután
+    // számoljuk újra a sticky balpozíciókat.
+    requestAnimationFrame(()=>{sticky();layoutScroll();});
   }
   function filters(){
     const inputs=Array.from(document.querySelectorAll('.oszlop-kereso[data-col]'));
@@ -3935,6 +4029,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
       });
       r.dataset.filterMatch=ok?'1':'0';
     });
+    requestAnimationFrame(()=>{sticky();layoutScroll();});
   }
   function val(r,c){const x=c==='storage'?r.querySelector('.sticky-jobb'):r.children[+c];return x?.textContent.trim()||'';}
   function cmp(a,b,t){
@@ -3950,7 +4045,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     document.querySelectorAll('.rendez-gomb').forEach(b=>{b.classList.remove('active');b.textContent='↕'});
     btn.classList.add('active');btn.textContent=sortState.dir===1?'↑':'↓';
     rows().sort((a,b)=>cmp(val(a,c),val(b,c),t)*sortState.dir).forEach(r=>tbody.appendChild(r));
-    sticky();
+    requestAnimationFrame(()=>{sticky();layoutScroll();});
   }
   slider.addEventListener('input',()=>{fo.scrollLeft=Math.min(fo.scrollWidth-fo.clientWidth,Math.max(0,+slider.value||0));});
   fo.addEventListener('scroll',()=>{slider.value=String(Math.round(fo.scrollLeft));},{passive:true});
