@@ -3613,48 +3613,6 @@ body{
 .ido-ablak{min-width:0;overflow:hidden;background:var(--surface);border-left:1px solid var(--border);border-right:1px solid var(--border)}
 .ido-belso{width:max-content;min-width:100%;overflow:visible}
 .storage-ablak{min-width:0;overflow:hidden;background:var(--surface)}
-
-/* =========================================================
-   FIX RÉTEGEK AZ IDŐOSZLOPOK ELŐTT
-   A bal 6 oszlop és a Valós tárolás mindig takarja az időtáblát.
-   Az időtábla csak a középső viewporton belül mozoghat.
-   ========================================================= */
-#fo-tabla{position:relative;isolation:isolate;}
-#fo-tabla>.fix-ablak{
-    position:relative;
-    z-index:30;
-    background:var(--surface);
-    overflow:hidden;
-    isolation:isolate;
-}
-#fo-tabla>.ido-ablak{
-    position:relative;
-    z-index:1;
-    overflow:hidden;
-    background:var(--surface);
-}
-#fo-tabla>.storage-ablak{
-    position:relative;
-    z-index:30;
-    background:var(--surface);
-    overflow:hidden;
-    isolation:isolate;
-}
-#fo-tabla>.fix-ablak table,
-#fo-tabla>.storage-ablak table{
-    position:relative;
-    z-index:31;
-    background:var(--surface);
-}
-#fo-tabla>.ido-ablak .ido-belso,
-#fo-tabla>.ido-ablak .ido-tabla{
-    position:relative;
-    z-index:1;
-}
-/* A két határvonal legyen teljesen egyértelmű. */
-#fo-tabla>.fix-ablak{border-right:2px solid var(--border);box-sizing:border-box;}
-#fo-tabla>.storage-ablak{border-left:2px solid var(--border);box-sizing:border-box;}
-
 table{border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto}
 th,td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap}
 th{background:var(--surface3);font-weight:600;color:#cbd5e1}
@@ -3694,7 +3652,18 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
     .idopont-csuszkasav{width:max-content;min-width:max-content;}
 }
 
-.ido-tabla .status-pill{height:20px;line-height:1}
+.ido-tabla .fo-kozos-tabla{border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto;width:max-content;min-width:100%;}
+ .fo-kozos-tabla .col-idopont{width:42px;min-width:42px;max-width:42px}
+ .fo-kozos-tabla th,.fo-kozos-tabla td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap}
+ .fo-kozos-tabla th{background:var(--surface3);font-weight:600;color:#cbd5e1}
+ .fo-kozos-tabla tbody tr{height:24px}.fo-kozos-tabla thead tr{height:31px}.fo-kozos-tabla thead th{height:31px}
+ .fo-kozos-tabla .sticky-bal,.fo-kozos-tabla .sticky-jobb{position:sticky;background:var(--surface);z-index:30}
+ .fo-kozos-tabla thead .sticky-bal,.fo-kozos-tabla thead .sticky-jobb{background:var(--surface3);z-index:50}
+ .fo-kozos-tabla .sticky-jobb{right:0;box-shadow:-2px 0 0 var(--border)}
+ .fo-kozos-tabla .sticky-bal.bal-6{box-shadow:2px 0 0 var(--border)}
+ .all-view .fo-kozos-tabla tr[data-forras="biztor"] > td{background:rgba(110,168,254,.055);color:#82b4ff;font-weight:700}.all-view .fo-kozos-tabla tr[data-forras="biztor"] > td .rendszam-link{color:#82b4ff;font-weight:800}
+ #fo-tabla.view-biztor .fo-kozos-tabla tbody tr[data-forras="garazs"],#fo-tabla.view-garazs .fo-kozos-tabla tbody tr[data-forras="biztor"],#fo-tabla .fo-kozos-tabla tbody tr[data-filter-match="0"]{display:none}
+ .status-pill{height:20px;line-height:1}
 .ido-tabla th.idopont-fejlec{font-size:0;color:transparent;padding:0}
 .ido-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px;text-align:left}
 .szuro-sor th{background:var(--surface2);height:31px;padding:3px 4px}
@@ -3922,240 +3891,67 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 
 <script>
 (function(){
-  const fixAblak=document.getElementById('fix-ablak');
-  const idoAblak=document.getElementById('ido-ablak');
-  const idoBelso=document.getElementById('ido-belso');
-  const storageAblak=document.getElementById('storage-ablak');
+  const fo=document.getElementById('fo-tabla');
+  const oldFix=document.getElementById('fix-ablak');
+  const oldTime=document.getElementById('ido-ablak');
+  const oldStorage=document.getElementById('storage-ablak');
   const slider=document.getElementById('fo-idopont-csuszka');
   const sliderBar=document.getElementById('fo-csuszkasav');
   const label=document.getElementById('aktiv-sorok-szoveg');
   const buttons=document.querySelectorAll('.nezet-gomb');
-  const fixTbody=document.getElementById('fix-tbody');
-  const idoTbody=document.getElementById('ido-tbody');
-  const storageTbody=document.getElementById('storage-tbody');
-  const sortButtons=document.querySelectorAll('.rendez-gomb');
-  if(!fixAblak || !idoAblak || !idoBelso || !storageAblak) return;
+  if(!fo||!oldFix||!oldTime||!oldStorage||!slider)return;
 
-  let currentView='biztor';
-  let sortState={col:null,dir:1};
-
-  // A három táblázat sorai CSS-ben fix, azonos 24px magasságúak.
-  // Nincs soronkénti getBoundingClientRect / inline height állítás, mert ez
-  // nézetváltáskor felesleges layout újraszámolást és lagot okozna.
-
-  function setLayout(){
-    // A fix és a storage rész természetes szélességét használjuk.
-    // A középső időtábla maradék helyet kap. A csúszka csak EZUTÁN
-    // számolja ki a ténylegesen görgethető időtábla-szélességet.
-    const leftTable=fixAblak.querySelector('table');
-    const storageTable=storageAblak.querySelector('table');
-
-    // A Hely oszlopot ténylegesen a leghosszabb cella szélességére zárjuk.
-    // A mérés a tényleges DOM-szövegen történik, így nem a grid/csúszka
-    // rendelkezésre álló helye dönti el az oszlop szélességét.
-    if(leftTable){
-      // A bal táblát ténylegesen a saját oszlopai méretezzék.
-      // Először megőrizzük a többi oszlop természetes szélességét, majd
-      // a Hely oszlopot külön, a leghosszabb tényleges szöveghez igazítjuk.
-      const fejlecCells=Array.from(leftTable.querySelectorAll('thead tr.fejlec-sor th'));
-      const termeszetesSzelessegek=fejlecCells.map(cell=>Math.ceil(cell.getBoundingClientRect().width));
-      const helyCells=Array.from(leftTable.querySelectorAll('tbody td.hely'));
-      const helyHeader=leftTable.querySelector('thead th.hely');
-      const canvas=document.createElement('canvas');
-      const ctx=canvas.getContext('2d');
-      let helyWidth=0;
-      if(ctx){
-        helyCells.forEach(cell=>{
-          const cs=getComputedStyle(cell);
-          ctx.font=cs.font;
-          const w=ctx.measureText(cell.textContent.trim()).width +
-                  parseFloat(cs.paddingLeft || 0) + parseFloat(cs.paddingRight || 0) + 2;
-          helyWidth=Math.max(helyWidth,w);
-        });
-        if(helyHeader){
-          const hs=getComputedStyle(helyHeader);
-          ctx.font=hs.font;
-          const w=ctx.measureText('Hely').width +
-                  parseFloat(hs.paddingLeft || 0) + parseFloat(hs.paddingRight || 0) + 24;
-          helyWidth=Math.max(helyWidth,w);
-        }
-        helyWidth=Math.ceil(helyWidth);
-
-        // A böngésző táblázat-layoutja különben a grid rendelkezésre álló
-        // szélességéhez nyújthatja a Hely oszlopot. Fix layout + colgroup
-        // mellett ez többé nem történhet meg.
-        let colgroup=leftTable.querySelector('colgroup.fix-colgroup');
-        if(!colgroup){
-          colgroup=document.createElement('colgroup');
-          colgroup.className='fix-colgroup';
-          for(let i=0;i<6;i++) colgroup.appendChild(document.createElement('col'));
-          leftTable.insertBefore(colgroup,leftTable.firstChild);
-        }
-
-        const szelessegek=termeszetesSzelessegek.slice(0,6);
-        szelessegek[4]=helyWidth;
-        szelessegek.forEach((w,i)=>{
-          const col=colgroup.children[i];
-          col.style.width=Math.max(1,w)+'px';
-        });
-
-        const teljesSzelesseg=szelessegek.reduce((a,b)=>a+b,0);
-        leftTable.style.tableLayout='fixed';
-        leftTable.style.width=teljesSzelesseg+'px';
-        leftTable.style.minWidth=teljesSzelesseg+'px';
-        leftTable.style.maxWidth=teljesSzelesseg+'px';
-      }
-    }
-
-    const leftWidth=leftTable ? Math.ceil(leftTable.getBoundingClientRect().width) : 0;
-    const storageWidth=storageTable ? Math.ceil(storageTable.getBoundingClientRect().width) : 0;
-    const section=document.querySelector('.tabla-szekcio');
-    const available=section ? section.clientWidth : window.innerWidth;
-
-    document.documentElement.style.setProperty('--left-width',leftWidth+'px');
-    document.documentElement.style.setProperty('--storage-width',storageWidth+'px');
-
-    // Mobilon ne szűküljön nullára az időtábla a bal + jobb fix rész miatt.
-    // 340 px = kb. 10 db 34 px-es időoszlop, így a külön csúszka
-    // mobilon is ténylegesen használható marad. A teljes táblázat
-    // ettől még kívülről vízszintesen húzható.
-    const mobil = window.innerWidth <= 900;
-    const middle = mobil
-        ? 340
-        : Math.max(0, available-leftWidth-storageWidth-2);
-
-    document.documentElement.style.setProperty('--time-viewport-width',middle+'px');
-
-    if(sliderBar){
-      sliderBar.style.gridTemplateColumns=leftWidth+'px '+middle+'px '+storageWidth+'px';
-      if(mobil){
-        sliderBar.style.width=(leftWidth+middle+storageWidth)+'px';
-        sliderBar.style.minWidth=(leftWidth+middle+storageWidth)+'px';
-      }else{
-        sliderBar.style.width='100%';
-        sliderBar.style.minWidth='0';
-      }
-    }
-
-    if(mobil){
-      const teljesTablaSzelesseg=leftWidth+middle+storageWidth;
-      document.querySelectorAll('.tabla-egesz').forEach(el=>{
-        el.style.width=teljesTablaSzelesseg+'px';
-        el.style.minWidth=teljesTablaSzelesseg+'px';
-        el.style.maxWidth='none';
-      });
-    }
-
-    // Az időoszlopok szélessége már adott; a csúszka ezt a tényleges középső
-    // viewportot követi, nem fordítva.
-    const maxScroll=Math.max(0,idoBelso.scrollWidth-idoAblak.clientWidth);
-    slider.max=String(maxScroll);
-
-    // Az időtábla induláskor mindig a jobb szélre álljon.
-    // Így a legfrissebb időpontok látszanak elsőként, a csúszka
-    // pedig induláskor is teljesen jobbra kerül.
-    slider.value=String(maxScroll);
-    idoAblak.scrollLeft=maxScroll;
-  }
-
-  function allRows(){return Array.from(fixTbody.querySelectorAll('tr'));}
-  function rowParts(id){
-    return {
-      fix:fixTbody.querySelector('tr[data-row-id="'+id+'"]'),
-      ido:idoTbody.querySelector('tr[data-row-id="'+id+'"]'),
-      storage:storageTbody.querySelector('tr[data-row-id="'+id+'"]')
-    };
-  }
-
-  function applyView(view){
-    currentView=view;
-    buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===view));
-    const tabla=document.getElementById('fo-tabla');
-    tabla.classList.remove('view-biztor','view-garazs','view-mindketto');
-    tabla.classList.add('view-'+view);
-    tabla.classList.toggle('all-view',view==='mindketto');
-    if(label) label.textContent=view==='biztor'?'Végállomás':view==='garazs'?'Garázs':'Összes';
-
-    // A szűrés külön kezeli a sorok filterMatch állapotát. A nézetváltás
-    // itt kizárólag egy CSS-osztály váltás, így nem történik soronkénti DOM-írás.
-  }
-
-  function applyFilters(){
-    const inputs=Array.from(document.querySelectorAll('.oszlop-kereso[data-col]'));
-    allRows().forEach(row=>{
-      let ok=true;
-      inputs.forEach(input=>{
-        if(!ok) return;
-        const q=input.value.trim().toLocaleLowerCase('hu-HU');
-        if(!q) return;
-        const col=input.dataset.col;
-        let txt='';
-        if(col==='storage'){
-          const sr=storageTbody.querySelector('tr[data-row-id="'+row.dataset.rowId+'"]');
-          txt=sr ? sr.textContent.trim().toLocaleLowerCase('hu-HU') : '';
-        }else{
-          const cell=row.children[Number(col)];
-          txt=cell ? cell.textContent.trim().toLocaleLowerCase('hu-HU') : '';
-        }
-        if(!txt.includes(q)) ok=false;
-      });
-      row.dataset.filterMatch=ok?'1':'0';
-    });
-    applyView(currentView);
-  }
-
-  function valueForSort(row,col){
-    if(col==='storage'){
-      const sr=storageTbody.querySelector('tr[data-row-id="'+row.dataset.rowId+'"]');
-      return sr ? sr.textContent.trim() : '';
-    }
-    const cell=row.children[Number(col)];
-    return cell ? cell.textContent.trim() : '';
-  }
-
-  function compareValues(a,b,type){
-    if(type==='time'){
-      const ma=/^(\\d{1,2}):(\\d{2})$/.exec(a), mb=/^(\\d{1,2}):(\\d{2})$/.exec(b);
-      if(ma&&mb) return (Number(ma[1])*60+Number(ma[2]))-(Number(mb[1])*60+Number(mb[2]));
-    }
-    const na=Number(a.replace(',','.')), nb=Number(b.replace(',','.'));
-    if(a!==''&&b!==''&&Number.isFinite(na)&&Number.isFinite(nb)) return na-nb;
-    return a.localeCompare(b,'hu',{numeric:true,sensitivity:'base'});
-  }
-
-  function sortRows(button){
-    const col=button.dataset.sortCol;
-    const type=button.dataset.sortType||'';
-    if(sortState.col===col) sortState.dir*=-1; else {sortState.col=col;sortState.dir=1;}
-    sortButtons.forEach(b=>{b.classList.remove('active');b.textContent='↕';});
-    button.classList.add('active'); button.textContent=sortState.dir===1?'↑':'↓';
-    const rows=allRows();
-    rows.sort((a,b)=>compareValues(valueForSort(a,col),valueForSort(b,col),type)*sortState.dir);
-    rows.forEach(row=>{
-      const parts=rowParts(row.dataset.rowId);
-      [parts.fix,parts.ido,parts.storage].forEach((r,t)=>{
-        const parent=t===0?fixTbody:t===1?idoTbody:storageTbody;
-        if(r) parent.appendChild(r);
-      });
-    });
-  }
-
-  let sliderFrame=0;
-  slider.addEventListener('input',()=>{
-    if(sliderFrame) return;
-    sliderFrame=requestAnimationFrame(()=>{
-      sliderFrame=0;
-      idoAblak.scrollLeft=Math.min(idoAblak.scrollWidth-idoAblak.clientWidth,Math.max(0,Number(slider.value)||0));
-    });
+  // A három korábbi táblát itt egyetlen, valódi HTML-táblává egyesítjük.
+  // A 6 bal oldali + időoszlopok + 1 jobb oldali oszlop ugyanabban a <table>-ben vannak.
+  const fix=oldFix.querySelector('table'), time=oldTime.querySelector('table'), storage=oldStorage.querySelector('table');
+  const ft=fix?.querySelector('tbody'), tt=time?.querySelector('tbody'), st=storage?.querySelector('tbody');
+  if(!fix||!time||!storage||!ft||!tt||!st)return;
+  const common=document.createElement('table'); common.className='fo-kozos-tabla';
+  const cg=document.createElement('colgroup');
+  for(let i=0;i<6;i++)cg.appendChild(document.createElement('col'));
+  const timeCount=time.querySelectorAll('thead tr:first-child th').length;
+  for(let i=0;i<timeCount;i++){const c=document.createElement('col');c.className='col-idopont';cg.appendChild(c);}
+  cg.appendChild(document.createElement('col'));
+  common.appendChild(cg);
+  const thead=document.createElement('thead');
+  const h1=document.createElement('tr'); h1.className='fejlec-sor';
+  const fHeads=fix.querySelectorAll('thead tr:first-child th');
+  fHeads.forEach((x,i)=>{const c=x.cloneNode(true);c.classList.add('sticky-bal','bal-'+(i+1));h1.appendChild(c);});
+  time.querySelectorAll('thead tr:first-child th').forEach(x=>h1.appendChild(x.cloneNode(true)));
+  const sh=storage.querySelector('thead tr:first-child th').cloneNode(true);sh.classList.add('sticky-jobb','storage');h1.appendChild(sh);thead.appendChild(h1);
+  const h2=document.createElement('tr');h2.className='szuro-sor';
+  const fFilter=fix.querySelectorAll('thead tr.szuro-sor th');
+  fFilter.forEach((x,i)=>{const c=x.cloneNode(true);c.classList.add('sticky-bal','bal-'+(i+1));h2.appendChild(c);});
+  time.querySelectorAll('thead tr.szuro-sor th').forEach(x=>h2.appendChild(x.cloneNode(true)));
+  const sf=storage.querySelector('thead tr.szuro-sor th').cloneNode(true);sf.classList.add('sticky-jobb');h2.appendChild(sf);thead.appendChild(h2);common.appendChild(thead);
+  const tbody=document.createElement('tbody'); tbody.id='fix-tbody-common';
+  const timeRows=Array.from(tt.querySelectorAll('tr')), storageRows=Array.from(st.querySelectorAll('tr'));
+  Array.from(ft.querySelectorAll('tr')).forEach((fr,i)=>{
+    const row=fr.cloneNode(false); row.className=fr.className; row.dataset.rowId=fr.dataset.rowId; row.dataset.forras=fr.dataset.forras;
+    fr.querySelectorAll(':scope > td').forEach((x,j)=>{const c=x.cloneNode(true);c.classList.add('sticky-bal','bal-'+(j+1));row.appendChild(c);});
+    if(timeRows[i])timeRows[i].querySelectorAll(':scope > td').forEach(x=>row.appendChild(x.cloneNode(true)));
+    if(storageRows[i]){const c=storageRows[i].querySelector(':scope > td')?.cloneNode(true);if(c){c.classList.add('sticky-jobb');row.appendChild(c);}}
+    tbody.appendChild(row);
   });
-  idoAblak.addEventListener('scroll',()=>{slider.value=String(Math.round(idoAblak.scrollLeft));},{passive:true});
-  buttons.forEach(b=>b.addEventListener('click',()=>applyView(b.dataset.nezet)));
-  sortButtons.forEach(b=>b.addEventListener('click',()=>sortRows(b)));
-  document.querySelectorAll('.oszlop-kereso').forEach(input=>input.addEventListener('input',applyFilters));
-  window.addEventListener('resize',()=>requestAnimationFrame(setLayout));
-  allRows().forEach(r=>r.dataset.filterMatch='1');
-  applyView('biztor');
-  setLayout();
+  common.appendChild(tbody);
+  fo.innerHTML=''; fo.appendChild(common);
+
+  let currentView='biztor', sortState={col:null,dir:1};
+  function rows(){return Array.from(tbody.querySelectorAll('tr'));}
+  function sticky(){let left=0;for(let i=1;i<=6;i++){const h=common.querySelector('thead .bal-'+i),w=h?.getBoundingClientRect().width||0;common.querySelectorAll('.bal-'+i).forEach(c=>c.style.left=left+'px');left+=w;}common.querySelectorAll('.sticky-jobb').forEach(c=>c.style.right='0px');if(sliderBar){const sh=common.querySelector('thead .storage'),sw=sh?.getBoundingClientRect().width||0,sec=document.querySelector('.tabla-szekcio'),av=sec?.clientWidth||window.innerWidth;sliderBar.style.gridTemplateColumns=left+'px '+Math.max(0,av-left-sw-2)+'px '+sw+'px';}}
+  function layout(){sticky();const max=Math.max(0,fo.scrollWidth-fo.clientWidth);slider.max=String(max);slider.value=String(max);fo.scrollLeft=max;}
+  function view(v){currentView=v;buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===v));fo.classList.remove('view-biztor','view-garazs','view-mindketto');fo.classList.add('view-'+v);fo.classList.toggle('all-view',v==='mindketto');if(label)label.textContent=v==='biztor'?'Végállomás':v==='garazs'?'Garázs':'Összes';}
+  function filters(){const inputs=Array.from(document.querySelectorAll('.oszlop-kereso[data-col]'));rows().forEach(r=>{let ok=true;inputs.forEach(i=>{if(!ok)return;const q=i.value.trim().toLocaleLowerCase('hu-HU');if(!q)return;const c=i.dataset.col==='storage'?r.querySelector('.sticky-jobb'):r.children[+i.dataset.col];if(!(c?.textContent||'').toLocaleLowerCase('hu-HU').includes(q))ok=false;});r.dataset.filterMatch=ok?'1':'0';});view(currentView);}
+  function val(r,c){const x=c==='storage'?r.querySelector('.sticky-jobb'):r.children[+c];return x?.textContent.trim()||'';}
+  function cmp(a,b,t){if(t==='time'){const ma=/^(\d{1,2}):(\d{2})$/.exec(a),mb=/^(\d{1,2}):(\d{2})$/.exec(b);if(ma&&mb)return(+ma[1]*60+ +ma[2])-(+mb[1]*60+ +mb[2]);}return a.localeCompare(b,'hu',{numeric:true,sensitivity:'base'});}
+  function sort(btn){const c=btn.dataset.sortCol,t=btn.dataset.sortType||'';if(sortState.col===c)sortState.dir*=-1;else{sortState.col=c;sortState.dir=1;}document.querySelectorAll('.rendez-gomb').forEach(b=>{b.classList.remove('active');b.textContent='↕'});btn.classList.add('active');btn.textContent=sortState.dir===1?'↑':'↓';rows().sort((a,b)=>cmp(val(a,c),val(b,c),t)*sortState.dir).forEach(r=>tbody.appendChild(r));sticky();}
+  slider.addEventListener('input',()=>fo.scrollLeft=Math.min(fo.scrollWidth-fo.clientWidth,Math.max(0,+slider.value||0)));
+  fo.addEventListener('scroll',()=>slider.value=String(Math.round(fo.scrollLeft)),{passive:true});
+  buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet)));
+  document.querySelectorAll('.rendez-gomb').forEach(b=>b.addEventListener('click',()=>sort(b)));
+  document.querySelectorAll('.oszlop-kereso').forEach(i=>i.addEventListener('input',filters));
+  window.addEventListener('resize',()=>requestAnimationFrame(layout));
+  rows().forEach(r=>r.dataset.filterMatch='1');view('biztor');layout();
 })();
 
 (function(){
