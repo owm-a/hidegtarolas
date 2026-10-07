@@ -658,6 +658,13 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   }
 }
 
+
+@media(max-width:900px){
+  html, body{
+    touch-action: pan-x pan-y;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1194,6 +1201,20 @@ window.addEventListener("load", frissitGarazsCsuszkat);
 
 </script>
 
+
+
+<script>
+(function(){
+  let lastTap=0;
+  document.addEventListener('touchend',function(e){
+    const now=Date.now();
+    if(now-lastTap<300){
+      e.preventDefault();
+    }
+    lastTap=now;
+  },{passive:false});
+})();
+</script>
 
 </body>
 
