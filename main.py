@@ -1164,7 +1164,7 @@ azonositas_idoszak = (
 # A 70%-os döntés előtti "Pótlásban vesz részt" figyeléshez
 # 15:00 után is szükség van az aktuális GTFS-RT tripre.
 gtfs_rt_trip_figyeles_idoszak = (
-    time(7, 0)
+    time(6, 30)
     <= fazis_ideje
     <= time(17, 30)
 )
@@ -1183,12 +1183,12 @@ print(
 
 if azonositas_idoszak:
     print(
-        "Aktív fázis: 07:00–13:30 "
+        "Aktív fázis: 6:30–17:30 "
         "forda → rendszám + jármű ID"
     )
 elif pozicio_idoszak:
     print(
-        "Aktív fázis: 08:00–17:00 "
+        "Aktív fázis: 7:30–17:30 "
         "jármű ID → FUTÁR pozíció"
     )
 else:
