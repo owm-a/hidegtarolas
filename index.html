@@ -702,7 +702,11 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
         if(rendszam && storage.nextElementSibling!==rendszam){
           tr.insertBefore(storage,rendszam);
         }
-      }else{
+
+   .fo-kozos-tabla .szuro-sor .oszlop-kereso::placeholder{
+     font-size:10px!important;
+     opacity:1;
+   }      }else{
         if(storage.parentElement && storage !== tr.lastElementChild){
           tr.appendChild(storage);
         }
@@ -758,6 +762,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     requestAnimationFrame(()=>{sticky();layoutScroll();});
   }
   function applyFilters(){
+    const mobilKereses=(window.matchMedia('(max-width:900px)').matches);
+    const oldWindowScrollY=window.scrollY;
     rowList.forEach(r=>{
       let ok=true;
       for(const i of filterInputs){
@@ -768,7 +774,18 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
       }
       r.dataset.filterMatch=ok?'1':'0';
     });
-    requestAnimationFrame(()=>{sticky();layoutScroll();});
+    requestAnimationFrame(()=>{
+      sticky();
+      layoutScroll();
+      if(mobilKereses){
+        window.scrollTo(window.scrollX,oldWindowScrollY);
+        requestAnimationFrame(()=>{
+          if(Math.abs(window.scrollY-oldWindowScrollY)>1){
+            window.scrollTo(window.scrollX,oldWindowScrollY);
+          }
+        });
+      }
+    });
   }
   function filters(){
     applyFilters();
