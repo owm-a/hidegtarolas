@@ -3553,6 +3553,9 @@ body{
 .storage-ablak{min-width:0;overflow:hidden;background:var(--surface)}
 table{border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto}
 th,td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap}
+/* A bal oldali fix tábla adja a közös sormagasságot; minden rész pontosan ehhez igazodik. */
+.fix-tabla tbody tr,.ido-tabla tbody tr,.storage-tabla tbody tr{height:24px!important;min-height:24px!important;max-height:24px!important}
+.fix-tabla tbody td,.ido-tabla tbody td,.storage-tabla tbody td{height:24px!important;min-height:24px!important;max-height:24px!important;line-height:22px!important;box-sizing:border-box;overflow:hidden}
 th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .fix-tabla,.storage-tabla{width:max-content;min-width:0}
 .fix-tabla th.hely,.fix-tabla td.hely{text-align:left;width:max-content;min-width:0;max-width:none}
@@ -3566,9 +3569,9 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 /* A kezdés/végzés oszlop szélességét is a tartalom, elsősorban a fejléc határozza meg. */
 .fix-tabla th.kezdés,.fix-tabla td.kezdés,
 .fix-tabla th.végzés,.fix-tabla td.végzés{width:1%;white-space:nowrap;min-width:0}
-.ido-tabla{width:max-content;min-width:100%}.ido-tabla th,.ido-tabla td{width:42px;min-width:42px;max-width:42px;padding:1px;text-align:center}
-.fix-tabla tbody tr,.ido-tabla tbody tr,.storage-tabla tbody tr{height:24px;min-height:24px;max-height:24px}
-.fix-tabla tbody td,.ido-tabla tbody td,.storage-tabla tbody td{height:24px;min-height:24px;max-height:24px;line-height:22px;padding-top:0;padding-bottom:0;box-sizing:border-box;overflow:hidden}
+/* Az időtábla mindig a bal oldalon kezdődjön; ne nyújtsa szét a böngésző a kevés időoszlopot a teljes viewporton. */
+.ido-tabla{width:max-content;min-width:0;table-layout:fixed}.ido-tabla th,.ido-tabla td{width:42px;min-width:42px;max-width:42px;padding:1px;text-align:center}
+
 /* Nézetváltás: csak egy konténerosztály változik, a sorokat nem mérjük/írjuk át egyenként. */
 #fo-tabla.view-biztor .fix-tabla tbody tr[data-forras="garazs"],
 #fo-tabla.view-biztor .ido-tabla tbody tr[data-forras="garazs"],
@@ -3941,9 +3944,11 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     // viewportot követi, nem fordítva.
     const maxScroll=Math.max(0,idoBelso.scrollWidth-idoAblak.clientWidth);
     slider.max=String(maxScroll);
-    const value=Math.min(maxScroll,Math.max(0,Number(slider.value)||0));
-    slider.value=String(value);
-    idoAblak.scrollLeft=value;
+
+    // A riport megnyitásakor mindig a legfrissebb, jobb szélső időoszlopok
+    // legyenek láthatók. Innen a csúszka természetesen szabadon visszahúzható.
+    slider.value=String(maxScroll);
+    idoAblak.scrollLeft=maxScroll;
   }
 
   function allRows(){return Array.from(fixTbody.querySelectorAll('tr'));}
