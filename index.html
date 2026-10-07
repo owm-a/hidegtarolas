@@ -533,9 +533,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
    MOBIL – keresőmezők maradjanak a saját szűrőcellájukban
    ========================================================= */
 @media (max-width:900px){
-  /* MOBILON A SZŰRŐSOR SEM LEGYEN STICKY.
-     A korábbi .szuro-sor th.sticky-bal szabály nagyobb
-     specifikusságú volt, ezért a sima .sticky-bal felülírás nem volt elég. */
+  /* Mobilon a szűrősor ne legyen sticky.
+     A keresőmező maradjon a saját cellájában. */
   .fo-kozos-tabla .szuro-sor th.sticky-bal,
   .fo-kozos-tabla .szuro-sor th.sticky-jobb{
     position:static!important;
@@ -546,7 +545,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     z-index:auto!important;
     overflow:hidden!important;
   }
-  /* A kereső maga is kizárólag a saját cellájának normál tartalma legyen. */
   .fo-kozos-tabla .szuro-sor th .oszlop-kereso,
   .fo-kozos-tabla .szuro-sor .oszlop-kereso{
     position:absolute!important;
@@ -563,16 +561,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     max-height:none!important;
     margin:0!important;
     box-sizing:border-box!important;
-  }
-}
-
-
-/* =========================================================
-   MOBIL – megnyitás / függőleges görgetés ne ugorjon jobbra
-   ========================================================= */
-@media (max-width:900px){
-  .ido-tabla{
-    overscroll-behavior-x:auto;
   }
 }
 
@@ -1059,38 +1047,6 @@ function frissitGarazsCsuszkat() {
 window.addEventListener("resize", frissitGarazsCsuszkat);
 window.addEventListener("load", frissitGarazsCsuszkat);
 
-</script>
-
-
-<script>
-/* Mobil: megnyitás / függőleges görgetés ne állítsa át a tábla vízszintes pozícióját. */
-(function(){
-  const tabla = document.querySelector('.ido-tabla');
-  if (!tabla || window.innerWidth > 900) return;
-
-  let utolsoScrollX = tabla.scrollLeft || 0;
-  let helyreallitando = false;
-
-  function mentScrollX(){
-    utolsoScrollX = tabla.scrollLeft;
-  }
-
-  function helyreallitScrollX(){
-    if (helyreallitando) return;
-    helyreallitando = true;
-    requestAnimationFrame(function(){
-      if (Math.abs(tabla.scrollLeft - utolsoScrollX) > 1) {
-        tabla.scrollLeft = utolsoScrollX;
-      }
-      helyreallitando = false;
-    });
-  }
-
-  tabla.addEventListener('scroll', mentScrollX, {passive:true});
-  window.addEventListener('scroll', helyreallitScrollX, {passive:true});
-  window.addEventListener('resize', helyreallitScrollX, {passive:true});
-  requestAnimationFrame(helyreallitScrollX);
-})();
 </script>
 
 </body>
