@@ -25,7 +25,7 @@ body{
 }
 .fejlec{padding:16px 18px;margin-bottom:14px}
 .fejlec-top{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;margin-bottom:9px}
-.cim{color:#f3f6fa;font-size:23px;letter-spacing:-.02em;margin:0}
+.cim{color:#f3f6fa;font-size:23px;letter-spacing:-.02em;margin:0}#oldal-cim{cursor:pointer}
 .fejlec-adatok{display:flex;align-items:center;justify-content:space-between;width:100%;gap:20px}
 .fejlec-bal,.fejlec-jobb{display:flex;align-items:center;gap:20px;white-space:nowrap}
 .fejlec-jobb{margin-left:auto}
@@ -520,7 +520,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 <span class="rejtett-poen">de ki az a Korporéjsön?</span>
 <div class="fejlec">
   <div class="fejlec-top">
-    <div class="cim"><b>ArrivaBus hidegtárolás</b></div>
+    <div class="cim" id="oldal-cim" role="button" tabindex="0" title="Oldal frissítése"><b>ArrivaBus hidegtárolás</b></div>
     <button id="theme-toggle" class="theme-toggle" type="button" title="Sötét / világos mód">☀ Sötét mód</button>
   </div>
   <div class="fejlec-adatok riport-fejlec-adatok">
@@ -686,7 +686,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   if(!btn) return;
   function applyTheme(light, save=true){
     document.body.classList.toggle('light-mode',light);
-    btn.textContent=light?'☾ Sötét mód':'☀ Sötét mód';
+    btn.textContent=light?'☾ Sötét mód':'☀ Normál mód';
     if(save){
       try{localStorage.setItem('futar-theme', light ? 'light' : 'dark');}catch(e){}
     }
@@ -697,6 +697,23 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   applyTheme(savedTheme==='light', false);
   btn.addEventListener('click',()=>applyTheme(!document.body.classList.contains('light-mode'), true));
 })();
+
+// Az oldal címe kattintható: kézi frissítés gépen és mobilon is.
+(function(){
+  const cim=document.getElementById('oldal-cim');
+  if(!cim) return;
+  const frissit=()=>window.location.reload();
+  cim.addEventListener('click',frissit);
+  cim.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){
+      e.preventDefault();
+      frissit();
+    }
+  });
+})();
+
+// Automatikus oldalfrissítés 5 percenként.
+setInterval(()=>window.location.reload(),5*60*1000);
 </script>
 
 
