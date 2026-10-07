@@ -1,100 +1,56 @@
 name: ArrivaBus hidegtárolás_2
 
 on:
-
+  schedule:
+    - cron: "6,16,26,36,46,56 * * * *"
+      timezone: "Europe/Budapest"
   workflow_dispatch:
 
 permissions:
   contents: write
-  actions: write
+
+concurrency:
+  group: hidegtarolas-main
+  cancel-in-progress: false
 
 jobs:
   teszt:
     runs-on: ubuntu-latest
 
     steps:
-
-      # ==================================================
-      # 1. REPÓ LETÖLTÉSE
-      # ==================================================
       - name: Kód letöltése
         uses: actions/checkout@v5
 
-      # ==================================================
-      # 2. PYTHON
-      # ==================================================
       - name: Python beállítása
         uses: actions/setup-python@v6
         with:
           python-version: "3.14"
 
-      # ==================================================
-      # 3. CSOMAGOK
-      # ==================================================
       - name: Csomagok telepítése
         run: pip install -r requirements.txt
 
-      # ==================================================
-      # 4. BUDAPESTI DÁTUM
-      # ==================================================
       - name: Budapest dátum meghatározása
         id: datum
         run: |
           echo "datum=$(TZ=Europe/Budapest date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
 
-      # ==================================================
-      # 5. MAI GTFS CACHE BETÖLTÉSE
-      # ==================================================
       - name: GTFS cache betöltése
         uses: actions/cache@v4
         with:
           path: gtfs_cache
           key: gtfs-cache-${{ steps.datum.outputs.datum }}
 
-      # ==================================================
-      # 6. RÉGI GTFS CACHE-EK TÖRLÉSE
-      #
-      # Minden gtfs-cache-* cache törlődik,
-      # kivéve a mai.
-      # ==================================================
-      - name: Régi GTFS cache-ek törlése
-        env:
-          GH_TOKEN: ${{ github.token }}
-          MAI_CACHE: gtfs-cache-${{ steps.datum.outputs.datum }}
-        run: |
-          echo "Megtartandó cache: $MAI_CACHE"
-
-          gh cache list --limit 100 --json id,key |
-            jq -r --arg mai "$MAI_CACHE" '
-              .[]
-              | select(.key | startswith("gtfs-cache-"))
-              | select(.key != $mai)
-              | .id
-            ' |
-            while read -r cache_id; do
-              if [ -n "$cache_id" ]; then
-                echo "Régi GTFS cache törlése: $cache_id"
-                yes | gh cache delete "$cache_id"
-              fi
-            done
-
-      # ==================================================
-      # 7. PROGRAM
-      # ==================================================
       - name: Program futtatása
         env:
           BKK_API_KEY: ${{ secrets.BKK_API_KEY }}
         run: python main.py
 
-      # ==================================================
-      # 8. EREDMÉNYEK MENTÉSE
-      # ==================================================
       - name: Napi adatok mentése
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add napi_adatok.json index.html data/hidegtarolas_export.xlsx
+          git add napi_adatok.json index.html
 
           if git diff --cached --quiet; then
             echo "Nincs új mentendő adat."
