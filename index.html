@@ -633,6 +633,10 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     font-size:16px!important;
     line-height:18px!important;
   }
+  .fo-kozos-tabla .szuro-sor .oszlop-kereso::placeholder{
+    font-size:10px!important;
+    opacity:1;
+  }
 }
 </style>
 </head>
@@ -702,11 +706,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
         if(rendszam && storage.nextElementSibling!==rendszam){
           tr.insertBefore(storage,rendszam);
         }
-
-   .fo-kozos-tabla .szuro-sor .oszlop-kereso::placeholder{
-     font-size:10px!important;
-     opacity:1;
-   }      }else{
+      }else{
         if(storage.parentElement && storage !== tr.lastElementChild){
           tr.appendChild(storage);
         }
