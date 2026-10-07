@@ -4234,24 +4234,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 .fo-kozos-tabla td.végzés{
   border-left:1px solid var(--border)!important;
 }
-/* Végső mobil felülírás: valódi, egyszerűen görgethető táblázat.
-   A fejléc és a keresősor sem sticky mobilon. */
-@media(max-width:600px){
-  .fo-kozos-tabla .sticky-bal,
-  .fo-kozos-tabla .sticky-jobb,
-  .fo-kozos-tabla .szuro-sor th.sticky-bal,
-  .fo-kozos-tabla .szuro-sor th.sticky-jobb{
-    position:static!important;
-    left:auto!important;
-    right:auto!important;
-    z-index:auto!important;
-    box-shadow:none!important;
-    background-clip:padding-box;
-  }
-  .fo-kozos-tabla .szuro-sor th{
-    position:static!important;
-  }
-}
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 </head>
@@ -4394,24 +4376,14 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     const sorok=Array.from(table.querySelectorAll('tr'));
     sorok.forEach(tr=>{
       const storage=tr.querySelector('.storage');
-      const rendszam=tr.querySelector('.rendszam');
       if(!storage)return;
-      const firstTime=tr.querySelector('.idopont-fejlec,.idopont-ertek,.idopont-cella');
       if(mobil){
-        // Mobilon: Valós tárolás a Rendszám helyén, a Rendszám pedig a
-        // táblázat végén legyen. Egyik cella sem sticky.
-        if(firstTime){
+        const firstTime=tr.querySelector('.idopont-fejlec,.idopont-ertek,.idopont-cella');
+        if(firstTime && storage.nextElementSibling!==firstTime){
           tr.insertBefore(storage,firstTime);
         }
-        if(rendszam){
-          tr.appendChild(rendszam);
-        }
       }else{
-        // Asztali sorrend: a Rendszám a 6. fix oszlop, a Valós tárolás jobb oldalt.
-        if(firstTime && rendszam){
-          tr.insertBefore(rendszam,firstTime);
-        }
-        if(storage.parentElement){
+        if(storage.parentElement && storage !== tr.lastElementChild){
           tr.appendChild(storage);
         }
       }
@@ -4447,13 +4419,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     sticky();
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
     slider.max=String(max);
-    const mobil=window.matchMedia('(max-width:600px)').matches;
-    if(mobil){
-      // Mobilon természetes, balról induló vízszintes görgetés legyen.
-      // Sem betöltéskor, sem függőleges görgetés miatt ne ugorjon jobbra.
-      slider.value=String(Math.min(+slider.value||0,max));
-      return;
-    }
     slider.value=String(max);
     fo.scrollLeft=max;
   }
@@ -4521,7 +4486,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   if(!btn) return;
   function applyTheme(light, save=true){
     document.body.classList.toggle('light-mode',light);
-    btn.textContent=light?'☾ Sötét mód':'☀ Normál mód';
+    btn.textContent=light?'☾ Sötét mód':'☀ Sötét mód';
     if(save){
       try{localStorage.setItem('futar-theme', light ? 'light' : 'dark');}catch(e){}
     }
