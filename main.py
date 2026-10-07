@@ -3240,6 +3240,7 @@ def html_export():
                 "rendszam": rendszam,
                 "viszonylat": viszonylat,
                 "forda": forda,
+                "forras": str(forda_sor_map.get("forrás", "biztor")).strip() or "biztor",
                 "helyszin": helyszin_nev,
                 "statusz": statusz,
                 "latitude": latitude,
@@ -3443,6 +3444,8 @@ def html_export():
                         )
                     ),
 
+                    "forras": str(rekord.get("forrás", "biztor")).strip() or "biztor",
+
                     "helyszin": helyszin_nev,
 
                     "statusz": statusz,
@@ -3601,9 +3604,9 @@ body{
 .nezet-panel{display:block}.nezet-panel.hidden{display:none!important}
 .tabla-szekcio{width:100%;max-width:100%;margin:0;padding:12px;border-top:1px solid var(--border);overflow:hidden}
 .idopont-csuszkasav{
-    width:100%;height:38px;display:grid;grid-template-columns:var(--left-width) minmax(0,1fr) var(--storage-width);
-    align-items:center;background:var(--surface2);border:1px solid var(--border);border-bottom:0;
-    border-radius:8px 8px 0 0;box-sizing:border-box;overflow:hidden;
+    width:80%;height:38px;margin:0 auto;display:flex;align-items:center;justify-content:center;
+    background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+    box-sizing:border-box;overflow:hidden;padding:0 12px;
 }
 .csuszka-info{color:var(--muted);font-size:12px;font-weight:650;white-space:nowrap;padding-left:8px}
 .csuszka-info strong{color:var(--text)}
@@ -3649,7 +3652,7 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 @media (max-width:900px){
     .tabla-szekcio{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;}
     .tabla-egesz{width:max-content;max-width:none;min-width:max-content;}
-    .idopont-csuszkasav{width:max-content;min-width:max-content;}
+   .idopont-csuszkasav{width:max-content;min-width:max-content;}
 }
 
 .ido-tabla .fo-kozos-tabla{border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto;width:max-content;min-width:100%;}
@@ -3707,7 +3710,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 /* Közvetlen, egyetlen közös tábla – nincs DOM-újraépítés. */
 .tabla-egesz{display:block;width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;background:var(--surface);scrollbar-width:none}
 .tabla-egesz::-webkit-scrollbar{height:0}
-.fo-kozos-tabla{display:table;border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto;width:max-content;min-width:100%}
+.fo-kozos-tabla{display:table;border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto;width:max-content}
 .fo-kozos-tabla th,.fo-kozos-tabla td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap}
 .fo-kozos-tabla th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .fo-kozos-tabla thead tr{height:31px}.fo-kozos-tabla thead th{height:31px}
@@ -3720,7 +3723,9 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla thead .sticky-bal{z-index:50;background:var(--surface3)}
 .fo-kozos-tabla .sticky-jobb{position:sticky;right:0;z-index:30;background:var(--surface);box-shadow:-2px 0 0 var(--border)}
 .fo-kozos-tabla thead .sticky-jobb{z-index:50;background:var(--surface3)}
-.fo-kozos-tabla .bal-6{box-shadow:2px 0 0 var(--border)}.fo-kozos-tabla .sticky-bal.bal-1{left:0}
+.fo-kozos-tabla .bal-1{left:0}.fo-kozos-tabla .bal-2{left:var(--bal-2,0px)}.fo-kozos-tabla .bal-3{left:var(--bal-3,0px)}.fo-kozos-tabla .bal-4{left:var(--bal-4,0px)}.fo-kozos-tabla .bal-5{left:var(--bal-5,0px)}.fo-kozos-tabla .bal-6{left:var(--bal-6,0px)}
+.fo-kozos-tabla .sticky-bal.bal-1,.fo-kozos-tabla .sticky-bal.bal-2,.fo-kozos-tabla .sticky-bal.bal-3,.fo-kozos-tabla .sticky-bal.bal-4,.fo-kozos-tabla .sticky-bal.bal-5{box-shadow:inset -1px 0 rgba(255,255,255,.10)}
+.fo-kozos-tabla .sticky-bal.bal-6{box-shadow:2px 0 0 var(--border),inset -1px 0 rgba(255,255,255,.08)}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td{background:rgba(110,168,254,.055);color:#82b4ff;font-weight:700}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td .rendszam-link{color:#82b4ff;font-weight:800}
 #fo-tabla.view-biztor .fo-kozos-tabla tbody tr[data-forras="garazs"],#fo-tabla.view-garazs .fo-kozos-tabla tbody tr[data-forras="biztor"],#fo-tabla .fo-kozos-tabla tbody tr[data-filter-match="0"]{display:none}
@@ -3881,13 +3886,8 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
       const cells=table.querySelectorAll('.bal-'+i);
       const w=cells[0]?.getBoundingClientRect().width||0;
       cells.forEach(c=>c.style.left=left+'px');
+      document.documentElement.style.setProperty('--bal-'+i,left+'px');
       left+=w;
-    }
-    const storage=table.querySelector('thead .storage');
-    const sw=storage?.getBoundingClientRect().width||0;
-    if(sliderBar){
-      const sec=document.querySelector('.tabla-szekcio'),av=sec?.clientWidth||window.innerWidth;
-      sliderBar.style.gridTemplateColumns=left+'px '+Math.max(0,av-left-sw-2)+'px '+sw+'px';
     }
   }
   function layout(){
@@ -4090,7 +4090,9 @@ terkepJarmuvek.forEach(function(jarmu) {
             )
         }
 
-    ).addTo(map);
+    );
+
+    marker.__forras = String(jarmu.forras || "biztor").trim() || "biztor";
 
 
     let statuszSzoveg = "Nincs értékelés";
@@ -4149,8 +4151,30 @@ terkepJarmuvek.forEach(function(jarmu) {
         jarmuMarkerek[rendszamKulcs] = marker;
     }
 
-    terkepElemek.push(marker);
+    jarmuMarkerek["__lista__"] = jarmuMarkerek["__lista__"] || [];
+    jarmuMarkerek["__lista__"].push(marker);
 
+});
+
+function frissitTerkepNezet(view) {
+    const lista = jarmuMarkerek["__lista__"] || [];
+    lista.forEach(function(marker){
+        if (map.hasLayer(marker)) map.removeLayer(marker);
+    });
+    const latszo = lista.filter(function(marker){
+        return view === "mindketto" || marker.__forras === view;
+    });
+    latszo.forEach(function(marker){ marker.addTo(map); });
+    if (latszo.length) {
+        const bounds = L.featureGroup(latszo).getBounds();
+        if (bounds.isValid()) map.fitBounds(bounds.pad(0.08));
+    }
+}
+
+document.querySelectorAll(".nezet-gomb").forEach(function(btn){
+    btn.addEventListener("click", function(){
+        frissitTerkepNezet(this.dataset.nezet);
+    });
 });
 
 function fokuszJarmure(rendszam) {
@@ -4172,6 +4196,7 @@ function fokuszJarmure(rendszam) {
 
 document.querySelectorAll(".rendszam-link").forEach(function(btn){
     btn.addEventListener("click", function(){
+        window.scrollTo({top: 0, behavior: "smooth"});
         fokuszJarmure(this.dataset.rendszam);
     });
 });
@@ -4181,21 +4206,7 @@ document.querySelectorAll(".rendszam-link").forEach(function(btn){
 // TÉRKÉP NÉZET BEÁLLÍTÁSA
 // ---------------------------------------------------------
 
-if (terkepElemek.length > 0) {
-
-    const bounds = L.featureGroup(
-        terkepElemek
-    ).getBounds();
-
-    if (bounds.isValid()) {
-
-        map.fitBounds(
-            bounds.pad(0.08)
-        );
-
-    }
-
-}
+frissitTerkepNezet("biztor");
 
 const garazsAblak = document.getElementById("garazs-idopont-ablak");
 const garazsBelso = document.getElementById("garazs-idopont-belső");
