@@ -3761,6 +3761,8 @@ body{
 .nezet-gomb:active{transform:translateY(1px)}
 .online-szam{display:inline-block;margin-left:5px;font-size:11px;font-weight:600;color:var(--muted);opacity:.9}.nezet-gomb.active .online-szam{color:rgba(255,255,255,.82)}
 .nezet-panel{display:block}.nezet-panel.hidden{display:none!important}
+.mobil-tablazat-hint{display:none;text-align:right;color:var(--muted);font-size:10px;line-height:14px;margin:0 8px 4px 0;opacity:.7}
+@media(max-width:900px){.mobil-tablazat-hint{display:block}}
 .tabla-szekcio{width:100%;max-width:100%;margin:0;padding:12px;border-top:1px solid var(--border);overflow:hidden}
 .idopont-csuszkasav{
     width:90%;height:38px;margin:0 auto;display:flex;align-items:center;justify-content:center;
@@ -4381,6 +4383,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     <div class="fejlec-jobb">
       <div class="adat"><b>Riport készült:</b> """ + escape(str(hidegtarolas_riport.get("keszult", "-"))) + """</div>
       <div class="adat"><b>Exportált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0) if hidegtarolas_riport.get("kesz", False) else 0) + " + " + str(garazstarolas_riport.get("vizsgalt_fordak", 0) if garazstarolas_riport.get("kesz", False) else 0) + " → " + str((hidegtarolas_riport.get("vizsgalt_fordak", 0) if hidegtarolas_riport.get("kesz", False) else 0) + (garazstarolas_riport.get("vizsgalt_fordak", 0) if garazstarolas_riport.get("kesz", False) else 0)) + """</div>
+    </div>
+  </div>
 </div>
 <div id="geozona-terkep"></div>
 <div class="nezet-valaszto" role="tablist" aria-label="Megjelenítés">
@@ -4388,6 +4392,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   <button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás <span class="online-szam">""" + str(biz_online) + "/" + str(biz_osszes) + """</span></button>
   <button class="nezet-gomb" data-nezet="garazs" type="button">Garázs <span class="online-szam">""" + str(garazs_online) + "/" + str(garazs_osszes) + """</span></button>
 </div>
+<div class="mobil-tablazat-hint">A táblázat jobbra húzva folytatódik.</div>
 <div id="panel-adatok" class="nezet-panel">
 <div class="tabla-szekcio">
   <div class="idopont-csuszkasav" id="fo-csuszkasav">
