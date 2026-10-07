@@ -525,17 +525,35 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
    MOBIL – keresőmezők maradjanak a saját szűrőcellájukban
    ========================================================= */
 @media (max-width:900px){
-  .fo-kozos-tabla .szuro-sor th{
-    position:relative!important;
+  /* MOBILON A SZŰRŐSOR SEM LEGYEN STICKY.
+     A korábbi .szuro-sor th.sticky-bal szabály nagyobb
+     specifikusságú volt, ezért a sima .sticky-bal felülírás nem volt elég. */
+  .fo-kozos-tabla .szuro-sor th.sticky-bal,
+  .fo-kozos-tabla .szuro-sor th.sticky-jobb{
+    position:static!important;
+    top:auto!important;
+    right:auto!important;
+    bottom:auto!important;
+    left:auto!important;
+    z-index:auto!important;
     overflow:hidden!important;
   }
+  /* A kereső maga is kizárólag a saját cellájának normál tartalma legyen. */
+  .fo-kozos-tabla .szuro-sor th .oszlop-kereso,
   .fo-kozos-tabla .szuro-sor .oszlop-kereso{
     position:static!important;
+    top:auto!important;
+    right:auto!important;
+    bottom:auto!important;
+    left:auto!important;
     display:block!important;
     width:100%!important;
     min-width:0!important;
     max-width:100%!important;
     height:20px!important;
+    min-height:20px!important;
+    max-height:20px!important;
+    margin:0!important;
     box-sizing:border-box!important;
   }
 }
