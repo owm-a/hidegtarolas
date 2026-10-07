@@ -1164,14 +1164,14 @@ azonositas_idoszak = (
 # A 70%-os döntés előtti "Pótlásban vesz részt" figyeléshez
 # 15:00 után is szükség van az aktuális GTFS-RT tripre.
 gtfs_rt_trip_figyeles_idoszak = (
-    time(6, 30)
+    time(7, 30)
     <= fazis_ideje
     <= time(17, 30)
 )
 
 pozicio_idoszak = (
-    time(7, 30)
-    < fazis_ideje
+    time(6, 30)
+    <= fazis_ideje
     <= time(17, 30)
 )
 
@@ -1183,12 +1183,12 @@ print(
 
 if azonositas_idoszak:
     print(
-        "Aktív fázis: 6:30–17:30 "
+        "Aktív fázis: 07:00–13:30 "
         "forda → rendszám + jármű ID"
     )
 elif pozicio_idoszak:
     print(
-        "Aktív fázis: 7:30–17:30 "
+        "Aktív fázis: 06:30–17:30 "
         "jármű ID → FUTÁR pozíció"
     )
 else:
@@ -1363,7 +1363,7 @@ else:
     feed = gtfs_realtime_pb2.FeedMessage()
 
     print(
-        "GTFS-RT lekérés kihagyva: nincs aktív 07:00–17:30-as figyelési fázis."
+        "GTFS-RT lekérés kihagyva: nincs aktív 07:30–17:30-as figyelési fázis."
     )
 
 # =========================================================
@@ -1711,7 +1711,7 @@ else:
         "forda → rendszám + jármű ID kapcsolat."
     )
 # ============================================================
-# 08:00–17:00
+# 06:30–17:30
 # JÁRMŰ ID → FUTÁR AKTUÁLIS POZÍCIÓ
 #
 # Azonosítás: GTFS-RT
@@ -4010,15 +4010,6 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla .sticky-bal{
   border-bottom:1px solid var(--border)!important;
 }
-/* Desktopon a Valós tárolás a lap jobb szélén marad; mobilon viszont
-   a teljes táblával együtt jobbra görgethető, tehát nem tapad a viewporthoz. */
-@media (max-width:900px){
-  .fo-kozos-tabla .sticky-jobb{
-    position:static!important;
-    right:auto!important;
-    box-shadow:none!important;
-  }
-}
 /* =========================================================
    V6 – természetes fix oszlopok + mobil jobb oldali tárolás
    ========================================================= */
@@ -4062,11 +4053,29 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   background:var(--surface2)!important;
   background-clip:padding-box;
 }
+/* Mobilon is a bal 6 oszlop maradjon fix; a Valós tárolás a jobb oldalon
+   továbbra is a táblával együtt görgethető. */
+</style>
+<style>
+/* V15 – mobil: az első 6 sticky oszlop alapból egymásra csúsztatva jelenik meg.
+   Az oszlopok sorrendje nem változik; az ujjhúzással az egyes rétegek jobbra
+   szétnyithatók. Desktopon ez a működés teljesen inaktív. */
 @media (max-width:900px){
-  .fo-kozos-tabla .sticky-jobb{
-    position:static!important;
-    right:auto!important;
-    box-shadow:none!important;
+  #fo-tabla .fo-kozos-tabla .sticky-bal{
+    z-index:100;
+    touch-action:none;
+  }
+  #fo-tabla .fo-kozos-tabla thead .sticky-bal{
+    z-index:200;
+  }
+  #fo-tabla .fo-kozos-tabla .szuro-sor th.sticky-bal{
+    z-index:190;
+  }
+  #fo-tabla .fo-kozos-tabla tbody .sticky-bal{
+    z-index:180;
+  }
+  #fo-tabla .fo-kozos-tabla .sticky-bal.mobile-dragging{
+    transition:none!important;
   }
 }
 </style>
@@ -4310,6 +4319,78 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     });
   }
 
+  const MOBILE_STACK_STEP = 28;
+  const mobileStackExtra = [0,0,0,0,0,0];
+  let mobileDrag = null;
+
+  function isMobileStack(){
+    return window.matchMedia && window.matchMedia('(max-width:900px)').matches;
+  }
+
+  function applyMobileStack(){
+    if(!isMobileStack()) return false;
+    const head=table.querySelector('thead tr:first-child');
+    if(!head) return false;
+    const heads=Array.from(head.children).slice(0,6);
+    let left=0;
+    for(let i=0;i<6;i++){
+      const px=left.toFixed(3)+'px';
+      table.querySelectorAll('.bal-'+(i+1)).forEach(c=>c.style.left=px);
+      document.documentElement.style.setProperty('--bal-'+(i+1),px);
+      const w=heads[i]?.getBoundingClientRect().width||0;
+      const step=Math.min(MOBILE_STACK_STEP, Math.max(1,w));
+      left += step + (i===0 ? 0 : mobileStackExtra[i]);
+    }
+    return true;
+  }
+
+  function resetMobileStack(){
+    for(let i=1;i<mobileStackExtra.length;i++) mobileStackExtra[i]=0;
+  }
+
+  function beginMobileColumnDrag(ev){
+    if(!isMobileStack()) return;
+    if(ev.pointerType==='mouse') return;
+    if(ev.target && ev.target.closest && ev.target.closest('input,button')) return;
+    const cell=ev.currentTarget;
+    const m=/bal-(\\d+)/.exec(cell.className||'');
+    if(!m) return;
+    const index=Number(m[1])-1;
+    if(index===0) return;
+    mobileDrag={pointerId:ev.pointerId,index,startX:ev.clientX,startExtra:mobileStackExtra[index],moved:false};
+    cell.classList.add('mobile-dragging');
+    try{cell.setPointerCapture(ev.pointerId);}catch(e){}
+  }
+
+  function moveMobileColumnDrag(ev){
+    if(!mobileDrag || ev.pointerId!==mobileDrag.pointerId) return;
+    const dx=ev.clientX-mobileDrag.startX;
+    if(Math.abs(dx)<3) return;
+    mobileDrag.moved=true;
+    mobileStackExtra[mobileDrag.index]=Math.max(0,mobileDrag.startExtra+dx);
+    applyMobileStack();
+    ev.preventDefault();
+  }
+
+  function endMobileColumnDrag(ev){
+    if(!mobileDrag || ev.pointerId!==mobileDrag.pointerId) return;
+    const cell=ev.currentTarget;
+    cell.classList.remove('mobile-dragging');
+    mobileDrag=null;
+    requestAnimationFrame(()=>{applyMobileStack();layoutScroll();});
+  }
+
+  function bindMobileColumnDrag(){
+    table.querySelectorAll('.sticky-bal').forEach(function(cell){
+      if(cell.dataset.mobileDragBound==='1') return;
+      cell.dataset.mobileDragBound='1';
+      cell.addEventListener('pointerdown',beginMobileColumnDrag,{passive:false});
+      cell.addEventListener('pointermove',moveMobileColumnDrag,{passive:false});
+      cell.addEventListener('pointerup',endMobileColumnDrag,{passive:true});
+      cell.addEventListener('pointercancel',endMobileColumnDrag,{passive:true});
+    });
+  }
+
   function sticky(){
     headerDrivenColumns();
     const head=table.querySelector('thead tr:first-child');
@@ -4323,6 +4404,8 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
       document.documentElement.style.setProperty('--bal-'+(i+1),px);
       left+=w;
     }
+    if(isMobileStack()) applyMobileStack();
+    bindMobileColumnDrag();
   }
   function layoutScroll(){
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
