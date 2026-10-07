@@ -3703,6 +3703,27 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane{filter:invert(90%) hue-
 body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 @media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-adatok{display:block}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:7px}.fejlec-top{margin-bottom:8px}#geozona-terkep{width:94%;margin-left:auto;margin-right:auto;height:42vh;min-height:280px}.nezet-valaszto{width:100%}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}}
 @media(max-width:600px){.cim{font-size:20px}.adat{font-size:11px}#geozona-terkep{width:94%;height:38vh;min-height:250px}.idopont-csuszkasav{height:44px}.csuszka-info{font-size:10px;padding-left:5px}.rendszam-link{padding:4px 6px}}
+
+/* Közvetlen, egyetlen közös tábla – nincs DOM-újraépítés. */
+.tabla-egesz{display:block;width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;background:var(--surface);scrollbar-width:none}
+.tabla-egesz::-webkit-scrollbar{height:0}
+.fo-kozos-tabla{display:table;border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto;width:max-content;min-width:100%}
+.fo-kozos-tabla th,.fo-kozos-tabla td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap}
+.fo-kozos-tabla th{background:var(--surface3);font-weight:600;color:#cbd5e1}
+.fo-kozos-tabla thead tr{height:31px}.fo-kozos-tabla thead th{height:31px}
+.fo-kozos-tabla tbody tr{height:24px}.fo-kozos-tabla tbody td{height:24px;line-height:22px;padding-top:0;padding-bottom:0;overflow:hidden;vertical-align:middle}
+.fo-kozos-tabla .viszonylat,.fo-kozos-tabla .forda,.fo-kozos-tabla .rendszam,.fo-kozos-tabla .kezdés,.fo-kozos-tabla .végzés,.fo-kozos-tabla .hely{width:1%;white-space:nowrap}
+.fo-kozos-tabla .hely{text-align:left}.fo-kozos-tabla .rendszam{text-align:right;font-weight:bold}
+.fo-kozos-tabla .idopont-fejlec,.fo-kozos-tabla .idopont-ertek,.fo-kozos-tabla .idopont-cella{width:42px;min-width:42px;max-width:42px;padding:1px}
+.fo-kozos-tabla .idopont-fejlec{font-size:0;color:transparent}.fo-kozos-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px;text-align:left}
+.fo-kozos-tabla .sticky-bal{position:sticky;z-index:30;background:var(--surface)}
+.fo-kozos-tabla thead .sticky-bal{z-index:50;background:var(--surface3)}
+.fo-kozos-tabla .sticky-jobb{position:sticky;right:0;z-index:30;background:var(--surface);box-shadow:-2px 0 0 var(--border)}
+.fo-kozos-tabla thead .sticky-jobb{z-index:50;background:var(--surface3)}
+.fo-kozos-tabla .bal-6{box-shadow:2px 0 0 var(--border)}.fo-kozos-tabla .sticky-bal.bal-1{left:0}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td{background:rgba(110,168,254,.055);color:#82b4ff;font-weight:700}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td .rendszam-link{color:#82b4ff;font-weight:800}
+#fo-tabla.view-biztor .fo-kozos-tabla tbody tr[data-forras="garazs"],#fo-tabla.view-garazs .fo-kozos-tabla tbody tr[data-forras="biztor"],#fo-tabla .fo-kozos-tabla tbody tr[data-filter-match="0"]{display:none}
 </style>
 <style>
 /* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
@@ -3769,29 +3790,30 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     <div></div>
   </div>
   <div class="tabla-egesz" id="fo-tabla">
-    <div class="fix-ablak" id="fix-ablak">
-      <table class="fix-tabla">
-        <thead>
-          <tr class="fejlec-sor">
-            <th class="viszonylat">Viszonylat <button class="rendez-gomb" type="button" data-sort-col="0">↕</button></th>
-            <th class="forda">Forda <button class="rendez-gomb" type="button" data-sort-col="1">↕</button></th>
-            <th class="kezdés">Kezdés <button class="rendez-gomb" type="button" data-sort-col="2" data-sort-type="time">↕</button></th>
-            <th class="végzés">Végzés <button class="rendez-gomb" type="button" data-sort-col="3" data-sort-type="time">↕</button></th>
-            <th class="hely">Hely <button class="rendez-gomb" type="button" data-sort-col="4">↕</button></th>
-            <th class="rendszam">Rendszám <button class="rendez-gomb" type="button" data-sort-col="5">↕</button></th>
-          </tr>
-          <tr class="szuro-sor">
-            <th><input class="oszlop-kereso" data-col="0" placeholder="Keresés…" aria-label="Viszonylat keresése"></th>
-            <th><input class="oszlop-kereso" data-col="1" placeholder="Keresés…" aria-label="Forda keresése"></th>
-            <th></th><th></th>
-            <th><input class="oszlop-kereso" data-col="4" placeholder="Keresés…" aria-label="Hely keresése"></th>
-            <th><input class="oszlop-kereso" data-col="5" placeholder="Keresés…" aria-label="Rendszám keresése"></th>
-          </tr>
-        </thead>
-        <tbody id="fix-tbody">
+    <table class="fo-kozos-tabla">
+      <thead>
+        <tr class="fejlec-sor">
+          <th class="viszonylat sticky-bal bal-1">Viszonylat <button class="rendez-gomb" type="button" data-sort-col="0">↕</button></th>
+          <th class="forda sticky-bal bal-2">Forda <button class="rendez-gomb" type="button" data-sort-col="1">↕</button></th>
+          <th class="kezdés sticky-bal bal-3">Kezdés <button class="rendez-gomb" type="button" data-sort-col="2" data-sort-type="time">↕</button></th>
+          <th class="végzés sticky-bal bal-4">Végzés <button class="rendez-gomb" type="button" data-sort-col="3" data-sort-type="time">↕</button></th>
+          <th class="hely sticky-bal bal-5">Hely <button class="rendez-gomb" type="button" data-sort-col="4">↕</button></th>
+          <th class="rendszam sticky-bal bal-6">Rendszám <button class="rendez-gomb" type="button" data-sort-col="5">↕</button></th>
 """)
+        
+    for time_index, idopont in enumerate(idopontok):
+        html.append(f'<th class="idopont-fejlec" data-time-index="{time_index}"></th>')
+    html.append('<th class="sticky-jobb storage">Valós tárolás <button class="rendez-gomb" type="button" data-sort-col="storage">↕</button></th></tr>')
+    html.append('<tr class="szuro-sor">')
+    html.append('<th class="sticky-bal bal-1"><input class="oszlop-kereso" data-col="0" placeholder="Keresés…" aria-label="Viszonylat keresése"></th>')
+    html.append('<th class="sticky-bal bal-2"><input class="oszlop-kereso" data-col="1" placeholder="Keresés…" aria-label="Forda keresése"></th>')
+    html.append('<th class="sticky-bal bal-3"></th><th class="sticky-bal bal-4"></th>')
+    html.append('<th class="sticky-bal bal-5"><input class="oszlop-kereso" data-col="4" placeholder="Keresés…" aria-label="Hely keresése"></th>')
+    html.append('<th class="sticky-bal bal-6"><input class="oszlop-kereso" data-col="5" placeholder="Keresés…" aria-label="Rendszám keresése"></th>')
+    for time_index, idopont in enumerate(idopontok):
+        html.append(f'<th class="idopont-ertek" data-time-index="{time_index}">{escape(idopont)}</th>')
+    html.append('<th class="sticky-jobb storage"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Valós tárolás keresése"></th></tr></thead><tbody id="fix-tbody-common">')
 
-    # A három táblázat azonos sorazonosítókat kap.
     osszes_sor = []
     osszes_sor.extend({**v, "forrás": "biztor", "kulcs": k} for k, v in sorok.items())
     osszes_sor.extend({**v, "forrás": "garazs", "kulcs": k} for k, v in garazs_sorok.items())
@@ -3801,41 +3823,15 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
         forras = sor.get("forrás", "biztor")
         sor_class = "biztor-sor" if forras == "biztor" else "garazs-sor"
         html.append(f'<tr class="{sor_class}" data-row-id="{row_id}" data-forras="{forras}">')
-        html.append(f'<td class="viszonylat adat-fixed">{escape(sor["viszonylat"])}</td>')
-        html.append(f'<td class="forda adat-fixed">{escape(sor["forda"])}</td>')
-        html.append(f'<td class="kezdés adat-fixed">{escape(sor["kezdés"])}</td>')
-        html.append(f'<td class="végzés adat-fixed">{escape(sor["végzés"])}</td>')
-        html.append(f'<td class="hely adat-fixed">{escape(sor["hely"])}</td>')
+        html.append(f'<td class="viszonylat sticky-bal bal-1">{escape(sor["viszonylat"])}</td>')
+        html.append(f'<td class="forda sticky-bal bal-2">{escape(sor["forda"])}</td>')
+        html.append(f'<td class="kezdés sticky-bal bal-3">{escape(sor["kezdés"])}</td>')
+        html.append(f'<td class="végzés sticky-bal bal-4">{escape(sor["végzés"])}</td>')
+        html.append(f'<td class="hely sticky-bal bal-5">{escape(sor["hely"])}</td>')
         rs = str(sor.get("rendszám", "")).strip()
         rs_html = f'<button type="button" class="rendszam-link" data-rendszam="{escape(rs)}" title="Jármű megjelenítése a térképen">{escape(rs)}</button>' if rs else ""
-        html.append(f'<td class="rendszam adat-fixed">{rs_html}</td></tr>')
+        html.append(f'<td class="rendszam sticky-bal bal-6">{rs_html}</td>')
 
-    html.append("""
-        </tbody>
-      </table>
-    </div>
-    <div class="ido-ablak" id="ido-ablak">
-      <div class="ido-belso" id="ido-belso">
-        <table class="ido-tabla">
-          <thead>
-            <tr class="fejlec-sor">
-""")
-    for time_index, idopont in enumerate(idopontok):
-        html.append(f'<th class="idopont-fejlec" data-time-index="{time_index}"></th>')
-    html.append("""
-            </tr>
-            <tr class="szuro-sor">
-""")
-    for time_index, idopont in enumerate(idopontok):
-        html.append(f'<th class="idopont-ertek" data-time-index="{time_index}">{escape(idopont)}</th>')
-    html.append("""
-            </tr>
-          </thead>
-          <tbody id="ido-tbody">
-""")
-
-    for row_id, sor in enumerate(osszes_sor):
-        html.append(f'<tr data-row-id="{row_id}" data-forras="{sor.get("forrás", "biztor")}">')
         for time_index, idopont in enumerate(idopontok):
             eredmeny = sor.get("ellenőrzés", {}).get(idopont, "-")
             megj = {"OK":"I","NEM":"N","NINCS ADAT":"?"}.get(eredmeny,"-")
@@ -3845,31 +3841,13 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
                 if k <= t <= v:
                     osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
                 elif k - timedelta(minutes=15) <= t < k or v < t <= v + timedelta(minutes=15):
-                    osztaly = "neutral"
-                    megj = "-" if eredmeny not in ("OK","NEM") else megj
+                    osztaly = "neutral"; megj = "-" if eredmeny not in ("OK","NEM") else megj
                 else:
                     megj = "-"
             except (ValueError,TypeError):
                 osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
-            html.append(f'<td data-time-index="{time_index}"><span class="status-pill {osztaly}">{escape(megj)}</span></td>')
-        html.append('</tr>')
+            html.append(f'<td class="idopont-cella" data-time-index="{time_index}"><span class="status-pill {osztaly}">{escape(megj)}</span></td>')
 
-    html.append("""
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="storage-ablak" id="storage-ablak">
-      <table class="storage-tabla">
-        <thead>
-          <tr class="fejlec-sor"><th>Valós tárolás <button class="rendez-gomb" type="button" data-sort-col="storage">↕</button></th></tr>
-          <tr class="szuro-sor"><th><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Valós tárolás keresése"></th></tr>
-        </thead>
-        <tbody id="storage-tbody">
-""")
-
-    for row_id, sor in enumerate(osszes_sor):
-        forras = sor.get("forrás", "biztor")
         riport_map = riport_eredmenyek if forras == "biztor" else garazs_riport_eredmenyek
         rr = riport_map.get(sor["kulcs"], {})
         eredmeny_riport = str(rr.get("eredmény", "")).strip()
@@ -3879,81 +3857,90 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
         else:
             if tarolas in ("Nincs adat", "-"): tarolas = "n.a"
             rcls = "tarolas-ok" if eredmeny_riport == "RENDBEN TÁROLT" else "tarolas-eltérés" if eredmeny_riport == "ELTÉRÉS TÖRTÉNT" else "tarolas-na"
-        html.append(f'<tr data-row-id="{row_id}" data-forras="{forras}"><td class="tarolas {rcls}">{escape(tarolas)}</td></tr>')
+        html.append(f'<td class="sticky-jobb storage tarolas {rcls}">{escape(tarolas)}</td></tr>')
+
+    html.append('</tbody></table></div></div></div>')
 
     html.append("""
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-</div>
-
 <script>
 (function(){
   const fo=document.getElementById('fo-tabla');
-  const oldFix=document.getElementById('fix-ablak');
-  const oldTime=document.getElementById('ido-ablak');
-  const oldStorage=document.getElementById('storage-ablak');
   const slider=document.getElementById('fo-idopont-csuszka');
   const sliderBar=document.getElementById('fo-csuszkasav');
+  const table=fo?.querySelector('.fo-kozos-tabla');
+  const tbody=table?.querySelector('tbody');
   const label=document.getElementById('aktiv-sorok-szoveg');
   const buttons=document.querySelectorAll('.nezet-gomb');
-  if(!fo||!oldFix||!oldTime||!oldStorage||!slider)return;
+  if(!fo||!slider||!table||!tbody)return;
+  let currentView='biztor',sortState={col:null,dir:1};
 
-  // A három korábbi táblát itt egyetlen, valódi HTML-táblává egyesítjük.
-  // A 6 bal oldali + időoszlopok + 1 jobb oldali oszlop ugyanabban a <table>-ben vannak.
-  const fix=oldFix.querySelector('table'), time=oldTime.querySelector('table'), storage=oldStorage.querySelector('table');
-  const ft=fix?.querySelector('tbody'), tt=time?.querySelector('tbody'), st=storage?.querySelector('tbody');
-  if(!fix||!time||!storage||!ft||!tt||!st)return;
-  const common=document.createElement('table'); common.className='fo-kozos-tabla';
-  const cg=document.createElement('colgroup');
-  for(let i=0;i<6;i++)cg.appendChild(document.createElement('col'));
-  const timeCount=time.querySelectorAll('thead tr:first-child th').length;
-  for(let i=0;i<timeCount;i++){const c=document.createElement('col');c.className='col-idopont';cg.appendChild(c);}
-  cg.appendChild(document.createElement('col'));
-  common.appendChild(cg);
-  const thead=document.createElement('thead');
-  const h1=document.createElement('tr'); h1.className='fejlec-sor';
-  const fHeads=fix.querySelectorAll('thead tr:first-child th');
-  fHeads.forEach((x,i)=>{const c=x.cloneNode(true);c.classList.add('sticky-bal','bal-'+(i+1));h1.appendChild(c);});
-  time.querySelectorAll('thead tr:first-child th').forEach(x=>h1.appendChild(x.cloneNode(true)));
-  const sh=storage.querySelector('thead tr:first-child th').cloneNode(true);sh.classList.add('sticky-jobb','storage');h1.appendChild(sh);thead.appendChild(h1);
-  const h2=document.createElement('tr');h2.className='szuro-sor';
-  const fFilter=fix.querySelectorAll('thead tr.szuro-sor th');
-  fFilter.forEach((x,i)=>{const c=x.cloneNode(true);c.classList.add('sticky-bal','bal-'+(i+1));h2.appendChild(c);});
-  time.querySelectorAll('thead tr.szuro-sor th').forEach(x=>h2.appendChild(x.cloneNode(true)));
-  const sf=storage.querySelector('thead tr.szuro-sor th').cloneNode(true);sf.classList.add('sticky-jobb');h2.appendChild(sf);thead.appendChild(h2);common.appendChild(thead);
-  const tbody=document.createElement('tbody'); tbody.id='fix-tbody-common';
-  const timeRows=Array.from(tt.querySelectorAll('tr')), storageRows=Array.from(st.querySelectorAll('tr'));
-  Array.from(ft.querySelectorAll('tr')).forEach((fr,i)=>{
-    const row=fr.cloneNode(false); row.className=fr.className; row.dataset.rowId=fr.dataset.rowId; row.dataset.forras=fr.dataset.forras;
-    fr.querySelectorAll(':scope > td').forEach((x,j)=>{const c=x.cloneNode(true);c.classList.add('sticky-bal','bal-'+(j+1));row.appendChild(c);});
-    if(timeRows[i])timeRows[i].querySelectorAll(':scope > td').forEach(x=>row.appendChild(x.cloneNode(true)));
-    if(storageRows[i]){const c=storageRows[i].querySelector(':scope > td')?.cloneNode(true);if(c){c.classList.add('sticky-jobb');row.appendChild(c);}}
-    tbody.appendChild(row);
-  });
-  common.appendChild(tbody);
-  fo.innerHTML=''; fo.appendChild(common);
-
-  let currentView='biztor', sortState={col:null,dir:1};
-  function rows(){return Array.from(tbody.querySelectorAll('tr'));}
-  function sticky(){let left=0;for(let i=1;i<=6;i++){const h=common.querySelector('thead .bal-'+i),w=h?.getBoundingClientRect().width||0;common.querySelectorAll('.bal-'+i).forEach(c=>c.style.left=left+'px');left+=w;}common.querySelectorAll('.sticky-jobb').forEach(c=>c.style.right='0px');if(sliderBar){const sh=common.querySelector('thead .storage'),sw=sh?.getBoundingClientRect().width||0,sec=document.querySelector('.tabla-szekcio'),av=sec?.clientWidth||window.innerWidth;sliderBar.style.gridTemplateColumns=left+'px '+Math.max(0,av-left-sw-2)+'px '+sw+'px';}}
-  function layout(){sticky();const max=Math.max(0,fo.scrollWidth-fo.clientWidth);slider.max=String(max);slider.value=String(max);fo.scrollLeft=max;}
-  function view(v){currentView=v;buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===v));fo.classList.remove('view-biztor','view-garazs','view-mindketto');fo.classList.add('view-'+v);fo.classList.toggle('all-view',v==='mindketto');if(label)label.textContent=v==='biztor'?'Végállomás':v==='garazs'?'Garázs':'Összes';}
-  function filters(){const inputs=Array.from(document.querySelectorAll('.oszlop-kereso[data-col]'));rows().forEach(r=>{let ok=true;inputs.forEach(i=>{if(!ok)return;const q=i.value.trim().toLocaleLowerCase('hu-HU');if(!q)return;const c=i.dataset.col==='storage'?r.querySelector('.sticky-jobb'):r.children[+i.dataset.col];if(!(c?.textContent||'').toLocaleLowerCase('hu-HU').includes(q))ok=false;});r.dataset.filterMatch=ok?'1':'0';});view(currentView);}
+  function rows(){return Array.from(tbody.children);}
+  function sticky(){
+    let left=0;
+    for(let i=1;i<=6;i++){
+      const cells=table.querySelectorAll('.bal-'+i);
+      const w=cells[0]?.getBoundingClientRect().width||0;
+      cells.forEach(c=>c.style.left=left+'px');
+      left+=w;
+    }
+    const storage=table.querySelector('thead .storage');
+    const sw=storage?.getBoundingClientRect().width||0;
+    if(sliderBar){
+      const sec=document.querySelector('.tabla-szekcio'),av=sec?.clientWidth||window.innerWidth;
+      sliderBar.style.gridTemplateColumns=left+'px '+Math.max(0,av-left-sw-2)+'px '+sw+'px';
+    }
+  }
+  function layout(){
+    sticky();
+    const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
+    slider.max=String(max);slider.value=String(max);fo.scrollLeft=max;
+  }
+  function view(v){
+    currentView=v;
+    buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===v));
+    fo.classList.remove('view-biztor','view-garazs','view-mindketto');
+    fo.classList.add('view-'+v);fo.classList.toggle('all-view',v==='mindketto');
+    if(label)label.textContent=v==='biztor'?'Végállomás':v==='garazs'?'Garázs':'Összes';
+  }
+  function filters(){
+    const inputs=Array.from(document.querySelectorAll('.oszlop-kereso[data-col]'));
+    rows().forEach(r=>{
+      let ok=true;
+      inputs.forEach(i=>{
+        if(!ok)return;
+        const q=i.value.trim().toLocaleLowerCase('hu-HU');
+        if(!q)return;
+        const c=i.dataset.col==='storage'?r.querySelector('.sticky-jobb'):r.children[+i.dataset.col];
+        if(!(c?.textContent||'').toLocaleLowerCase('hu-HU').includes(q))ok=false;
+      });
+      r.dataset.filterMatch=ok?'1':'0';
+    });
+  }
   function val(r,c){const x=c==='storage'?r.querySelector('.sticky-jobb'):r.children[+c];return x?.textContent.trim()||'';}
-  function cmp(a,b,t){if(t==='time'){const ma=/^(\d{1,2}):(\d{2})$/.exec(a),mb=/^(\d{1,2}):(\d{2})$/.exec(b);if(ma&&mb)return(+ma[1]*60+ +ma[2])-(+mb[1]*60+ +mb[2]);}return a.localeCompare(b,'hu',{numeric:true,sensitivity:'base'});}
-  function sort(btn){const c=btn.dataset.sortCol,t=btn.dataset.sortType||'';if(sortState.col===c)sortState.dir*=-1;else{sortState.col=c;sortState.dir=1;}document.querySelectorAll('.rendez-gomb').forEach(b=>{b.classList.remove('active');b.textContent='↕'});btn.classList.add('active');btn.textContent=sortState.dir===1?'↑':'↓';rows().sort((a,b)=>cmp(val(a,c),val(b,c),t)*sortState.dir).forEach(r=>tbody.appendChild(r));sticky();}
-  slider.addEventListener('input',()=>fo.scrollLeft=Math.min(fo.scrollWidth-fo.clientWidth,Math.max(0,+slider.value||0)));
-  fo.addEventListener('scroll',()=>slider.value=String(Math.round(fo.scrollLeft)),{passive:true});
+  function cmp(a,b,t){
+    if(t==='time'){
+      const ma=/^(\d{1,2}):(\d{2})$/.exec(a),mb=/^(\d{1,2}):(\d{2})$/.exec(b);
+      if(ma&&mb)return(+ma[1]*60+ +ma[2])-(+mb[1]*60+ +mb[2]);
+    }
+    return a.localeCompare(b,'hu',{numeric:true,sensitivity:'base'});
+  }
+  function sort(btn){
+    const c=btn.dataset.sortCol,t=btn.dataset.sortType||'';
+    if(sortState.col===c)sortState.dir*=-1;else{sortState.col=c;sortState.dir=1;}
+    document.querySelectorAll('.rendez-gomb').forEach(b=>{b.classList.remove('active');b.textContent='↕'});
+    btn.classList.add('active');btn.textContent=sortState.dir===1?'↑':'↓';
+    rows().sort((a,b)=>cmp(val(a,c),val(b,c),t)*sortState.dir).forEach(r=>tbody.appendChild(r));
+    sticky();
+  }
+  slider.addEventListener('input',()=>{fo.scrollLeft=Math.min(fo.scrollWidth-fo.clientWidth,Math.max(0,+slider.value||0));});
+  fo.addEventListener('scroll',()=>{slider.value=String(Math.round(fo.scrollLeft));},{passive:true});
   buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet)));
   document.querySelectorAll('.rendez-gomb').forEach(b=>b.addEventListener('click',()=>sort(b)));
   document.querySelectorAll('.oszlop-kereso').forEach(i=>i.addEventListener('input',filters));
   window.addEventListener('resize',()=>requestAnimationFrame(layout));
-  rows().forEach(r=>r.dataset.filterMatch='1');view('biztor');layout();
-})();
-
+  rows().forEach(r=>r.dataset.filterMatch='1');
+  view('biztor');layout();
+})()
 (function(){
   const btn=document.getElementById('theme-toggle');
   if(!btn) return;
@@ -3968,7 +3955,6 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 </script>
 
 """)
-
     html.append(r'''
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
