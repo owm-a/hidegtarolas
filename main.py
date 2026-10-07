@@ -3578,10 +3578,14 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 }
 
 .ido-tabla .status-pill{height:20px;line-height:1}
-.ido-tabla th.idopont-fejlec{font-size:0;color:transparent;padding:0}
-.ido-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px}
-.szuro-sor th{background:var(--surface2);height:31px;padding:3px 4px;box-sizing:border-box}
-.idopont-ertek{height:31px !important;min-height:31px !important;padding:3px 1px !important;box-sizing:border-box;line-height:23px !important}
+.ido-tabla th.idopont-fejlec{font-size:0;color:transparent;padding:0;height:31px;min-height:31px;line-height:0}
+.ido-tabla thead tr.fejlec-sor{height:31px !important}
+.ido-tabla thead tr.szuro-sor{height:31px !important}
+.ido-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:3px 1px}
+.szuro-sor th{background:var(--surface2);height:31px;min-height:31px;padding:3px 4px;box-sizing:border-box}
+.idopont-ertek{height:31px !important;min-height:31px !important;padding:3px 1px !important;box-sizing:border-box;line-height:23px !important;vertical-align:middle}
+.fix-tabla tbody td.rendszam{vertical-align:middle !important;line-height:18px !important;padding-top:0 !important;padding-bottom:0 !important}
+.rendszam-link{height:18px;line-height:18px;vertical-align:middle;position:relative;top:0}
 .szuro-sor th:empty{background:var(--surface2)}
 .oszlop-kereso{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:5px;padding:3px 4px;font:inherit;font-size:10px;outline:none}
 .oszlop-kereso:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(110,168,254,.12)}
@@ -4315,6 +4319,9 @@ function fokuszJarmure(rendszam) {
 
 document.querySelectorAll(".rendszam-link").forEach(function(btn){
     btn.addEventListener("click", function(){
+        // A rendszámra kattintva mindig a lap tetejére visszük a nézetet,
+        // majd a térképen megkeressük és kiemeljük a járművet.
+        window.scrollTo({top: 0, behavior: "smooth"});
         fokuszJarmure(this.dataset.rendszam);
     });
 });
