@@ -2525,7 +2525,7 @@ print(
 
 # ============================================================
 # NAPI HIDEGTÁROLÁSI RIPORT
-# 16:30 UTÁN EGYSZER NAPONTA
+# 16:30-TÓL, NAPONTA EGYSZER
 # ============================================================
 
 RIport_XLSX = "data/hidegtarolas_export.xlsx"
@@ -2766,14 +2766,29 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         or len(dontesek) >= len(figyelt_forras)
     )
 
+    # A napi Excel-riport semmilyen körülmények között ne készüljön 16:30 előtt.
+    # Ha egy korábbi hibás futás 16:30 előtt már excel_kesz=True értéket mentett,
+    # azt is újra megnyitjuk, hogy a 16:30 utáni futás ténylegesen elkészíthesse.
+    riport_indithato = most.time() >= time(16, 30)
+
+    korabbi_keszult = str(korabbi_riport.get("keszult", "")).strip()
+    korabbi_keszult_ido = None
+    try:
+        if " " in korabbi_keszult:
+            korabbi_keszult_ido = datetime.strptime(korabbi_keszult, "%Y-%m-%d %H:%M:%S").time()
+    except (ValueError, TypeError):
+        korabbi_keszult_ido = None
+
     excel_mar_mentve = (
         korabbi_riport.get("datum") == MAI_NAP
         and korabbi_riport.get("excel_kesz") is True
+        and korabbi_keszult_ido is not None
+        and korabbi_keszult_ido >= time(16, 30)
     )
 
     riport_idopont = korabbi_riport.get("keszult", "-")
 
-    if minden_döntött and not excel_mar_mentve:
+    if riport_indithato and minden_döntött and not excel_mar_mentve:
         os.makedirs("data", exist_ok=True)
 
         if os.path.exists(export_fajl):
@@ -3729,11 +3744,11 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla thead .sticky-jobb{z-index:50;background:var(--surface3)}
 .fo-kozos-tabla .bal-1{left:0}.fo-kozos-tabla .bal-2{left:var(--bal-2,0px)}.fo-kozos-tabla .bal-3{left:var(--bal-3,0px)}.fo-kozos-tabla .bal-4{left:var(--bal-4,0px)}.fo-kozos-tabla .bal-5{left:var(--bal-5,0px)}.fo-kozos-tabla .bal-6{left:var(--bal-6,0px)}
 /* Ízléses, folytonos elválasztó a hat fix oszlop között. */
-.fo-kozos-tabla .sticky-bal.bal-1,.fo-kozos-tabla .sticky-bal.bal-2,.fo-kozos-tabla .sticky-bal.bal-3,.fo-kozos-tabla .sticky-bal.bal-4,.fo-kozos-tabla .sticky-bal.bal-5{box-shadow:inset -1px 0 rgba(255,255,255,.10)}
-.fo-kozos-tabla .sticky-bal.bal-6{box-shadow:2px 0 0 var(--border),inset -1px 0 rgba(255,255,255,.08)}
-/* A bal oldali réteg teljesen fedje az időcellákat, az alsó időtartalom se látszódjon át. */
-.fo-kozos-tabla .sticky-bal{isolation:isolate}
-.fo-kozos-tabla .sticky-bal::after{content:"";position:absolute;inset:0;background:inherit;z-index:-1;pointer-events:none}
+/* A bal oldali cellák saját, opák háttere takarja az időcellákat.
+   Nincs külön rárajzolt fekete fedőréteg: a normál cellaszegélyek maradnak láthatók. */
+.fo-kozos-tabla .sticky-bal{isolation:auto;background:var(--surface);}
+.fo-kozos-tabla thead .sticky-bal{background:var(--surface3);}
+.fo-kozos-tabla .szuro-sor .sticky-bal{background:var(--surface2);}
 /* Valós tárolás formázása a közös táblában is. */
 .fo-kozos-tabla td.tarolas{font-weight:750;padding:0 8px;line-height:22px;background:var(--surface);white-space:nowrap}
 .fo-kozos-tabla td.tarolas-ok{color:#6ee7a8}
@@ -3814,16 +3829,6 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 /* A sticky cellák szélei között a border-collapse miatt maradhat 1px-es
    festési rés. Ezt egy enyhén túlnyúló, teljesen opák háttérréteg takarja,
    így az időcellák sem a cellaközben, sem a szegélynél nem látszanak át. */
-.fo-kozos-tabla .sticky-bal{isolation:isolate;overflow:visible}
-.fo-kozos-tabla .sticky-bal::after{
-  content:"";
-  position:absolute;
-  inset:-2px -1px;
-  background:var(--surface);
-  z-index:-1;
-  pointer-events:none;
-}
-.fo-kozos-tabla thead .sticky-bal::after{background:var(--surface3)}
 /* =========================================================
    V6 – természetes fix oszlopok + mobil jobb oldali tárolás
    ========================================================= */
@@ -3844,9 +3849,9 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla .hely,
 .fo-kozos-tabla .rendszam,
 .fo-kozos-tabla .sticky-jobb.storage{
-  width:auto!important;
-  min-width:0!important;
-  max-width:none!important;
+  width:max-content!important;
+  min-width:max-content!important;
+  max-width:max-content!important;
 }
 /* A rendszám jobb oldalán legyen egy jól látható függőleges elválasztó. */
 .fo-kozos-tabla .rendszam.sticky-bal{
@@ -3883,9 +3888,9 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla .hely,
 .fo-kozos-tabla .rendszam,
 .fo-kozos-tabla .sticky-jobb.storage{
-  width:auto!important;
-  min-width:0!important;
-  max-width:none!important;
+  width:max-content!important;
+  min-width:max-content!important;
+  max-width:max-content!important;
 }
 .fo-kozos-tabla .rendszam.sticky-bal{
   box-shadow:inset -1px 0 rgba(255,255,255,.16),2px 0 0 var(--border)!important;
@@ -4071,7 +4076,6 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   const sliderBar=document.getElementById('fo-csuszkasav');
   const table=fo?.querySelector('.fo-kozos-tabla');
   const tbody=table?.querySelector('tbody');
-  const label=document.getElementById('aktiv-sorok-szoveg');
   const buttons=document.querySelectorAll('.nezet-gomb');
   if(!fo||!slider||!table||!tbody)return;
   let currentView='biztor',sortState={col:null,dir:1};
@@ -4107,7 +4111,6 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===v));
     fo.classList.remove('view-biztor','view-garazs','view-mindketto');
     fo.classList.add('view-'+v);fo.classList.toggle('all-view',v==='mindketto');
-    if(label)label.textContent=v==='biztor'?'Végállomás':v==='garazs'?'Garázs':'Összes';
 
     // A display:none miatt a böngésző a jelenlegi nézet látható sorai
     // alapján újraméretezi a természetes oszlopszélességeket. Ezután
@@ -4153,7 +4156,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   window.addEventListener('resize',()=>requestAnimationFrame(layout));
   rows().forEach(r=>r.dataset.filterMatch='1');
   view('biztor');layout();
-})()
+})();
 (function(){
   const btn=document.getElementById('theme-toggle');
   if(!btn) return;
