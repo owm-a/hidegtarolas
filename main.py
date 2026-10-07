@@ -4155,6 +4155,22 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   color:var(--accent)!important;
 }
 
+/* =========================================================
+   MOBIL – minden cella egyenértékű, nincs vízszintes sticky
+   ========================================================= */
+@media (max-width:900px){
+  .fo-kozos-tabla .sticky-bal,
+  .fo-kozos-tabla .sticky-jobb,
+  .fo-kozos-tabla .szuro-sor th.sticky-bal,
+  .fo-kozos-tabla .szuro-sor th.sticky-jobb{
+    position:static!important;
+    left:auto!important;
+    right:auto!important;
+    z-index:auto!important;
+    box-shadow:none!important;
+  }
+}
+
 </style>
 <style>
 /* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
@@ -4419,8 +4435,14 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     sticky();
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
     slider.max=String(max);
-    slider.value=String(max);
-    fo.scrollLeft=max;
+    if(window.innerWidth<=900){
+      // Mobilon őrizzük meg az aktuális vízszintes pozíciót.
+      slider.value=String(Math.min(max,Math.max(0,fo.scrollLeft)));
+    }else{
+      // Desktopon marad a jelenlegi indulás: jobb szél.
+      slider.value=String(max);
+      fo.scrollLeft=max;
+    }
   }
   function view(v){
     currentView=v;
