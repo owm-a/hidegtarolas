@@ -3824,6 +3824,82 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   pointer-events:none;
 }
 .fo-kozos-tabla thead .sticky-bal::after{background:var(--surface3)}
+/* =========================================================
+   V6 – természetes fix oszlopok + mobil jobb oldali tárolás
+   ========================================================= */
+/* A keresőmezők ne növeljék meg a fejlécoszlop természetes szélességét.
+   A cellán belül lebegnek, ezért a fejléc + tartalom határozza meg az oszlopot. */
+.fo-kozos-tabla .szuro-sor th{position:relative;overflow:visible}
+.fo-kozos-tabla .szuro-sor .oszlop-kereso{
+  position:absolute;
+  left:3px;right:3px;top:2px;
+  width:auto;min-width:0;max-width:none;
+  box-sizing:border-box;
+}
+/* A hat bal oldali és a jobb oldali oszlopnak nincs mesterséges szélessége. */
+.fo-kozos-tabla .viszonylat,
+.fo-kozos-tabla .forda,
+.fo-kozos-tabla .kezdés,
+.fo-kozos-tabla .végzés,
+.fo-kozos-tabla .hely,
+.fo-kozos-tabla .rendszam,
+.fo-kozos-tabla .sticky-jobb.storage{
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+}
+/* A rendszám jobb oldalán legyen egy jól látható függőleges elválasztó. */
+.fo-kozos-tabla .rendszam.sticky-bal{
+  box-shadow:inset -1px 0 rgba(255,255,255,.16),2px 0 0 var(--border)!important;
+}
+/* A bal 6 oszlop sorai között is legyen ugyanaz a finom vízszintes szegély,
+   mint a többi táblaterületen. */
+.fo-kozos-tabla .sticky-bal{
+  border-bottom:1px solid var(--border)!important;
+}
+/* Desktopon a Valós tárolás a lap jobb szélén marad; mobilon viszont
+   a teljes táblával együtt jobbra görgethető, tehát nem tapad a viewporthoz. */
+@media (max-width:900px){
+  .fo-kozos-tabla .sticky-jobb{
+    position:static!important;
+    right:auto!important;
+    box-shadow:none!important;
+  }
+}
+/* =========================================================
+   V6 – természetes fix oszlopok + mobil jobb oldali tárolás
+   ========================================================= */
+.fo-kozos-tabla .szuro-sor th{position:relative;overflow:visible}
+.fo-kozos-tabla .szuro-sor .oszlop-kereso{
+  position:absolute;
+  left:3px;right:3px;top:2px;
+  width:auto;min-width:0;max-width:none;
+  box-sizing:border-box;
+}
+.fo-kozos-tabla .viszonylat,
+.fo-kozos-tabla .forda,
+.fo-kozos-tabla .kezdés,
+.fo-kozos-tabla .végzés,
+.fo-kozos-tabla .hely,
+.fo-kozos-tabla .rendszam,
+.fo-kozos-tabla .sticky-jobb.storage{
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+}
+.fo-kozos-tabla .rendszam.sticky-bal{
+  box-shadow:inset -1px 0 rgba(255,255,255,.16),2px 0 0 var(--border)!important;
+}
+.fo-kozos-tabla .sticky-bal{
+  border-bottom:1px solid var(--border)!important;
+}
+@media (max-width:900px){
+  .fo-kozos-tabla .sticky-jobb{
+    position:static!important;
+    right:auto!important;
+    box-shadow:none!important;
+  }
+}
 </style>
 <style>
 /* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
