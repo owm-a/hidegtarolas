@@ -8,9 +8,10 @@
       "végzés": "15:11:00",
       "hely": "Békásmegyer, Újmegyeri tér",
       "helyszín": "bekasmegyer",
+      "forrás": "biztor",
       "rendszám": "AAHY812",
       "jármű_id": "372",
-      "frissítve": "09:50:35"
+      "frissítve": "10:10:45"
     },
     "0710|23": {
       "viszonylat": "0710",
@@ -33,7 +34,7 @@
       "forrás": "biztor",
       "rendszám": "AOJM873",
       "jármű_id": "996",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "1510|39": {
       "viszonylat": "1510",
@@ -42,9 +43,10 @@
       "végzés": "13:45:00",
       "hely": "Csepel, Szent Imre tér",
       "helyszín": "csepel_szent_imre",
+      "forrás": "biztor",
       "rendszám": "AOGF659",
       "jármű_id": "741",
-      "frissítve": "09:50:35"
+      "frissítve": "10:10:45"
     },
     "1510|22": {
       "viszonylat": "1510",
@@ -68,7 +70,7 @@
       "forrás": "biztor",
       "rendszám": "AOGF672",
       "jármű_id": "755",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "1510|46": {
       "viszonylat": "1510",
@@ -114,7 +116,7 @@
       "forrás": "biztor",
       "rendszám": "PDN637",
       "jármű_id": "7108",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "2250|60": {
       "viszonylat": "2250",
@@ -126,7 +128,7 @@
       "forrás": "biztor",
       "rendszám": "AAHY805",
       "jármű_id": "365",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "garazs|0205|65": {
       "viszonylat": "0205",
@@ -138,7 +140,7 @@
       "forrás": "garazs",
       "rendszám": "AAMH617",
       "jármű_id": "460",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "garazs|0205|66": {
       "viszonylat": "0205",
@@ -174,7 +176,7 @@
       "forrás": "garazs",
       "rendszám": "PDN606",
       "jármű_id": "7078",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "garazs|0660|51": {
       "viszonylat": "0660",
@@ -220,7 +222,7 @@
       "forrás": "garazs",
       "rendszám": "AAHY836",
       "jármű_id": "397",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "garazs|1050|30": {
       "viszonylat": "1050",
@@ -229,9 +231,10 @@
       "végzés": "15:18:00",
       "hely": "ArrivaBus Andor telephely",
       "helyszín": "andor",
+      "forrás": "garazs",
       "rendszám": "AOGL324",
       "jármű_id": "915",
-      "frissítve": "09:50:35"
+      "frissítve": "10:10:45"
     },
     "garazs|1100|22": {
       "viszonylat": "1100",
@@ -266,7 +269,7 @@
       "forrás": "garazs",
       "rendszám": "AOCT674",
       "jármű_id": "705",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "garazs|1200|55": {
       "viszonylat": "1200",
@@ -278,7 +281,7 @@
       "forrás": "garazs",
       "rendszám": "AAHY859",
       "jármű_id": "421",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "garazs|1225|50": {
       "viszonylat": "1225",
@@ -290,7 +293,7 @@
       "forrás": "garazs",
       "rendszám": "AAHY854",
       "jármű_id": "416",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "garazs|1240|56": {
       "viszonylat": "1240",
@@ -302,7 +305,7 @@
       "forrás": "garazs",
       "rendszám": "AAHY880",
       "jármű_id": "442",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "garazs|1240|62": {
       "viszonylat": "1240",
@@ -314,7 +317,7 @@
       "forrás": "garazs",
       "rendszám": "AAHY826",
       "jármű_id": "387",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "garazs|1335|66": {
       "viszonylat": "1335",
@@ -373,7 +376,7 @@
       "forrás": "garazs",
       "rendszám": "PDN644",
       "jármű_id": "7115",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "garazs|1530|23": {
       "viszonylat": "1530",
@@ -385,7 +388,7 @@
       "forrás": "garazs",
       "rendszám": "PDN631",
       "jármű_id": "7102",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "garazs|1590|21": {
       "viszonylat": "1590",
@@ -409,7 +412,7 @@
       "forrás": "garazs",
       "rendszám": "AOJM886",
       "jármű_id": "1014",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "garazs|2120|21": {
       "viszonylat": "2120",
@@ -432,7 +435,7 @@
       "forrás": "garazs",
       "rendszám": "PDN614",
       "jármű_id": "7085",
-      "frissítve": "09:56:28"
+      "frissítve": "10:10:45"
     },
     "0350|34": {
       "viszonylat": "0350",
@@ -444,7 +447,7 @@
       "forrás": "biztor",
       "rendszám": "SGY804",
       "jármű_id": "7722",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "garazs|0300|66": {
       "viszonylat": "0300",
@@ -456,7 +459,7 @@
       "forrás": "garazs",
       "rendszám": "AAMH634",
       "jármű_id": "477",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "garazs|1050|63": {
       "viszonylat": "1050",
@@ -468,7 +471,7 @@
       "forrás": "garazs",
       "rendszám": "AOGL312",
       "jármű_id": "902",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "garazs|1470|57": {
       "viszonylat": "1470",
@@ -480,7 +483,7 @@
       "forrás": "garazs",
       "rendszám": "AAHY869",
       "jármű_id": "431",
-      "frissítve": "09:56:28"
+      "frissítve": "10:10:45"
     },
     "garazs|1960|61": {
       "viszonylat": "1960",
@@ -516,7 +519,7 @@
       "forrás": "garazs",
       "rendszám": "AOIB804",
       "jármű_id": "875",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     },
     "garazs|1040|60": {
       "viszonylat": "1040",
@@ -528,7 +531,7 @@
       "forrás": "garazs",
       "rendszám": "AAHY837",
       "jármű_id": "398",
-      "frissítve": "10:05:41"
+      "frissítve": "10:10:45"
     }
   },
   "pozicio_tortenet": [
@@ -5631,6 +5634,681 @@
       "pozicio_frissitve": "10:05",
       "ellenőrzés": "-",
       "frissítve": "10:05:50"
+    },
+    {
+      "viszonylat": "1340",
+      "forda": "57",
+      "kezdés": "10:39:00",
+      "végzés": "15:11:00",
+      "hely": "Békásmegyer, Újmegyeri tér",
+      "helyszín": "bekasmegyer",
+      "forrás": "biztor",
+      "rendszám": "AAHY812",
+      "jármű_id": "372",
+      "pozíció": "47.542965, 19.04224",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "0710",
+      "forda": "23",
+      "kezdés": "10:00:00",
+      "végzés": "14:27:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "forrás": "biztor",
+      "rendszám": "PDN623",
+      "jármű_id": "7094",
+      "pozíció": "47.431026, 19.070889",
+      "pozicio_frissitve": "10:00",
+      "ellenőrzés": "OK",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1480",
+      "forda": "23",
+      "kezdés": "11:52:00",
+      "végzés": "14:49:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "forrás": "biztor",
+      "rendszám": "AOJM873",
+      "jármű_id": "996",
+      "pozíció": "47.455166, 19.11424",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1510",
+      "forda": "39",
+      "kezdés": "12:20:00",
+      "végzés": "13:45:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "forrás": "biztor",
+      "rendszám": "AOGF659",
+      "jármű_id": "741",
+      "pozíció": "47.421383, 19.089535",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1510",
+      "forda": "22",
+      "kezdés": "10:12:00",
+      "végzés": "13:47:00",
+      "hely": "Kőbánya alsó vasútállomás",
+      "helyszín": "kobanya_also",
+      "forrás": "biztor",
+      "rendszám": "AOGF671",
+      "jármű_id": "754",
+      "pozíció": "47.484257, 19.126907",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "OK",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1510",
+      "forda": "23",
+      "kezdés": "10:32:00",
+      "végzés": "14:09:00",
+      "hely": "Kőbánya alsó vasútállomás",
+      "helyszín": "kobanya_also",
+      "forrás": "biztor",
+      "rendszám": "AOGF672",
+      "jármű_id": "755",
+      "pozíció": "47.463577, 19.15118",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1510",
+      "forda": "46",
+      "kezdés": "11:22:00",
+      "végzés": "14:16:00",
+      "hely": "Kőbánya alsó vasútállomás",
+      "helyszín": "kobanya_also",
+      "forrás": "biztor",
+      "rendszám": "AOIM014",
+      "jármű_id": "934",
+      "pozíció": "47.416275, 19.093048",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1840",
+      "forda": "13",
+      "kezdés": "09:51:00",
+      "végzés": "15:38:00",
+      "hely": "Kőbánya-Kispest M (Sibrik tároló)",
+      "helyszín": "kobanya_kispest",
+      "forrás": "biztor",
+      "rendszám": "SGY813",
+      "jármű_id": "7731",
+      "pozíció": "47.462334, 19.150694",
+      "pozicio_frissitve": "09:50",
+      "ellenőrzés": "OK",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1480",
+      "forda": "22",
+      "kezdés": "09:52:00",
+      "végzés": "12:55:00",
+      "hely": "Kőbánya-Kispest M (Sibrik tároló)",
+      "helyszín": "kobanya_kispest",
+      "forrás": "biztor",
+      "rendszám": "AOJM872",
+      "jármű_id": "995",
+      "pozíció": "47.46234, 19.150654",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "OK",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1820",
+      "forda": "21",
+      "kezdés": "10:22:00",
+      "végzés": "15:13:00",
+      "hely": "Kőbánya-Kispest M (Sibrik tároló)",
+      "helyszín": "kobanya_kispest",
+      "forrás": "biztor",
+      "rendszám": "PDN637",
+      "jármű_id": "7108",
+      "pozíció": "47.454674, 19.168257",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "NEM",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "2250",
+      "forda": "60",
+      "kezdés": "10:20:00",
+      "végzés": "14:02:00",
+      "hely": "Mexikói út M",
+      "helyszín": "mexikoi_ut",
+      "forrás": "biztor",
+      "rendszám": "AAHY805",
+      "jármű_id": "365",
+      "pozíció": "47.557323, 19.11354",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "NEM",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "0205",
+      "forda": "65",
+      "kezdés": "11:43:00",
+      "végzés": "15:35:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAMH617",
+      "jármű_id": "460",
+      "pozíció": "47.567074, 19.0979",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "0205",
+      "forda": "66",
+      "kezdés": "12:03:00",
+      "végzés": "15:47:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAMH616",
+      "jármű_id": "459",
+      "pozíció": "47.575443, 19.104382",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "0300",
+      "forda": "67",
+      "kezdés": "10:45:00",
+      "végzés": "14:18:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAMH674",
+      "jármű_id": "517",
+      "pozíció": "47.509705, 19.082272",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "0530",
+      "forda": "21",
+      "kezdés": "11:39:00",
+      "végzés": "16:09:00",
+      "hely": "ArrivaBus Andor telephely",
+      "helyszín": "andor",
+      "forrás": "garazs",
+      "rendszám": "PDN606",
+      "jármű_id": "7078",
+      "pozíció": "47.474968, 19.027811",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "0660",
+      "forda": "51",
+      "kezdés": "12:08:00",
+      "végzés": "13:55:00",
+      "hely": "ArrivaBus Szállító telephely",
+      "helyszín": "csepel",
+      "forrás": "garazs",
+      "rendszám": "AOGF652",
+      "jármű_id": "734",
+      "pozíció": "47.464268, 19.127073",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1012",
+      "forda": "26",
+      "kezdés": "09:58:00",
+      "végzés": "14:28:00",
+      "hely": "ArrivaBus Andor telephely",
+      "helyszín": "andor",
+      "forrás": "garazs",
+      "rendszám": "PDN604",
+      "jármű_id": "7076",
+      "pozíció": "47.45811, 19.02931",
+      "pozicio_frissitve": "10:00",
+      "ellenőrzés": "OK",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1040",
+      "forda": "61",
+      "kezdés": "10:14:00",
+      "végzés": "13:49:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAHY834",
+      "jármű_id": "395",
+      "pozíció": "47.571533, 19.135742",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "OK",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1040",
+      "forda": "63",
+      "kezdés": "11:22:00",
+      "végzés": "13:53:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAHY836",
+      "jármű_id": "397",
+      "pozíció": "47.609093, 19.11699",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1050",
+      "forda": "30",
+      "kezdés": "12:40:00",
+      "végzés": "15:18:00",
+      "hely": "ArrivaBus Andor telephely",
+      "helyszín": "andor",
+      "forrás": "garazs",
+      "rendszám": "AOGL324",
+      "jármű_id": "915",
+      "pozíció": "47.492073, 19.017391",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1100",
+      "forda": "22",
+      "kezdés": "10:13:00",
+      "végzés": "15:15:00",
+      "hely": "ArrivaBus Andor telephely",
+      "helyszín": "andor",
+      "forrás": "garazs",
+      "rendszám": "AOIM043",
+      "jármű_id": "964",
+      "pozíció": "47.458088, 19.027544",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "OK",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1100",
+      "forda": "52",
+      "kezdés": "12:41:00",
+      "végzés": "13:27:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AOCT671",
+      "jármű_id": "702",
+      "pozíció": "47.519253, 19.11185",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1100",
+      "forda": "62",
+      "kezdés": "11:11:00",
+      "végzés": "15:52:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AOCT674",
+      "jármű_id": "705",
+      "pozíció": "47.490677, 19.015688",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1200",
+      "forda": "55",
+      "kezdés": "11:09:00",
+      "végzés": "13:32:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAHY859",
+      "jármű_id": "421",
+      "pozíció": "47.551147, 19.0997",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1225",
+      "forda": "50",
+      "kezdés": "10:33:00",
+      "végzés": "15:32:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAHY854",
+      "jármű_id": "416",
+      "pozíció": "47.59279, 19.119528",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1240",
+      "forda": "56",
+      "kezdés": "12:34:00",
+      "végzés": "13:07:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAHY880",
+      "jármű_id": "442",
+      "pozíció": "47.56161, 19.117525",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1240",
+      "forda": "62",
+      "kezdés": "10:43:00",
+      "végzés": "14:30:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAHY826",
+      "jármű_id": "387",
+      "pozíció": "47.525528, 19.115904",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1335",
+      "forda": "66",
+      "kezdés": "10:27:00",
+      "végzés": "14:01:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AOCT669",
+      "jármű_id": "700",
+      "pozíció": "47.54223, 19.140108",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1390",
+      "forda": "22",
+      "kezdés": "10:33:00",
+      "végzés": "15:22:00",
+      "hely": "ArrivaBus Andor telephely",
+      "helyszín": "andor",
+      "forrás": "garazs",
+      "rendszám": "AONW965",
+      "jármű_id": "1033",
+      "pozíció": "47.477016, 19.032259",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1390",
+      "forda": "31",
+      "kezdés": "12:28:00",
+      "végzés": "14:10:00",
+      "hely": "ArrivaBus Andor telephely",
+      "helyszín": "andor",
+      "forrás": "garazs",
+      "rendszám": "AONW951",
+      "jármű_id": "1016",
+      "pozíció": "47.473164, 18.992315",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1470",
+      "forda": "56",
+      "kezdés": "10:00:00",
+      "végzés": "13:55:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAHY817",
+      "jármű_id": "378",
+      "pozíció": "47.57157, 19.134777",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "OK",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1530",
+      "forda": "21",
+      "kezdés": "11:46:00",
+      "végzés": "15:09:00",
+      "hely": "ArrivaBus Andor telephely",
+      "helyszín": "andor",
+      "forrás": "garazs",
+      "rendszám": "PDN644",
+      "jármű_id": "7115",
+      "pozíció": "47.458305, 19.019407",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1530",
+      "forda": "23",
+      "kezdés": "10:36:00",
+      "végzés": "15:00:00",
+      "hely": "ArrivaBus Andor telephely",
+      "helyszín": "andor",
+      "forrás": "garazs",
+      "rendszám": "PDN631",
+      "jármű_id": "7102",
+      "pozíció": "47.475086, 19.040022",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1590",
+      "forda": "21",
+      "kezdés": "10:51:00",
+      "végzés": "14:28:00",
+      "hely": "ArrivaBus Szállító telephely",
+      "helyszín": "csepel",
+      "forrás": "garazs",
+      "rendszám": "AOJM885",
+      "jármű_id": "1011",
+      "pozíció": "47.430775, 19.070559",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1590",
+      "forda": "22",
+      "kezdés": "10:31:00",
+      "végzés": "14:58:00",
+      "hely": "ArrivaBus Szállító telephely",
+      "helyszín": "csepel",
+      "forrás": "garazs",
+      "rendszám": "AOJM886",
+      "jármű_id": "1014",
+      "pozíció": "47.412647, 19.067104",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "2120",
+      "forda": "21",
+      "kezdés": "10:26:00",
+      "végzés": "15:14:00",
+      "hely": "ArrivaBus Andor telephely",
+      "helyszín": "andor",
+      "forrás": "garazs",
+      "rendszám": "AOIB802",
+      "jármű_id": "873",
+      "pozíció": "47.49061, 19.017248",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "2120",
+      "forda": "40",
+      "kezdés": "12:00:00",
+      "végzés": "15:12:00",
+      "hely": "ArrivaBus Szállító telephely",
+      "helyszín": "csepel",
+      "forrás": "garazs",
+      "rendszám": "PDN614",
+      "jármű_id": "7085",
+      "pozíció": "47.479485, 19.067118",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "0350",
+      "forda": "34",
+      "kezdés": "12:36:00",
+      "végzés": "13:50:00",
+      "hely": "Csepel, Szent Imre tér",
+      "helyszín": "csepel_szent_imre",
+      "forrás": "biztor",
+      "rendszám": "SGY804",
+      "jármű_id": "7722",
+      "pozíció": "47.418964, 19.066477",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "0300",
+      "forda": "66",
+      "kezdés": "11:07:00",
+      "végzés": "15:27:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAMH634",
+      "jármű_id": "477",
+      "pozíció": "47.54642, 19.089075",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1050",
+      "forda": "63",
+      "kezdés": "12:12:00",
+      "végzés": "15:29:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AOGL312",
+      "jármű_id": "902",
+      "pozíció": "47.499138, 19.052946",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1470",
+      "forda": "57",
+      "kezdés": "11:23:00",
+      "végzés": "15:07:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAHY869",
+      "jármű_id": "431",
+      "pozíció": "47.562286, 19.090546",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1960",
+      "forda": "61",
+      "kezdés": "11:09:00",
+      "végzés": "15:15:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AOLH515",
+      "jármű_id": "1045",
+      "pozíció": "47.541824, 19.151615",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "2235",
+      "forda": "41",
+      "kezdés": "10:22:00",
+      "végzés": "14:24:00",
+      "hely": "ArrivaBus Szállító telephely",
+      "helyszín": "csepel",
+      "forrás": "garazs",
+      "rendszám": "AOJM867",
+      "jármű_id": "990",
+      "pozíció": "47.44477, 19.096375",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "NEM",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "2120",
+      "forda": "24",
+      "kezdés": "10:55:00",
+      "végzés": "15:30:00",
+      "hely": "ArrivaBus Andor telephely",
+      "helyszín": "andor",
+      "forrás": "garazs",
+      "rendszám": "AOIB804",
+      "jármű_id": "875",
+      "pozíció": "47.492496, 19.016594",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
+    },
+    {
+      "viszonylat": "1040",
+      "forda": "60",
+      "kezdés": "10:44:00",
+      "végzés": "13:12:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAHY837",
+      "jármű_id": "398",
+      "pozíció": "47.601574, 19.101324",
+      "pozicio_frissitve": "10:10",
+      "ellenőrzés": "-",
+      "frissítve": "10:10:53"
     }
   ],
   "hidegtarolas_riport": {
@@ -5638,7 +6316,7 @@
     "kesz": false,
     "excel_kesz": false,
     "keszult": "-",
-    "utolso_futas": "2026-10-07 10:05:51",
+    "utolso_futas": "2026-10-07 10:10:54",
     "vizsgalt_fordak": 21,
     "forrás": "biztor",
     "dontesek": {},
@@ -5839,7 +6517,7 @@
     "kesz": false,
     "excel_kesz": false,
     "keszult": "-",
-    "utolso_futas": "2026-10-07 10:05:51",
+    "utolso_futas": "2026-10-07 10:10:54",
     "vizsgalt_fordak": 104,
     "forrás": "garazs",
     "dontesek": {
