@@ -3724,7 +3724,7 @@ def html_export():
 <html lang="hu">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ArrivaBus hidegtárolás</title>
 <style>
 :root{
@@ -3900,7 +3900,7 @@ body.light-mode .storage-tabla td.tarolas-eltérés{color:#c93f49;border-top-col
 body.light-mode .storage-tabla td.tarolas-na{color:var(--text);border-top-color:var(--border);border-bottom-color:var(--border)}
 body:not(.light-mode) #geozona-terkep .leaflet-tile-pane{filter:invert(90%) hue-rotate(180deg) brightness(78%) contrast(88%) saturate(70%)}
 body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
-@media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-adatok{display:block}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:7px}.fejlec-top{margin-bottom:8px}#geozona-terkep{width:95%;margin-left:auto;margin-right:auto;height:42vh;min-height:280px}.nezet-valaszto{width:95%;margin-left:auto;margin-right:auto;box-sizing:border-box}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}}
+@media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-adatok{display:block}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:7px}.fejlec-top{margin-bottom:8px}#geozona-terkep{width:95%;margin-left:auto;margin-right:auto;height:42vh;min-height:280px}.nezet-valaszto{width:100%;margin-left:auto;margin-right:auto;box-sizing:border-box}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}}
 @media(max-width:600px){.cim{font-size:20px}.adat{font-size:11px}#geozona-terkep{width:90%;height:38vh;min-height:250px}.nezet-valaszto{width:95%;margin-left:auto;margin-right:auto;box-sizing:border-box}.idopont-csuszkasav{height:44px}.csuszka-info{font-size:10px;padding-left:5px}.rendszam-link{padding:4px 6px}}
 
 /* Mobil: valódi, egyszerűen görgethető táblázat.
@@ -4381,7 +4381,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
       <div class="adat"><b>Utolsó lekérdezés:</b> """ + escape(str(idopontok[-1] if idopontok else "-")) + """</div>
     </div>
     <div class="fejlec-jobb">
-      <div class="adat"><b>Riport készült:</b> """ + escape(str(hidegtarolas_riport.get("keszult", "-"))) + """</div>
+      <div class="adat"><b>Riport készült:</b> """ + escape(re.search(r"(\d{1,2}:\d{2})", str(hidegtarolas_riport.get("keszult", "-"))).group(1) if re.search(r"(\d{1,2}:\d{2})", str(hidegtarolas_riport.get("keszult", "-"))) else "-") + """</div>
       <div class="adat"><b>Exportált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0) if hidegtarolas_riport.get("kesz", False) else 0) + " + " + str(garazstarolas_riport.get("vizsgalt_fordak", 0) if garazstarolas_riport.get("kesz", False) else 0) + " → " + str((hidegtarolas_riport.get("vizsgalt_fordak", 0) if hidegtarolas_riport.get("kesz", False) else 0) + (garazstarolas_riport.get("vizsgalt_fordak", 0) if garazstarolas_riport.get("kesz", False) else 0)) + """</div>
     </div>
   </div>
@@ -4523,6 +4523,18 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   // a billentyűzet megnyitásakor.
   let mobilKeresesiScrollY=null;
   filterInputs.forEach(inp=>{
+  // Mobilon a kereső fókusza ne görgesse át automatikusan a lapot.
+  filterInputs.forEach(inp=>{
+    if(window.innerWidth<=900){
+      inp.addEventListener('focus', function(){
+        // A preventScroll csak a fókusz automatikus görgetését tiltja;
+        // a billentyűzet és a normál görgetés ettől még működik.
+        try{
+          this.focus({preventScroll:true});
+        }catch(e){}
+      });
+    }
+  });
     inp.addEventListener('focus',()=>{
       if(window.matchMedia('(max-width:900px)').matches){
         mobilKeresesiScrollY=window.scrollY;
