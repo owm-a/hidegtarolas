@@ -3609,10 +3609,10 @@ body{
 .csuszka-info strong{color:var(--text)}
 .idopont-csuszkasav input[type=range]{width:100%;margin:0;accent-color:var(--accent);cursor:pointer}
 .tabla-egesz{display:grid;grid-template-columns:var(--left-width) minmax(0,1fr) var(--storage-width);width:100%;max-width:100%;min-width:0;overflow:hidden;background:var(--surface)}
-.fix-ablak{min-width:0;overflow:hidden;background:var(--surface)}
-.ido-ablak{min-width:0;overflow:hidden;background:var(--surface);border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.fix-ablak{min-width:0;overflow:hidden;background:var(--surface);position:relative;z-index:10}
+.ido-ablak{min-width:0;overflow:hidden;background:var(--surface);border-left:1px solid var(--border);border-right:1px solid var(--border);position:relative;z-index:1}
 .ido-belso{width:max-content;min-width:100%;overflow:hidden;background:var(--surface)}
-.storage-ablak{min-width:0;overflow:hidden;background:var(--surface)}
+.storage-ablak{min-width:0;overflow:hidden;background:var(--surface);position:relative;z-index:10}
 table{border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto}
 th,td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap}
 th{background:var(--surface3);font-weight:600;color:#cbd5e1}
@@ -3696,6 +3696,81 @@ body:not(.light-mode) #geozona-terkep .leaflet-tile-pane{filter:invert(90%) hue-
 body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 @media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-adatok{display:block}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:7px}.fejlec-top{margin-bottom:8px}#geozona-terkep{width:94%;margin-left:auto;margin-right:auto;height:42vh;min-height:280px}.nezet-valaszto{width:100%}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}}
 @media(max-width:600px){.cim{font-size:20px}.adat{font-size:11px}#geozona-terkep{width:94%;height:38vh;min-height:250px}.idopont-csuszkasav{height:44px}.csuszka-info{font-size:10px;padding-left:5px}.rendszam-link{padding:4px 6px}}
+/* ================================================================
+   FINAL TABLE LAYOUT OVERRIDE
+   A három panel fizikailag zárt: BAL FIX | IDŐ (csúszka) | JOBB FIX.
+   ================================================================ */
+html,body{overflow-x:hidden!important;}
+.tabla-szekcio{overflow:hidden!important;max-width:100%!important;}
+#fo-tabla{
+    display:grid!important;
+    grid-template-columns:var(--left-width) minmax(0,1fr) var(--storage-width)!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    position:relative;
+}
+#fo-tabla>.fix-ablak{
+    grid-column:1!important;
+    grid-row:1!important;
+    width:var(--left-width)!important;
+    min-width:var(--left-width)!important;
+    max-width:var(--left-width)!important;
+    overflow:hidden!important;
+    position:relative!important;
+    z-index:10!important;
+}
+#fo-tabla>.ido-ablak{
+    grid-column:2!important;
+    grid-row:1!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    overflow:hidden!important;
+    position:relative!important;
+    z-index:1!important;
+    box-sizing:border-box!important;
+}
+#fo-tabla>.storage-ablak{
+    grid-column:3!important;
+    grid-row:1!important;
+    width:var(--storage-width)!important;
+    min-width:var(--storage-width)!important;
+    max-width:var(--storage-width)!important;
+    overflow:hidden!important;
+    position:relative!important;
+    z-index:10!important;
+}
+#fo-tabla .ido-belso{
+    width:max-content!important;
+    min-width:100%!important;
+    max-width:none!important;
+    overflow:visible!important;
+}
+#fo-tabla .ido-tabla{
+    width:max-content!important;
+    min-width:100%!important;
+    max-width:none!important;
+}
+#fo-csuszkasav{
+    display:grid!important;
+    grid-template-columns:var(--left-width) minmax(0,1fr) var(--storage-width)!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+    position:relative!important;
+    z-index:20!important;
+}
+#fo-csuszkasav>.csuszka-info{grid-column:1!important;overflow:hidden!important;}
+#fo-csuszkasav>input[type=range]{grid-column:2!important;min-width:0!important;width:100%!important;}
+#fo-csuszkasav>div:last-child{grid-column:3!important;}
+@media(max-width:900px){
+    .tabla-szekcio{overflow:hidden!important;}
+    #fo-tabla{overflow:hidden!important;}
+}
 </style>
 <style>
 /* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
@@ -3980,7 +4055,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     // Mobilon ne szűküljön nullára az időtábla a bal + jobb fix rész miatt.
     // 340 px = kb. 10 db 34 px-es időoszlop, így a külön csúszka
     // mobilon is ténylegesen használható marad. A teljes táblázat
-    // ettől még kívülről vízszintesen húzható.
+    // a külső oldal ettől még nem válik vízszintesen görgethetővé.
     const mobil = window.innerWidth <= 900;
     const middle = mobil
         ? 340
@@ -4016,6 +4091,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     // Az időoszlopok szélessége már adott; a csúszka ezt a tényleges középső
     // viewportot követi, nem fordítva.
     const maxScroll=Math.max(0,idoBelso.scrollWidth-idoAblak.clientWidth);
+    slider.min='0';
     slider.max=String(maxScroll);
 
     // Az időtábla induláskor mindig a jobb szélre álljon.
