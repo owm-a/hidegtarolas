@@ -4328,7 +4328,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     </div>
     <div class="fejlec-jobb">
       <div class="adat"><b>Riport készült:</b> """ + escape(str(hidegtarolas_riport.get("keszult", "-"))) + """</div>
-      <div class="adat"><b>Exportált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0) if hidegtarolas_riport.get("kesz", False) else 0) + """</div>
+      <div class="adat"><b>Exportált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0) if hidegtarolas_riport.get("kesz", False) else 0) + "+" + str(garazstarolas_riport.get("vizsgalt_fordak", 0) if garazstarolas_riport.get("kesz", False) else 0) + "=" + str((hidegtarolas_riport.get("vizsgalt_fordak", 0) if hidegtarolas_riport.get("kesz", False) else 0) + (garazstarolas_riport.get("vizsgalt_fordak", 0) if garazstarolas_riport.get("kesz", False) else 0)) + """</div>
     </div>
   </div>
 </div>
@@ -4450,9 +4450,9 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
       const storage=tr.querySelector('.storage');
       if(!storage)return;
       if(mobil){
-        const firstTime=tr.querySelector('.idopont-fejlec,.idopont-ertek,.idopont-cella');
-        if(firstTime && storage.nextElementSibling!==firstTime){
-          tr.insertBefore(storage,firstTime);
+        const rendszam=tr.querySelector('.rendszam');
+        if(rendszam && storage.nextElementSibling!==rendszam){
+          tr.insertBefore(storage,rendszam);
         }
       }else{
         if(storage.parentElement && storage !== tr.lastElementChild){
@@ -4491,8 +4491,16 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     sticky();
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
     slider.max=String(max);
-    slider.value=String(max);
-    fo.scrollLeft=max;
+    const mobil=window.matchMedia('(max-width:600px)').matches;
+    if(mobil){
+      /* Mobilon az időoszlopok jobb széle ne kényszerítse a táblát
+         minden újratördeléskor a jobb oldalra. */
+      slider.value=String(Math.min(fo.scrollLeft,max));
+      if(fo.scrollLeft>max) fo.scrollLeft=max;
+    }else{
+      slider.value=String(max);
+      fo.scrollLeft=max;
+    }
   }
   function view(v){
     currentView=v;
@@ -4911,9 +4919,13 @@ window.addEventListener("load", frissitGarazsCsuszkat);
 
   tabla.addEventListener('scroll', function(){
     /* Ha a felhasználó ténylegesen vízszintesen húzza a táblát,
-       az új pozíció legyen az új megőrzött pozíció. */
+       az új pozíció legyen az új megőrzött pozíció. Egyébként a
+       böngésző által okozott automatikus jobbra ugrást azonnal
+       visszakényszerítjük a korábbi vízszintes pozícióra. */
     if (vizszintesGesztus) {
       mentettScrollX = tabla.scrollLeft;
+    } else if (Math.abs(tabla.scrollLeft - mentettScrollX) > 1) {
+      tabla.scrollLeft = mentettScrollX;
     }
   }, {passive:true});
 
