@@ -556,8 +556,32 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     overflow:hidden!important;
   }
 
-  /* A jobb oldali "Valós tárolás" oszlop mobilon ne legyen sticky.
-     Ez okozza a függőleges görgetés közbeni jobbra ugrást. */
+  /* Mobilon a korábbi bal oldali sticky oszlopokat is kikapcsoljuk.
+     Egyedül a Rendszám marad sticky, és csak akkor tapad a bal szélre,
+     amikor vízszintes görgetés közben eléri azt. */
+  .fo-kozos-tabla .sticky-bal{
+    position:static!important;
+    left:auto!important;
+    right:auto!important;
+    box-shadow:none!important;
+  }
+
+  .fo-kozos-tabla th.rendszam.sticky-bal,
+  .fo-kozos-tabla td.rendszam.sticky-bal{
+    position:sticky!important;
+    left:0!important;
+    z-index:60!important;
+    background:var(--surface)!important;
+    background-clip:padding-box;
+    box-shadow:inset -1px 0 var(--border),2px 0 0 var(--border)!important;
+  }
+
+  .fo-kozos-tabla thead th.rendszam.sticky-bal{
+    z-index:70!important;
+    background:var(--surface3)!important;
+  }
+
+  /* A jobb oldali "Valós tárolás" oszlop mobilon ne legyen sticky. */
   .fo-kozos-tabla .sticky-jobb{
     position:static!important;
     right:auto!important;
