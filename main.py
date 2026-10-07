@@ -3009,7 +3009,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             ].width = min(max_hossz + 2, 35)
 
         export_wb.save(export_fajl)
-        riport_idopont = most.strftime("%Y-%m-%d %H:%M:%S")
+        riport_idopont = most.strftime("%H:%M:%S")
         excel_mar_mentve = True
 
     riportok = {
@@ -3017,7 +3017,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         "kesz": minden_döntött,
         "excel_kesz": excel_mar_mentve,
         "keszult": riport_idopont,
-        "utolso_futas": most.strftime("%Y-%m-%d %H:%M:%S"),
+        "utolso_futas": most.strftime("%H:%M:%S"),
         "vizsgalt_fordak": len(eredmenyek),
         "forrás": forrás,
         "dontesek": dontesek,
@@ -3900,7 +3900,7 @@ body.light-mode .storage-tabla td.tarolas-eltérés{color:#c93f49;border-top-col
 body.light-mode .storage-tabla td.tarolas-na{color:var(--text);border-top-color:var(--border);border-bottom-color:var(--border)}
 body:not(.light-mode) #geozona-terkep .leaflet-tile-pane{filter:invert(90%) hue-rotate(180deg) brightness(78%) contrast(88%) saturate(70%)}
 body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
-@media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-adatok{display:block}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:7px}.fejlec-top{margin-bottom:8px}#geozona-terkep{width:90%;margin-left:auto;margin-right:auto;height:42vh;min-height:280px}.nezet-valaszto{width:95%;margin-left:auto;margin-right:auto;box-sizing:border-box}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}}
+@media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-adatok{display:block}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:7px}.fejlec-top{margin-bottom:8px}#geozona-terkep{width:95%;margin-left:auto;margin-right:auto;height:42vh;min-height:280px}.nezet-valaszto{width:95%;margin-left:auto;margin-right:auto;box-sizing:border-box}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}}
 @media(max-width:600px){.cim{font-size:20px}.adat{font-size:11px}#geozona-terkep{width:90%;height:38vh;min-height:250px}.nezet-valaszto{width:95%;margin-left:auto;margin-right:auto;box-sizing:border-box}.idopont-csuszkasav{height:44px}.csuszka-info{font-size:10px;padding-left:5px}.rendszam-link{padding:4px 6px}}
 
 /* Mobil: valódi, egyszerűen görgethető táblázat.
