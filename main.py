@@ -4441,7 +4441,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   <button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás <span class="online-szam">""" + str(biz_online) + "/" + str(biz_osszes) + """</span></button>
   <button class="nezet-gomb" data-nezet="garazs" type="button">Garázs <span class="online-szam">""" + str(garazs_online) + "/" + str(garazs_osszes) + """</span></button>
 </div>
-<div class="mobil-tablazat-hint">A táblázat jobbra húzva folytatódik →</div>
+<div class="mobil-tablazat-hint">▸ A táblázat jobbra húzva folytatódik ▸</div>
 <div id="panel-adatok" class="nezet-panel">
 <div class="tabla-szekcio">
   <div class="idopont-csuszkasav" id="fo-csuszkasav">
