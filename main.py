@@ -4051,11 +4051,14 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
    ========================================================= */
 /* A keresőmezők ne növeljék meg a fejlécoszlop természetes szélességét.
    A cellán belül lebegnek, ezért a fejléc + tartalom határozza meg az oszlopot. */
-.fo-kozos-tabla .szuro-sor th{position:relative;overflow:visible}
+.fo-kozos-tabla .szuro-sor th{position:relative;overflow:hidden}
 .fo-kozos-tabla .szuro-sor .oszlop-kereso{
-  position:absolute;
-  left:3px;right:3px;top:2px;height:18px;
-  width:auto;min-width:0;max-width:none;
+  position:static;
+  display:block;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  height:20px;
   box-sizing:border-box;
 }
 /* A hat bal oldali és a jobb oldali oszlopnak nincs mesterséges szélessége. */
@@ -4082,11 +4085,14 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 /* =========================================================
    V6 – természetes fix oszlopok + mobil jobb oldali tárolás
    ========================================================= */
-.fo-kozos-tabla .szuro-sor th{position:relative;overflow:visible}
+.fo-kozos-tabla .szuro-sor th{position:relative;overflow:hidden}
 .fo-kozos-tabla .szuro-sor .oszlop-kereso{
-  position:absolute;
-  left:3px;right:3px;top:2px;height:18px;
-  width:auto;min-width:0;max-width:none;
+  position:static;
+  display:block;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  height:20px;
   box-sizing:border-box;
 }
 .fo-kozos-tabla .viszonylat,
@@ -4155,22 +4161,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   color:var(--accent)!important;
 }
 
-/* =========================================================
-   MOBIL – minden cella egyenértékű, nincs vízszintes sticky
-   ========================================================= */
-@media (max-width:900px){
-  .fo-kozos-tabla .sticky-bal,
-  .fo-kozos-tabla .sticky-jobb,
-  .fo-kozos-tabla .szuro-sor th.sticky-bal,
-  .fo-kozos-tabla .szuro-sor th.sticky-jobb{
-    position:static!important;
-    left:auto!important;
-    right:auto!important;
-    z-index:auto!important;
-    box-shadow:none!important;
-  }
-}
-
 </style>
 <style>
 /* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
@@ -4201,9 +4191,11 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 /* V10 – finomhangolás */
 /* A keresősáv pontosan kitölti a szűrőcellát, de nem lóg ki belőle. */
 .fo-kozos-tabla .szuro-sor .oszlop-kereso{
-  top:3px;
-  bottom:3px;
-  height:auto;
+  position:static;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  height:20px;
   padding-top:0;
   padding-bottom:0;
 }
@@ -4250,6 +4242,25 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 .fo-kozos-tabla td.végzés{
   border-left:1px solid var(--border)!important;
 }
+/* =========================================================
+   MOBIL – keresőmezők maradjanak a saját szűrőcellájukban
+   ========================================================= */
+@media (max-width:900px){
+  .fo-kozos-tabla .szuro-sor th{
+    position:relative!important;
+    overflow:hidden!important;
+  }
+  .fo-kozos-tabla .szuro-sor .oszlop-kereso{
+    position:static!important;
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    height:20px!important;
+    box-sizing:border-box!important;
+  }
+}
+
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 </head>
@@ -4435,14 +4446,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     sticky();
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
     slider.max=String(max);
-    if(window.innerWidth<=900){
-      // Mobilon őrizzük meg az aktuális vízszintes pozíciót.
-      slider.value=String(Math.min(max,Math.max(0,fo.scrollLeft)));
-    }else{
-      // Desktopon marad a jelenlegi indulás: jobb szél.
-      slider.value=String(max);
-      fo.scrollLeft=max;
-    }
+    slider.value=String(max);
+    fo.scrollLeft=max;
   }
   function view(v){
     currentView=v;
