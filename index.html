@@ -180,6 +180,40 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 @media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-adatok{display:block}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:7px}.fejlec-top{margin-bottom:8px}#geozona-terkep{width:94%;margin-left:auto;margin-right:auto;height:42vh;min-height:280px}.nezet-valaszto{width:100%}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}}
 @media(max-width:600px){.cim{font-size:20px}.adat{font-size:11px}#geozona-terkep{width:94%;height:38vh;min-height:250px}.idopont-csuszkasav{height:44px}.csuszka-info{font-size:10px;padding-left:5px}.rendszam-link{padding:4px 6px}}
 
+/* Mobil: valódi, egyszerűen görgethető táblázat.
+   Nincs sticky/átfedés; a Valós tárolás az időoszlopok elé kerül. */
+@media(max-width:600px){
+  .idopont-csuszkasav{display:none!important}
+  .fo-kozos-tabla .sticky-bal,
+  .fo-kozos-tabla .sticky-jobb{
+    position:static!important;
+    left:auto!important;
+    right:auto!important;
+    z-index:auto!important;
+    box-shadow:none!important;
+    background-clip:padding-box;
+  }
+  .fo-kozos-tabla .sticky-bal,
+  .fo-kozos-tabla .sticky-jobb,
+  .fo-kozos-tabla .bal-1,
+  .fo-kozos-tabla .bal-2,
+  .fo-kozos-tabla .bal-3,
+  .fo-kozos-tabla .bal-4,
+  .fo-kozos-tabla .bal-5,
+  .fo-kozos-tabla .bal-6{
+    left:auto!important;
+    right:auto!important;
+  }
+  .tabla-egesz{
+    overflow-x:auto!important;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:auto;
+  }
+  .tabla-egesz::-webkit-scrollbar{height:6px}
+  .fo-kozos-tabla{width:max-content!important}
+}
+
 /* Közvetlen, egyetlen közös tábla – a böngésző nem épít új táblát. */
 .tabla-egesz{display:block;width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;background:var(--surface);scrollbar-width:none}
 .tabla-egesz::-webkit-scrollbar{height:0}
@@ -536,6 +570,26 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   if(!fo||!slider||!table||!tbody)return;
   let currentView='biztor',sortState={col:null,dir:1};
 
+
+  function mobilTablaSorrend(){
+    const mobil=window.matchMedia('(max-width:600px)').matches;
+    const sorok=Array.from(table.querySelectorAll('tr'));
+    sorok.forEach(tr=>{
+      const storage=tr.querySelector('.storage');
+      if(!storage)return;
+      if(mobil){
+        const firstTime=tr.querySelector('.idopont-fejlec,.idopont-ertek,.idopont-cella');
+        if(firstTime && storage.nextElementSibling!==firstTime){
+          tr.insertBefore(storage,firstTime);
+        }
+      }else{
+        if(storage.parentElement && storage !== tr.lastElementChild){
+          tr.appendChild(storage);
+        }
+      }
+    });
+  }
+  mobilTablaSorrend();
   const rowList=Array.from(tbody.children);
   const filterInputs=Array.from(document.querySelectorAll('.oszlop-kereso[data-col]'));
   const sortButtons=Array.from(document.querySelectorAll('.rendez-gomb'));
@@ -575,7 +629,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     fo.classList.add('view-'+v);fo.classList.toggle('all-view',v==='mindketto');
     requestAnimationFrame(()=>{sticky();layoutScroll();});
   }
-  let filterTimer=0;
   function applyFilters(){
     rowList.forEach(r=>{
       let ok=true;
@@ -590,8 +643,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     requestAnimationFrame(()=>{sticky();layoutScroll();});
   }
   function filters(){
-    clearTimeout(filterTimer);
-    filterTimer=setTimeout(applyFilters,90);
+    applyFilters();
   }
   function val(r,c){const x=c==='storage'?r.querySelector('.sticky-jobb'):r.children[+c];return x?.textContent.trim()||'';}
   function cmp(a,b,t){
@@ -625,7 +677,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet)));
   sortButtons.forEach(b=>b.addEventListener('click',()=>sort(b)));
   filterInputs.forEach(i=>i.addEventListener('input',filters));
-  window.addEventListener('resize',()=>requestAnimationFrame(layout));
+  window.addEventListener('resize',()=>requestAnimationFrame(()=>{mobilTablaSorrend();layout();}));
   rowList.forEach(r=>r.dataset.filterMatch='1');
   view('biztor');layout();
 })();
@@ -771,88 +823,104 @@ terkepZonak.forEach(function(zona) {
 // JÁRMŰVEK
 // ---------------------------------------------------------
 
-// A járművek adatait megtartjuk, de a Leaflet markereket csak akkor
-// hozzuk létre, amikor az adott nézet ténylegesen megjeleníti őket.
-// Így több száz / ezer RT-járműnél sokkal kevesebb DOM-munka történik.
-const jarmuAdatok = terkepJarmuvek;
-const jarmuMarkerek = {};
-const TERKEP_MAX_ZOOM = 14;
-
-function markerLetrehoz(jarmu) {
-    const rendszamKulcs = String(jarmu.rendszam || "").trim().toUpperCase();
-    if (!rendszamKulcs || jarmuMarkerek[rendszamKulcs]) return jarmuMarkerek[rendszamKulcs] || null;
+terkepJarmuvek.forEach(function(jarmu) {
 
     const marker = L.marker(
-        [jarmu.latitude, jarmu.longitude],
-        { icon: jarmuIkon(jarmu.statusz) }
+
+        [
+            jarmu.latitude,
+            jarmu.longitude
+        ],
+
+        {
+            icon: jarmuIkon(
+                jarmu.statusz
+            )
+        }
+
     );
 
     marker.__forras = String(jarmu.forras || "biztor").trim() || "biztor";
-    marker.__rendszam = rendszamKulcs;
+
 
     let statuszSzoveg = "Nincs értékelés";
-    if (jarmu.statusz === "OK") statuszSzoveg = '<span style="color:#00a040;font-weight:bold;">OK</span>';
-    else if (jarmu.statusz === "NEM") statuszSzoveg = '<span style="color:#e00000;font-weight:bold;">ELTÉRÉS</span>';
-    else if (jarmu.statusz === "PÓTLÁS") statuszSzoveg = '<span style="color:#4da3ff;font-weight:bold;">Pótlásban vesz részt</span>';
+
+    if (jarmu.statusz === "OK") {
+        statuszSzoveg =
+            '<span style="color:#00a040;font-weight:bold;">OK</span>';
+    }
+    else if (jarmu.statusz === "NEM") {
+        statuszSzoveg =
+            '<span style="color:#e00000;font-weight:bold;">ELTÉRÉS</span>';
+    }
+    else if (jarmu.statusz === "PÓTLÁS") {
+        statuszSzoveg =
+            '<span style="color:#4da3ff;font-weight:bold;">Pótlásban vesz részt</span>';
+    }
+
 
     marker.bindPopup(
-        "<b>" + escapeHtml(jarmu.rendszam) + "</b><br><br>" +
-        "<b>Viszonylat:</b> " + escapeHtml(jarmu.viszonylat) + "<br>" +
-        "<b>Forda:</b> " + escapeHtml(jarmu.forda) + "<br>" +
-        "<b>Geozóna:</b> " + escapeHtml(jarmu.helyszin) + "<br>" +
-        "<b>Állapot:</b> " + statuszSzoveg + "<br>" +
-        "<b>Utolsó friss GPS-pozíció:</b> " + escapeHtml(jarmu.pozicio_frissitve || jarmu.frissitve) + "<br>" +
-        "<b>GPS:</b> " + escapeHtml(jarmu.latitude.toFixed(6) + ", " + jarmu.longitude.toFixed(6))
+
+        "<b>"
+        + escapeHtml(jarmu.rendszam)
+        + "</b><br><br>"
+
+        + "<b>Viszonylat:</b> "
+        + escapeHtml(jarmu.viszonylat)
+        + "<br>"
+
+        + "<b>Forda:</b> "
+        + escapeHtml(jarmu.forda)
+        + "<br>"
+
+        + "<b>Geozóna:</b> "
+        + escapeHtml(jarmu.helyszin)
+        + "<br>"
+
+        + "<b>Állapot:</b> "
+        + statuszSzoveg
+        + "<br>"
+
+        + "<b>Utolsó friss GPS-pozíció:</b> "
+        + escapeHtml(
+            jarmu.pozicio_frissitve
+            || jarmu.frissitve
+        )
+        + "<br>"
+
+        + "<b>GPS:</b> "
+        + escapeHtml(
+            jarmu.latitude.toFixed(6)
+            + ", "
+            + jarmu.longitude.toFixed(6)
+        )
+
     );
 
-    jarmuMarkerek[rendszamKulcs] = marker;
-    return marker;
-}
+
+    const rendszamKulcs = String(jarmu.rendszam || "").trim().toUpperCase();
+    if (rendszamKulcs) {
+        jarmuMarkerek[rendszamKulcs] = marker;
+    }
+
+    jarmuMarkerek["__lista__"] = jarmuMarkerek["__lista__"] || [];
+    jarmuMarkerek["__lista__"].push(marker);
+
+});
 
 function frissitTerkepNezet(view) {
-    const latszo = [];
-
-    jarmuAdatok.forEach(function(jarmu){
-        const forras = String(jarmu.forras || "biztor").trim() || "biztor";
-        if (view !== "mindketto" && forras !== view) return;
-        const marker = markerLetrehoz(jarmu);
-        if (!marker) return;
-        if (!map.hasLayer(marker)) marker.addTo(map);
-        latszo.push(marker);
+    const lista = jarmuMarkerek["__lista__"] || [];
+    lista.forEach(function(marker){
+        if (map.hasLayer(marker)) map.removeLayer(marker);
     });
-
-    Object.keys(jarmuMarkerek).forEach(function(kulcs){
-        const marker = jarmuMarkerek[kulcs];
-        if (!latszo.includes(marker) && map.hasLayer(marker)) map.removeLayer(marker);
+    const latszo = lista.filter(function(marker){
+        return view === "mindketto" || marker.__forras === view;
     });
-
+    latszo.forEach(function(marker){ marker.addTo(map); });
     if (latszo.length) {
         const bounds = L.featureGroup(latszo).getBounds();
         if (bounds.isValid()) map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_MAX_ZOOM});
     }
-}
-
-function fokuszJarmure(rendszam) {
-    const kulcs = String(rendszam || "").trim().toUpperCase();
-    let marker = jarmuMarkerek[kulcs];
-    if (!marker) {
-        const adat = jarmuAdatok.find(j => String(j.rendszam || "").trim().toUpperCase() === kulcs);
-        if (!adat) return;
-        marker = markerLetrehoz(adat);
-        if (!marker) return;
-        marker.addTo(map);
-    }
-    const pos = marker.getLatLng();
-    map.flyTo(pos, Math.min(TERKEP_MAX_ZOOM, Math.max(map.getZoom(), 11)), {duration: 0.7});
-    setTimeout(function(){
-        marker.openPopup();
-        const el = marker.getElement();
-        if (el) {
-            el.classList.remove("map-focus");
-            void el.offsetWidth;
-            el.classList.add("map-focus");
-        }
-    }, 700);
 }
 
 document.querySelectorAll(".nezet-gomb").forEach(function(btn){
