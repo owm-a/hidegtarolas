@@ -1184,6 +1184,16 @@ forda_rendszamok = napi_adatok.get(
     {}
 )
 
+# Régebbi napi_adat fájlokban a mentett forda rekordok még nem
+# tartalmaztak külön `forrás` mezőt. A kulcs alapján ezt visszaállítjuk,
+# hogy a garázsos pozíciórekordok továbbra is `forrás=garazs` értékkel
+# kerüljenek a történetbe és az I/N táblába.
+for _kulcs, _adat in forda_rendszamok.items():
+    if isinstance(_adat, dict) and not _adat.get("forrás"):
+        _adat["forrás"] = (
+            "garazs" if str(_kulcs).startswith("garazs|") else "biztor"
+        )
+
 print(
     "Napi adatfájl:",
     NAPI_ADATOK_FAJL
@@ -1246,52 +1256,6 @@ if azonositas_idoszak:
     print(
         "GTFS-RT entitások száma:",
         len(feed.entity)
-    )
-
-    # =========================================================
-    # 10/f. GTFS-RT JÁRMŰVEK
-    # =========================================================
-    # A GTFS-RT-ből itt csak az azonosításhoz szükséges adatokat
-    # készítjük elő: rendszám + jármű ID + trip ID.
-    # A tényleges élő pozíciót a FUTÁR adja később.
-
-    jarmuvek = []
-
-    for entity in feed.entity:
-
-        if not entity.HasField("vehicle"):
-            continue
-
-        v = entity.vehicle
-
-        rendszam = str(
-            v.vehicle.license_plate
-        ).strip().upper()
-
-        jarmu_id = str(
-            v.vehicle.id
-        ).strip()
-
-        trip_id = str(
-            v.trip.trip_id
-        ).strip()
-
-        if not jarmu_id or not trip_id:
-            continue
-
-        jarmuvek.append({
-            "rendszám": rendszam,
-            "jármű_id": jarmu_id,
-            "trip_id": trip_id,
-            "route_id": v.trip.route_id,
-            "direction_id": v.trip.direction_id
-        })
-
-    jarmuvek = pd.DataFrame(jarmuvek)
-
-    print(
-        "GTFS-RT trip + jármű ID kapcsolatok:",
-        len(jarmuvek)
     )
 
 else:
@@ -1559,6 +1523,7 @@ for _, forda_sor in (
             "helyszín": str(forda_sor["helyszín"]),
             "rendszám": rendszam,
             "jármű_id": jarmu_id,
+            "forrás": str(forda_sor.get("forrás", "biztor")).strip() or "biztor",
             "frissítve": idopont
         }
 
@@ -3559,8 +3524,8 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .fix-tabla th.kezdés,.fix-tabla td.kezdés,
 .fix-tabla th.végzés,.fix-tabla td.végzés{width:1%;white-space:nowrap;min-width:0}
 .ido-tabla{width:max-content;min-width:100%}.ido-tabla th,.ido-tabla td{width:42px;min-width:42px;max-width:42px;padding:1px;text-align:center}
-.fix-tabla tbody tr,.ido-tabla tbody tr,.storage-tabla tbody tr{height:24px !important;}
-.fix-tabla tbody td,.ido-tabla tbody td,.storage-tabla tbody td{height:24px !important;line-height:22px !important;padding-top:0 !important;padding-bottom:0 !important;box-sizing:border-box;overflow:hidden;vertical-align:middle}
+.fix-tabla tbody tr,.ido-tabla tbody tr,.storage-tabla tbody tr{height:24px;min-height:24px;max-height:24px}
+.fix-tabla tbody td,.ido-tabla tbody td,.storage-tabla tbody td{height:24px;min-height:24px;max-height:24px;line-height:22px;padding-top:0;padding-bottom:0;box-sizing:border-box;overflow:hidden}
 /* Nézetváltás: csak egy konténerosztály változik, a sorokat nem mérjük/írjuk át egyenként. */
 #fo-tabla.view-biztor .fix-tabla tbody tr[data-forras="garazs"],
 #fo-tabla.view-biztor .ido-tabla tbody tr[data-forras="garazs"],
@@ -3578,16 +3543,11 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 }
 
 .ido-tabla .status-pill{height:20px;line-height:1}
-.ido-tabla th.idopont-fejlec{font-size:0;color:transparent;padding:0;height:24px;min-height:24px;max-height:24px;line-height:0}
-.ido-tabla thead tr.fejlec-sor{height:24px !important;min-height:24px !important;max-height:24px !important}
-.ido-tabla thead tr.szuro-sor{height:30px !important;min-height:30px !important;max-height:30px !important}
-.ido-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:3px 1px}
-.szuro-sor th{background:var(--surface2);height:30px !important;min-height:30px !important;max-height:30px !important;padding:2px 4px !important;box-sizing:border-box}
-.idopont-ertek{height:30px !important;min-height:30px !important;max-height:30px !important;padding:0 1px !important;box-sizing:border-box;line-height:28px !important;vertical-align:middle}
-.fix-tabla tbody td.rendszam{vertical-align:middle !important;line-height:18px !important;padding-top:0 !important;padding-bottom:0 !important}
-.rendszam-link{height:18px;line-height:18px;vertical-align:middle;position:relative;top:0}
+.ido-tabla th.idopont-fejlec{font-size:0;color:transparent;padding:0}
+.ido-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px}
+.szuro-sor th{background:var(--surface2);height:31px;padding:3px 4px}
 .szuro-sor th:empty{background:var(--surface2)}
-.oszlop-kereso{display:block;width:100%;height:26px;min-height:26px;max-height:26px;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:5px;padding:0 4px;font:inherit;font-size:10px;line-height:24px;outline:none}
+.oszlop-kereso{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:5px;padding:3px 4px;font:inherit;font-size:10px;outline:none}
 .oszlop-kereso:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(110,168,254,.12)}
 .rendez-gomb{border:1px solid var(--border);background:var(--surface2);color:var(--muted);width:21px;min-width:21px;height:21px;padding:0;margin-left:5px;border-radius:5px;cursor:pointer;font-size:11px;line-height:18px;vertical-align:middle;display:inline-flex;align-items:center;justify-content:center}
 .rendez-gomb:hover{color:var(--text);border-color:var(--accent);background:var(--surface3)}.rendez-gomb.active{color:#fff;background:var(--accent2);border-color:var(--accent2)}
@@ -3601,7 +3561,7 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .storage-tabla td.tarolas-ok{color:#6ee7a8;border-top-color:var(--border);border-bottom-color:var(--border)}
 .storage-tabla td.tarolas-eltérés{color:#ff858d;border-top-color:var(--border);border-bottom-color:var(--border)}
 .storage-tabla td.tarolas-na{color:var(--text);border-top-color:var(--border);border-bottom-color:var(--border)}
-.rendszam-link{border:0;background:transparent;color:var(--accent);font:inherit;font-weight:750;cursor:pointer;padding:0 2px;border-radius:6px;text-decoration:underline;text-decoration-color:rgba(110,168,254,.35);text-underline-offset:2px;height:18px;line-height:18px;display:inline-flex;align-items:center;vertical-align:middle;box-sizing:border-box}.rendszam-link:hover{background:rgba(110,168,254,.13);color:#fff;text-decoration-color:var(--accent)}
+.rendszam-link{border:0;background:transparent;color:var(--accent);font:inherit;font-weight:750;cursor:pointer;padding:2px 5px;border-radius:6px;text-decoration:underline;text-decoration-color:rgba(110,168,254,.35);text-underline-offset:2px}.rendszam-link:hover{background:rgba(110,168,254,.13);color:#fff;text-decoration-color:var(--accent)}
 .biztor-sor .adat-fixed{}
 .all-view .fix-tabla tr[data-forras="biztor"] > td,.all-view .storage-tabla tr[data-forras="biztor"] > td{background:rgba(110,168,254,.055)}
 .all-view .fix-tabla tr[data-forras="biztor"] > td,.all-view .storage-tabla tr[data-forras="biztor"] > td{color:#82b4ff;font-weight:700}
@@ -3950,23 +3910,6 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     });
   }
 
-  function applyRowVisibility(){
-    // A három külön HTML-tábla sorait mindig együtt kezeljük.
-    // Nem csak CSS-szelektorra bízzuk a szűrést: mindhárom rész ugyanazt
-    // az inline display állapotot kapja a közös data-row-id alapján.
-    allRows().forEach(row=>{
-      const id=row.dataset.rowId;
-      const parts=rowParts(id);
-      const filterOk=row.dataset.filterMatch!=='0';
-      const source=row.dataset.forras||'biztor';
-      const viewOk=currentView==='mindketto' || source===currentView;
-      const display=(filterOk && viewOk)?'table-row':'none';
-      [parts.fix,parts.ido,parts.storage].forEach(r=>{
-        if(r) r.style.display=display;
-      });
-    });
-  }
-
   function applyView(view){
     currentView=view;
     buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===view));
@@ -3977,7 +3920,9 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     if(label) label.textContent=view==='biztor'?'Végállomás':view==='garazs'?'Garázs':'Összes';
 
     frissitAlapKeresok(view);
-    applyRowVisibility();
+
+    // A szűrés külön kezeli a sorok filterMatch állapotát.
+    // A nézetváltás az alap ArrivaBus szöveget nem tekinti aktív szűrőnek.
   }
 
   function applyFilters(){
@@ -4319,9 +4264,6 @@ function fokuszJarmure(rendszam) {
 
 document.querySelectorAll(".rendszam-link").forEach(function(btn){
     btn.addEventListener("click", function(){
-        // A rendszámra kattintva mindig a lap tetejére visszük a nézetet,
-        // majd a térképen megkeressük és kiemeljük a járművet.
-        window.scrollTo({top: 0, behavior: "smooth"});
         fokuszJarmure(this.dataset.rendszam);
     });
 });
