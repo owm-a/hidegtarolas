@@ -3578,16 +3578,16 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 }
 
 .ido-tabla .status-pill{height:20px;line-height:1}
-.ido-tabla th.idopont-fejlec{font-size:0;color:transparent;padding:0;height:31px;min-height:31px;line-height:0}
-.ido-tabla thead tr.fejlec-sor{height:31px !important}
-.ido-tabla thead tr.szuro-sor{height:24px !important}
+.ido-tabla th.idopont-fejlec{font-size:0;color:transparent;padding:0;height:24px;min-height:24px;max-height:24px;line-height:0}
+.ido-tabla thead tr.fejlec-sor{height:24px !important;min-height:24px !important;max-height:24px !important}
+.ido-tabla thead tr.szuro-sor{height:30px !important;min-height:30px !important;max-height:30px !important}
 .ido-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:3px 1px}
-.szuro-sor th{background:var(--surface2);height:24px !important;min-height:24px !important;padding:1px 4px !important;box-sizing:border-box}
-.idopont-ertek{height:24px !important;min-height:24px !important;padding:0 1px !important;box-sizing:border-box;line-height:22px !important;vertical-align:middle}
+.szuro-sor th{background:var(--surface2);height:30px !important;min-height:30px !important;max-height:30px !important;padding:2px 4px !important;box-sizing:border-box}
+.idopont-ertek{height:30px !important;min-height:30px !important;max-height:30px !important;padding:0 1px !important;box-sizing:border-box;line-height:28px !important;vertical-align:middle}
 .fix-tabla tbody td.rendszam{vertical-align:middle !important;line-height:18px !important;padding-top:0 !important;padding-bottom:0 !important}
 .rendszam-link{height:18px;line-height:18px;vertical-align:middle;position:relative;top:0}
 .szuro-sor th:empty{background:var(--surface2)}
-.oszlop-kereso{display:block;width:100%;height:20px;min-height:20px;max-height:20px;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:5px;padding:0 4px;font:inherit;font-size:10px;line-height:18px;outline:none}
+.oszlop-kereso{display:block;width:100%;height:26px;min-height:26px;max-height:26px;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:5px;padding:0 4px;font:inherit;font-size:10px;line-height:24px;outline:none}
 .oszlop-kereso:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(110,168,254,.12)}
 .rendez-gomb{border:1px solid var(--border);background:var(--surface2);color:var(--muted);width:21px;min-width:21px;height:21px;padding:0;margin-left:5px;border-radius:5px;cursor:pointer;font-size:11px;line-height:18px;vertical-align:middle;display:inline-flex;align-items:center;justify-content:center}
 .rendez-gomb:hover{color:var(--text);border-color:var(--accent);background:var(--surface3)}.rendez-gomb.active{color:#fff;background:var(--accent2);border-color:var(--accent2)}
