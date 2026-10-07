@@ -4198,14 +4198,24 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 
 /* V10 – finomhangolás */
 /* A keresősáv pontosan kitölti a szűrőcellát, de nem lóg ki belőle. */
+.fo-kozos-tabla .szuro-sor th{
+  position:relative;
+}
 .fo-kozos-tabla .szuro-sor .oszlop-kereso{
-  position:static;
-  width:100%;
+  position:absolute;
+  left:3px;
+  right:3px;
+  top:3px;
+  bottom:3px;
+  width:auto;
   min-width:0;
-  max-width:100%;
-  height:20px;
+  max-width:none;
+  height:auto;
+  min-height:0;
+  max-height:none;
   padding-top:0;
   padding-bottom:0;
+  box-sizing:border-box;
 }
 /* A rendszám gombja nem növelheti meg a sor magasságát. */
 .fo-kozos-tabla .rendszam-link{
@@ -4861,6 +4871,74 @@ window.addEventListener("load", frissitGarazsCsuszkat);
 
 </script>
 
+<script>
+/* MOBIL – a fő táblázat vízszintes pozícióját őrizzük meg,
+   hogy a függőleges görgetés ne rántsa jobbra a táblát. */
+(function(){
+  if (window.innerWidth > 900) return;
+  const tabla = document.querySelector('.tabla-egesz');
+  if (!tabla) return;
+
+  let mentettScrollX = tabla.scrollLeft || 0;
+  let erintesiX = null;
+  let erintesiY = null;
+  let vizszintesGesztus = false;
+  let visszaallitando = false;
+
+  tabla.addEventListener('touchstart', function(e){
+    const t = e.touches && e.touches[0];
+    if (!t) return;
+    erintesiX = t.clientX;
+    erintesiY = t.clientY;
+    vizszintesGesztus = false;
+  }, {passive:true});
+
+  tabla.addEventListener('touchmove', function(e){
+    const t = e.touches && e.touches[0];
+    if (!t || erintesiX === null || erintesiY === null) return;
+    const dx = t.clientX - erintesiX;
+    const dy = t.clientY - erintesiY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 3) {
+      vizszintesGesztus = true;
+    }
+  }, {passive:true});
+
+  tabla.addEventListener('touchend', function(){
+    erintesiX = null;
+    erintesiY = null;
+    vizszintesGesztus = false;
+  }, {passive:true});
+
+  tabla.addEventListener('scroll', function(){
+    /* Ha a felhasználó ténylegesen vízszintesen húzza a táblát,
+       az új pozíció legyen az új megőrzött pozíció. */
+    if (vizszintesGesztus) {
+      mentettScrollX = tabla.scrollLeft;
+    }
+  }, {passive:true});
+
+  function vedettScroll(){
+    if (visszaallitando) return;
+    const cel = mentettScrollX;
+    if (Math.abs(tabla.scrollLeft - cel) < 1) return;
+    visszaallitando = true;
+    requestAnimationFrame(function(){
+      tabla.scrollLeft = cel;
+      visszaallitando = false;
+    });
+  }
+
+  /* A függőleges oldal-görgetés minden fázisában visszaállítjuk
+     az előző vízszintes helyzetet, ha a böngésző magától elmozdította. */
+  window.addEventListener('scroll', vedettScroll, {passive:true});
+  window.addEventListener('touchmove', function(){
+    if (!vizszintesGesztus) requestAnimationFrame(vedettScroll);
+  }, {passive:true});
+  window.addEventListener('resize', function(){
+    if (window.innerWidth <= 900) requestAnimationFrame(vedettScroll);
+  }, {passive:true});
+})();
+</script>
 </body>
 
 </html>
