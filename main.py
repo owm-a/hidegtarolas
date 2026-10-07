@@ -1565,6 +1565,7 @@ for _, forda_sor in (
             ),
             "hely": str(forda_sor["hely"]),
             "helyszín": str(forda_sor["helyszín"]),
+            "forrás": str(forda_sor.get("forrás", "biztor")).strip() or "biztor",
             "rendszám": rendszam,
             "jármű_id": jarmu_id,
             "frissítve": idopont
@@ -2025,6 +2026,10 @@ if pozicio_idoszak:
         # ÚJ történeti rekord
         # ----------------------------------------------------
 
+        forrás_adat = str(adat.get("forrás", "")).strip()
+        if not forrás_adat:
+            forrás_adat = "garazs" if str(forda_kulcs).startswith("garazs|") else "biztor"
+
         pozicio_tortenet.append({
             "viszonylat": adat["viszonylat"],
             "forda": adat["forda"],
@@ -2032,7 +2037,7 @@ if pozicio_idoszak:
             "végzés": adat["végzés"],
             "hely": adat["hely"],
             "helyszín": adat["helyszín"],
-            "forrás": adat.get("forrás", "biztor"),
+            "forrás": forrás_adat,
             "rendszám": rendszam,
             "jármű_id": jarmu_id,
             "pozíció": pozicio,
@@ -3553,9 +3558,12 @@ body{
 .storage-ablak{min-width:0;overflow:hidden;background:var(--surface)}
 table{border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto}
 th,td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap}
-/* A bal oldali fix tábla adja a közös sormagasságot; minden rész pontosan ehhez igazodik. */
+/* A három fizikailag külön táblázat fejlécének és adat-sorainak magassága is fix,
+   ezért a bal / idő / jobb rész minden sora és a teljes fejléc pontosan egymásra esik. */
+.fix-tabla thead tr,.ido-tabla thead tr,.storage-tabla thead tr{height:31px!important;min-height:31px!important;max-height:31px!important}
+.fix-tabla thead th,.ido-tabla thead th,.storage-tabla thead th{height:31px!important;min-height:31px!important;max-height:31px!important;box-sizing:border-box;vertical-align:middle;overflow:hidden}
 .fix-tabla tbody tr,.ido-tabla tbody tr,.storage-tabla tbody tr{height:24px!important;min-height:24px!important;max-height:24px!important}
-.fix-tabla tbody td,.ido-tabla tbody td,.storage-tabla tbody td{height:24px!important;min-height:24px!important;max-height:24px!important;line-height:22px!important;box-sizing:border-box;overflow:hidden}
+.fix-tabla tbody td,.ido-tabla tbody td,.storage-tabla tbody td{height:24px!important;min-height:24px!important;max-height:24px!important;line-height:22px!important;box-sizing:border-box;overflow:hidden;vertical-align:middle}
 th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .fix-tabla,.storage-tabla{width:max-content;min-width:0}
 .fix-tabla th.hely,.fix-tabla td.hely{text-align:left;width:max-content;min-width:0;max-width:none}
@@ -3969,8 +3977,21 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     tabla.classList.toggle('all-view',view==='mindketto');
     if(label) label.textContent=view==='biztor'?'Végállomás':view==='garazs'?'Garázs':'Összes';
 
-    // A szűrés külön kezeli a sorok filterMatch állapotát. A nézetváltás
-    // itt kizárólag egy CSS-osztály váltás, így nem történik soronkénti DOM-írás.
+    // Nézetváltáskor minden korábbi keresést törlünk. Garázs nézetben
+    // a Hely és Valós tárolás mező csak vizuális alapértékként kapja meg
+    // az "ArrivaBus " szöveget; ez önmagában nem szűr.
+    const alap='ArrivaBus ';
+    document.querySelectorAll('.oszlop-kereso').forEach(input=>{
+      input.value='';
+      input.dataset.defaultArrivabus='0';
+    });
+    if(view==='garazs'){
+      document.querySelectorAll('.oszlop-kereso[data-col="4"], .oszlop-kereso[data-col="storage"]').forEach(input=>{
+        input.value=alap;
+        input.dataset.defaultArrivabus='1';
+      });
+    }
+    applyFilters();
   }
 
   function applyFilters(){
@@ -3979,6 +4000,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
       let ok=true;
       inputs.forEach(input=>{
         if(!ok) return;
+        if(input.dataset.defaultArrivabus==='1') return;
         const q=input.value.trim().toLocaleLowerCase('hu-HU');
         if(!q) return;
         const col=input.dataset.col;
@@ -3994,7 +4016,8 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
       });
       row.dataset.filterMatch=ok?'1':'0';
     });
-    applyView(currentView);
+    // A nézetet nem kell újra alkalmazni: a filterMatch attribútum és a
+    // nézet CSS-osztálya együtt határozza meg a láthatóságot.
   }
 
   function valueForSort(row,col){
@@ -4044,7 +4067,10 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   idoAblak.addEventListener('scroll',()=>{slider.value=String(Math.round(idoAblak.scrollLeft));},{passive:true});
   buttons.forEach(b=>b.addEventListener('click',()=>applyView(b.dataset.nezet)));
   sortButtons.forEach(b=>b.addEventListener('click',()=>sortRows(b)));
-  document.querySelectorAll('.oszlop-kereso').forEach(input=>input.addEventListener('input',applyFilters));
+  document.querySelectorAll('.oszlop-kereso').forEach(input=>input.addEventListener('input',()=>{
+    input.dataset.defaultArrivabus='0';
+    applyFilters();
+  }));
   window.addEventListener('resize',()=>requestAnimationFrame(setLayout));
   allRows().forEach(r=>r.dataset.filterMatch='1');
   applyView('biztor');
