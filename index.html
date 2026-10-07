@@ -434,6 +434,19 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   color:var(--accent)!important;
 }
 
+/* Végső mobil javítás: a 2. sor soha ne legyen sticky; az egész tábla együtt görög. */
+@media(max-width:600px){
+  .fo-kozos-tabla thead .szuro-sor th,
+  .fo-kozos-tabla .szuro-sor th.sticky-bal,
+  .fo-kozos-tabla .szuro-sor th.sticky-jobb{
+    position:static!important;
+    top:auto!important;
+    bottom:auto!important;
+    left:auto!important;
+    right:auto!important;
+    z-index:auto!important;
+  }
+}
 </style>
 <style>
 /* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
@@ -677,16 +690,31 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet)));
   sortButtons.forEach(b=>b.addEventListener('click',()=>sort(b)));
   filterInputs.forEach(i=>i.addEventListener('input',filters));
-  window.addEventListener('resize',()=>requestAnimationFrame(()=>{mobilTablaSorrend();layout();}));
+  window.addEventListener('resize',()=>requestAnimationFrame(()=>{
+    mobilTablaSorrend();
+    if(window.matchMedia('(max-width:600px)').matches){
+      sticky();
+      layoutScroll();
+    }else{
+      layout();
+    }
+  }));
   rowList.forEach(r=>r.dataset.filterMatch='1');
-  view('biztor');layout();
+  view('biztor');
+  if(window.matchMedia('(max-width:600px)').matches){
+    sticky();
+    layoutScroll();
+    fo.scrollLeft=0;
+  }else{
+    layout();
+  }
 })();
 (function(){
   const btn=document.getElementById('theme-toggle');
   if(!btn) return;
   function applyTheme(light, save=true){
     document.body.classList.toggle('light-mode',light);
-    btn.textContent=light?'☾ Sötét mód':'☀ Sötét mód';
+    btn.textContent=light?'☾ Sötét mód':'☀ Normál mód';
     if(save){
       try{localStorage.setItem('futar-theme', light ? 'light' : 'dark');}catch(e){}
     }
@@ -978,6 +1006,28 @@ function frissitGarazsCsuszkat() {
 }
 window.addEventListener("resize", frissitGarazsCsuszkat);
 window.addEventListener("load", frissitGarazsCsuszkat);
+
+// A GitHub Actions 5 percenként frissíti az oldalt; a böngésző is töltsön be új adatot.
+// Mobilon az aktuális vízszintes táblapozíciót megőrizzük újratöltéskor.
+(function(){
+  const tabla=document.getElementById('fo-tabla');
+  if(tabla){
+    try{
+      const mentett=sessionStorage.getItem('futar-table-scroll-left');
+      if(mentett!==null){
+        requestAnimationFrame(()=>{
+          const x=Math.max(0,Math.min(tabla.scrollWidth-tabla.clientWidth,Number(mentett)||0));
+          tabla.scrollLeft=x;
+        });
+      }
+    }catch(e){}
+    const mentes=()=>{
+      try{sessionStorage.setItem('futar-table-scroll-left',String(Math.round(tabla.scrollLeft)));}catch(e){}
+    };
+    window.addEventListener('pagehide',mentes);
+  }
+  setTimeout(()=>window.location.reload(),300000);
+})();
 
 </script>
 
