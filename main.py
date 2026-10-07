@@ -4156,9 +4156,14 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 }
 
 
-/* MOBIL – a 2. (szűrő/időérték) sor is teljesen együtt görög a táblával. */
+@media (min-width:601px) and (hover:hover){
+  #oldal-cim{cursor:pointer}
+}
+
+/* Mobilon a teljes tábla valóban szabadon görgethető: a későbbi desktop sticky szabályokat is felülírjuk. */
 @media(max-width:600px){
-  .fo-kozos-tabla .szuro-sor th,
+  .fo-kozos-tabla .sticky-bal,
+  .fo-kozos-tabla .sticky-jobb,
   .fo-kozos-tabla .szuro-sor th.sticky-bal,
   .fo-kozos-tabla .szuro-sor th.sticky-jobb{
     position:static!important;
@@ -4168,7 +4173,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     box-shadow:none!important;
   }
 }
-
 </style>
 <style>
 /* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
@@ -4430,14 +4434,14 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     if (fo.scrollLeft > max) fo.scrollLeft=max;
   }
   function layout(){
+    const currentScroll=fo.scrollLeft;
     sticky();
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
-    const mobil=window.matchMedia('(max-width:600px)').matches;
-    const current=Math.min(max,Math.max(0,fo.scrollLeft||0));
     slider.max=String(max);
+    const mobil=window.matchMedia('(max-width:600px)').matches;
     if(mobil){
-      fo.scrollLeft=current;
-      slider.value=String(current);
+      fo.scrollLeft=Math.min(max,Math.max(0,currentScroll));
+      slider.value=String(fo.scrollLeft);
     }else{
       slider.value=String(max);
       fo.scrollLeft=max;
@@ -4505,7 +4509,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
       layout();
       if(window.matchMedia('(max-width:600px)').matches){
         const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
-        fo.scrollLeft=Math.min(max,Math.max(0,oldScroll||0));
+        fo.scrollLeft=Math.min(max,Math.max(0,oldScroll));
         slider.value=String(fo.scrollLeft);
       }
     });
@@ -4541,6 +4545,9 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     }
   });
 })();
+
+/* Automatikus oldalfrissítés 5 percenként. */
+setInterval(()=>window.location.reload(),5*60*1000);
 </script>
 
 """)
