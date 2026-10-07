@@ -3462,6 +3462,7 @@ body{
     overflow-x:hidden;background:radial-gradient(circle at 10% 0%,rgba(110,168,254,.07),transparent 28%),var(--bg);
     color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
 }
+.rejtett-poen{position:absolute;left:-99999px;top:-99999px;opacity:0;color:inherit;pointer-events:none;user-select:none;width:1px;height:1px;overflow:hidden}
 .fejlec,.tabla-szekcio{
     background:rgba(24,30,38,.96);border:1px solid var(--border);border-radius:var(--radius);
     box-shadow:var(--shadow);box-sizing:border-box;
@@ -3575,6 +3576,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 </head>
 <body>
+<div class="rejtett-poen" aria-hidden="true">Ki az a Korporéjsön?</div>
 <div class="fejlec">
   <div class="fejlec-top">
     <div class="cim"><b>ArrivaBus hidegtárolás</b></div>
