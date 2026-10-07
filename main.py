@@ -1161,7 +1161,7 @@ azonositas_idoszak = (
     <= time(15, 0)
 )
 
-# A 70%-os döntés előtti "Pótlásban vesz részt" figyeléshez
+# A 70%-os döntés előtti "pótlás/cserekocsi" figyeléshez
 # 15:00 után is szükség van az aktuális GTFS-RT tripre.
 gtfs_rt_trip_figyeles_idoszak = (
     time(7, 30)
@@ -2712,7 +2712,7 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
 
         if potlas is not None:
             return {
-                "eredmény": "Pótlásban vesz részt",
+                "eredmény": "pótlás/cserekocsi",
                 "tárolás helye": "---",
                 "döntés időpontja": budapest_now.strftime("%H:%M:%S"),
                 "pótlás_trip_id": potlas["trip_id"],
@@ -2938,7 +2938,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         feher_betu = openpyxl.styles.Font(color="FFFFFF", bold=True)
 
         for sor in eredmenyek:
-            if sor["eredmény"] == "Pótlásban vesz részt":
+            if sor["eredmény"] == "pótlás/cserekocsi":
                 export_eredmeny = "P"
             elif sor["eredmény"] == "NINCS ADAT" or (not sor["rendszám"] and sor["forda"]):
                 export_eredmeny = "?"
@@ -2966,7 +2966,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             eredmeny_cella = export_ws.cell(export_ws.max_row, 5)
             tarolas_cella = export_ws.cell(export_ws.max_row, 6)
 
-            if sor["eredmény"] == "Pótlásban vesz részt":
+            if sor["eredmény"] == "pótlás/cserekocsi":
                 eredmeny_cella.fill = openpyxl.styles.PatternFill(fill_type="solid", fgColor="5B9BD5")
                 eredmeny_cella.font = feher_betu
             elif sor["eredmény"] == "NINCS ADAT" or (not sor["rendszám"] and sor["forda"]):
@@ -2987,7 +2987,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
                 and tarolas_helye not in ("Nincs adat", "-")
             )
 
-            if sor["eredmény"] == "Pótlásban vesz részt":
+            if sor["eredmény"] == "pótlás/cserekocsi":
                 # A pótlás geolokációja szándékosan "---", és kék.
                 tarolas_cella.font = openpyxl.styles.Font(color="4DA3FF", bold=True)
             elif van_tarolas_adat:
@@ -3533,7 +3533,7 @@ def html_export():
                 ).strip().upper()
 
                 # A pótlásos döntés a térképen is kék.
-                if str(rekord.get("döntés", "")).strip() == "Pótlásban vesz részt":
+                if str(rekord.get("döntés", "")).strip() == "pótlás/cserekocsi":
                     statusz = "PÓTLÁS"
 
                 # A végleges riportdöntés az irányadó a térképen is.
@@ -3543,7 +3543,7 @@ def html_export():
                     (garazstarolas_riport if rekord_forras == "garazs" else hidegtarolas_riport)
                     or {}
                 ).get("dontesek", {}).get(rekord_kulcs, {})
-                if str(riport_adat.get("eredmény", "")).strip() == "Pótlásban vesz részt":
+                if str(riport_adat.get("eredmény", "")).strip() == "pótlás/cserekocsi":
                     statusz = "PÓTLÁS"
 
                 # A tényleges kezdés előtti 15 percben a PIN sárga,
@@ -4302,6 +4302,17 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     background:var(--surface3)!important;
   }
 
+  /* A Rendszámhoz tartozó keresőcella is maradjon a bal szélen a
+     fejléc/adatcellával együtt, amikor jobbra görgetünk. */
+  .fo-kozos-tabla .szuro-sor th.rendszam.sticky-bal{
+    position:sticky!important;
+    left:0!important;
+    z-index:65!important;
+    background:var(--surface2)!important;
+    background-clip:padding-box;
+    box-shadow:inset -1px 0 var(--border),2px 0 0 var(--border)!important;
+  }
+
   /* A jobb oldali "Valós tárolás" oszlop mobilon ne legyen sticky. */
   .fo-kozos-tabla .sticky-jobb{
     position:static!important;
@@ -4435,7 +4446,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
         if not rr or not eredmeny_riport:
             tarolas = "n.a"
             rcls = "tarolas-na"
-        elif eredmeny_riport == "Pótlásban vesz részt":
+        elif eredmeny_riport == "pótlás/cserekocsi":
             tarolas = "---"
             rcls = "tarolas-potlas"
         elif tarolas in ("Nincs adat", "-"):
@@ -4777,7 +4788,7 @@ terkepJarmuvek.forEach(function(jarmu) {
     }
     else if (jarmu.statusz === "PÓTLÁS") {
         statuszSzoveg =
-            '<span style="color:#4da3ff;font-weight:bold;">Pótlásban vesz részt</span>';
+            '<span style="color:#4da3ff;font-weight:bold;">pótlás/cserekocsi</span>';
     }
 
 
