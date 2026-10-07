@@ -1164,13 +1164,13 @@ azonositas_idoszak = (
 # A 70%-os döntés előtti "Pótlásban vesz részt" figyeléshez
 # 15:00 után is szükség van az aktuális GTFS-RT tripre.
 gtfs_rt_trip_figyeles_idoszak = (
-    time(7, 0)
+    time(7, 30)
     <= fazis_ideje
     <= time(17, 30)
 )
 
 pozicio_idoszak = (
-    time(7, 30)
+    time(6, 30)
     < fazis_ideje
     <= time(17, 30)
 )
@@ -1183,12 +1183,12 @@ print(
 
 if azonositas_idoszak:
     print(
-        "Aktív fázis: 07:00–13:30 "
+        "Aktív fázis: 07:00–15:00 "
         "forda → rendszám + jármű ID"
     )
 elif pozicio_idoszak:
     print(
-        "Aktív fázis: 08:00–17:00 "
+        "Aktív fázis: 06:30–17:30 "
         "jármű ID → FUTÁR pozíció"
     )
 else:
@@ -1363,7 +1363,7 @@ else:
     feed = gtfs_realtime_pb2.FeedMessage()
 
     print(
-        "GTFS-RT lekérés kihagyva: nincs aktív 07:00–17:30-as figyelési fázis."
+        "GTFS-RT lekérés kihagyva: nincs aktív 07:30–17:30-as figyelési fázis."
     )
 
 # =========================================================
@@ -3809,11 +3809,46 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 
 /* Mobilon a teljes nagy táblázat vízszintesen görgethető legyen. */
 @media (max-width:900px){
-    .tabla-szekcio{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;}
-    .tabla-egesz{width:max-content;max-width:none;min-width:max-content;}
-   .idopont-csuszkasav{width:90%;min-width:0;}
+    /* Mobil: valódi Excel-szerű vízszintes táblázat.
+       A táblázat egyetlen scrollfelület, így ujjal közvetlenül
+       az időoszlopokon lehet jobbra-balra húzni. */
+    .tabla-szekcio{
+        overflow:visible;
+        width:100%;
+        max-width:100%;
+    }
+    .tabla-egesz{
+        display:block;
+        width:100%;
+        max-width:100%;
+        min-width:0;
+        overflow-x:auto;
+        overflow-y:hidden;
+        -webkit-overflow-scrolling:touch;
+        overscroll-behavior-x:contain;
+        touch-action:pan-x pan-y;
+    }
+    .fo-kozos-tabla{
+        width:max-content!important;
+        min-width:max-content!important;
+        max-width:none!important;
+    }
+    .idopont-csuszkasav{width:90%;min-width:0;}
 }
 
+
+@media (max-width:900px){
+    .fo-kozos-tabla th,.fo-kozos-tabla td{
+        white-space:nowrap;
+    }
+    .fo-kozos-tabla .sticky-bal{
+        position:sticky!important;
+    }
+    .fo-kozos-tabla .sticky-jobb{
+        position:sticky!important;
+        right:0;
+    }
+}
 .ido-tabla .fo-kozos-tabla{border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto;width:max-content;min-width:100%;}
  .fo-kozos-tabla .col-idopont{width:42px;min-width:42px;max-width:42px}
  .fo-kozos-tabla th,.fo-kozos-tabla td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap}
