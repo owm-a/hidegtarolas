@@ -26,7 +26,6 @@ body{
 .fejlec{padding:16px 18px;margin-bottom:14px}
 .fejlec-top{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;margin-bottom:9px}
 .cim{color:#f3f6fa;font-size:23px;letter-spacing:-.02em;margin:0}
-#oldal-cim{cursor:pointer}
 .fejlec-adatok{display:flex;align-items:center;justify-content:space-between;width:100%;gap:20px}
 .fejlec-bal,.fejlec-jobb{display:flex;align-items:center;gap:20px;white-space:nowrap}
 .fejlec-jobb{margin-left:auto}
@@ -435,22 +434,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   color:var(--accent)!important;
 }
 
-
-/* Végső mobil felülírás: a teljes táblázat normálisan, vízszintesen görgethető.
-   A fejléc- és szűrősor sem marad sticky mobilon. */
-@media(max-width:600px){
-  .fo-kozos-tabla .sticky-bal,
-  .fo-kozos-tabla .sticky-jobb,
-  .fo-kozos-tabla .szuro-sor th,
-  .fo-kozos-tabla .szuro-sor th.sticky-bal,
-  .fo-kozos-tabla .szuro-sor th.sticky-jobb{
-    position:static!important;
-    left:auto!important;
-    right:auto!important;
-    z-index:auto!important;
-    box-shadow:none!important;
-  }
-}
 </style>
 <style>
 /* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
@@ -537,7 +520,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 <span class="rejtett-poen">de ki az a Korporéjsön?</span>
 <div class="fejlec">
   <div class="fejlec-top">
-    <div class="cim" id="oldal-cim" role="button" tabindex="0" title="Oldal frissítése"><b>ArrivaBus hidegtárolás</b></div>
+    <div class="cim"><b>ArrivaBus hidegtárolás</b></div>
     <button id="theme-toggle" class="theme-toggle" type="button" title="Sötét / világos mód">☀ Sötét mód</button>
   </div>
   <div class="fejlec-adatok riport-fejlec-adatok">
@@ -633,18 +616,11 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     if (fo.scrollLeft > max) fo.scrollLeft=max;
   }
   function layout(){
-    const mobil=window.matchMedia('(max-width:600px)').matches;
-    const current=Math.max(0,fo.scrollLeft||0);
     sticky();
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
     slider.max=String(max);
-    if(mobil){
-      fo.scrollLeft=Math.min(max,current);
-      slider.value=String(fo.scrollLeft);
-    }else{
-      slider.value=String(max);
-      fo.scrollLeft=max;
-    }
+    slider.value=String(max);
+    fo.scrollLeft=max;
   }
   function view(v){
     currentView=v;
@@ -701,18 +677,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet)));
   sortButtons.forEach(b=>b.addEventListener('click',()=>sort(b)));
   filterInputs.forEach(i=>i.addEventListener('input',filters));
-  window.addEventListener('resize',()=>{
-    const oldScroll=fo.scrollLeft;
-    requestAnimationFrame(()=>{
-      mobilTablaSorrend();
-      layout();
-      if(window.matchMedia('(max-width:600px)').matches){
-        const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
-        fo.scrollLeft=Math.min(max,Math.max(0,oldScroll||0));
-        slider.value=String(fo.scrollLeft);
-      }
-    });
-  });
+  window.addEventListener('resize',()=>requestAnimationFrame(()=>{mobilTablaSorrend();layout();}));
   rowList.forEach(r=>r.dataset.filterMatch='1');
   view('biztor');layout();
 })();
@@ -721,7 +686,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   if(!btn) return;
   function applyTheme(light, save=true){
     document.body.classList.toggle('light-mode',light);
-    btn.textContent=light?'☾ Sötét mód':'☀ Normál mód';
+    btn.textContent=light?'☾ Sötét mód':'☀ Sötét mód';
     if(save){
       try{localStorage.setItem('futar-theme', light ? 'light' : 'dark');}catch(e){}
     }
@@ -732,23 +697,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   applyTheme(savedTheme==='light', false);
   btn.addEventListener('click',()=>applyTheme(!document.body.classList.contains('light-mode'), true));
 })();
-
-// Az oldal címe kattintható: kézzel is azonnal frissíthető.
-(function(){
-  const cim=document.getElementById('oldal-cim');
-  if(!cim) return;
-  const frissit=()=>window.location.reload();
-  cim.addEventListener('click',frissit);
-  cim.addEventListener('keydown',e=>{
-    if(e.key==='Enter'||e.key===' '){
-      e.preventDefault();
-      frissit();
-    }
-  });
-})();
-
-// Automatikus oldalfrissítés 5 percenként.
-setInterval(()=>window.location.reload(),5*60*1000);
 </script>
 
 
