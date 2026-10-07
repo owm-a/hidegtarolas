@@ -3935,7 +3935,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla td.tarolas-na{color:var(--text)}
 .fo-kozos-tabla td.tarolas-potlas{color:#4da3ff !important;font-weight:800}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td{background:rgba(110,168,254,.055);color:#82b4ff;font-weight:700}
-.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td .rendszam-link{color:#82b4ff;font-weight:800}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td .rendszam-link{color:var(--accent);font-weight:800}
 /* A tárolási eredmény színe minden nézetben elsőbbséget kap. */
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-ok{color:#6ee7a8}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-eltérés{color:#ff858d}
@@ -4090,6 +4090,37 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 }
 /* Mobilon is a bal 6 oszlop maradjon fix; a Valós tárolás a jobb oldalon
    továbbra is a táblával együtt görgethető. */
+
+/* Végső sticky-javítás: a collapse táblamodell néhány böngészőben
+   1–2 px-rel elmozdíthatja a sticky cellákat vízszintes scrollnál.
+   Separate + 0 spacing mellett a hat bal oszlop stabilan a helyén marad. */
+.fo-kozos-tabla{
+  border-collapse:separate!important;
+  border-spacing:0!important;
+}
+.fo-kozos-tabla .sticky-bal{
+  left:var(--sticky-left,0px);
+}
+.fo-kozos-tabla .bal-1{left:0!important}
+.fo-kozos-tabla .bal-2{left:var(--bal-2,0px)!important}
+.fo-kozos-tabla .bal-3{left:var(--bal-3,0px)!important}
+.fo-kozos-tabla .bal-4{left:var(--bal-4,0px)!important}
+.fo-kozos-tabla .bal-5{left:var(--bal-5,0px)!important}
+.fo-kozos-tabla .bal-6{left:var(--bal-6,0px)!important}
+
+/* Világos módban a tárolási színek legyenek kevésbé harsányak, de jól
+   olvashatók a világos háttéren. */
+body.light-mode .fo-kozos-tabla td.tarolas-ok{color:#167347!important}
+body.light-mode .fo-kozos-tabla td.tarolas-eltérés{color:#ad3540!important}
+body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-ok{color:#167347!important}
+body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-eltérés{color:#ad3540!important}
+
+/* Összes nézetben a sor kékre emelése ne színezze át a kattintható
+   rendszámot; annak saját link-színe maradjon. */
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td .rendszam-link{
+  color:var(--accent)!important;
+}
+
 </style>
 <style>
 /* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
@@ -4177,7 +4208,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 <div class="fejlec">
   <div class="fejlec-top">
     <div class="cim"><b>ArrivaBus hidegtárolás</b></div>
-    <button id="theme-toggle" class="theme-toggle" type="button" title="Sötét / világos mód">☀ Világos mód</button>
+    <button id="theme-toggle" class="theme-toggle" type="button" title="Sötét / világos mód">☀ Sötét mód</button>
   </div>
   <div class="fejlec-adatok riport-fejlec-adatok">
     <div class="fejlec-bal">
@@ -4413,7 +4444,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   if(!btn) return;
   function applyTheme(light, save=true){
     document.body.classList.toggle('light-mode',light);
-    btn.textContent=light?'☾ Sötét mód':'☀ Világos mód';
+    btn.textContent=light?'☾ Sötét mód':'☀ Sötét mód';
     if(save){
       try{localStorage.setItem('futar-theme', light ? 'light' : 'dark');}catch(e){}
     }
