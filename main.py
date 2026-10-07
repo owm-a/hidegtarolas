@@ -3601,7 +3601,7 @@ body{
 .nezet-panel{display:block}.nezet-panel.hidden{display:none!important}
 .tabla-szekcio{width:100%;max-width:100%;margin:0;padding:12px;border-top:1px solid var(--border);overflow:hidden}
 .idopont-csuszkasav{
-    width:100%;height:38px;position:relative;z-index:4;display:grid;grid-template-columns:var(--left-width) minmax(0,1fr) var(--storage-width);
+    width:100%;height:38px;display:grid;grid-template-columns:var(--left-width) minmax(0,1fr) var(--storage-width);
     align-items:center;background:var(--surface2);border:1px solid var(--border);border-bottom:0;
     border-radius:8px 8px 0 0;box-sizing:border-box;overflow:hidden;
 }
@@ -3609,19 +3609,63 @@ body{
 .csuszka-info strong{color:var(--text)}
 .idopont-csuszkasav input[type=range]{width:100%;margin:0;accent-color:var(--accent);cursor:pointer}
 .tabla-egesz{display:grid;grid-template-columns:var(--left-width) minmax(0,1fr) var(--storage-width);width:100%;max-width:100%;min-width:0;overflow:hidden;background:var(--surface)}
-.fix-ablak{min-width:0;overflow:hidden;background:var(--surface);position:relative;z-index:10}
-.ido-ablak{min-width:0;overflow:hidden;background:var(--surface);border-left:1px solid var(--border);border-right:1px solid var(--border);position:relative;z-index:1}
-.ido-belso{width:max-content;min-width:100%;overflow:hidden;background:var(--surface)}
-.storage-ablak{min-width:0;overflow:hidden;background:var(--surface);position:relative;z-index:10}
+.fix-ablak{min-width:0;overflow:hidden;background:var(--surface)}
+.ido-ablak{min-width:0;overflow:hidden;background:var(--surface);border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.ido-belso{width:max-content;min-width:100%;overflow:visible}
+.storage-ablak{min-width:0;overflow:hidden;background:var(--surface)}
+
+/* =========================================================
+   FIX RÉTEGEK AZ IDŐOSZLOPOK ELŐTT
+   A bal 6 oszlop és a Valós tárolás mindig takarja az időtáblát.
+   Az időtábla csak a középső viewporton belül mozoghat.
+   ========================================================= */
+#fo-tabla{position:relative;isolation:isolate;}
+#fo-tabla>.fix-ablak{
+    position:relative;
+    z-index:30;
+    background:var(--surface);
+    overflow:hidden;
+    isolation:isolate;
+}
+#fo-tabla>.ido-ablak{
+    position:relative;
+    z-index:1;
+    overflow:hidden;
+    background:var(--surface);
+}
+#fo-tabla>.storage-ablak{
+    position:relative;
+    z-index:30;
+    background:var(--surface);
+    overflow:hidden;
+    isolation:isolate;
+}
+#fo-tabla>.fix-ablak table,
+#fo-tabla>.storage-ablak table{
+    position:relative;
+    z-index:31;
+    background:var(--surface);
+}
+#fo-tabla>.ido-ablak .ido-belso,
+#fo-tabla>.ido-ablak .ido-tabla{
+    position:relative;
+    z-index:1;
+}
+/* A két határvonal legyen teljesen egyértelmű. */
+#fo-tabla>.fix-ablak{border-right:2px solid var(--border);box-sizing:border-box;}
+#fo-tabla>.storage-ablak{border-left:2px solid var(--border);box-sizing:border-box;}
+
 table{border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto}
-th,td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap;vertical-align:middle}
+th,td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap}
 th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .fix-tabla,.storage-tabla{width:max-content;min-width:0}
 .fix-tabla th.hely,.fix-tabla td.hely{text-align:left;width:max-content;min-width:0;max-width:none}
 .fix-tabla th.rendszam,.fix-tabla td.rendszam{text-align:right}
 .fix-tabla td.rendszam{font-weight:bold}
-.fix-tabla th.rendszam,.fix-tabla td.rendszam{width:86px;min-width:86px;max-width:86px;white-space:nowrap;overflow:hidden}
-.fix-tabla th.viszonylat,.fix-tabla th.forda,.fix-tabla th.rendszam{padding-left:5px;padding-right:5px;vertical-align:middle}
+.fix-tabla th.viszonylat,.fix-tabla td.viszonylat,
+.fix-tabla th.forda,.fix-tabla td.forda,
+.fix-tabla th.rendszam,.fix-tabla td.rendszam{width:1%;white-space:nowrap}
+.fix-tabla th.viszonylat,.fix-tabla th.forda,.fix-tabla th.rendszam{padding-left:5px;padding-right:5px}
 .fix-tabla th.viszonylat .rendez-gomb,.fix-tabla th.forda .rendez-gomb,.fix-tabla th.rendszam .rendez-gomb{margin-left:4px}
 /* A kezdés/végzés oszlop szélességét is a tartalom, elsősorban a fejléc határozza meg. */
 .fix-tabla th.kezdés,.fix-tabla td.kezdés,
@@ -3643,13 +3687,11 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 #fo-tabla.view-garazs .storage-tabla tbody tr[data-forras="biztor"]{display:none}
 #fo-tabla tbody tr[data-filter-match="0"]{display:none}
 
-/* A teljes táblázatot NEM lehet böngészőből vízszintesen húzni.
-   A vízszintes mozgatás kizárólag a saját időcsúszkával történik.
-   A bal 6 oszlop és a jobb Valós tárolás oszlop végig fix marad. */
+/* Mobilon a teljes nagy táblázat vízszintesen görgethető legyen. */
 @media (max-width:900px){
-    .tabla-szekcio{overflow-x:hidden;overflow-y:hidden;}
-    .tabla-egesz{overflow:hidden;}
-    .idopont-csuszkasav{overflow:hidden;}
+    .tabla-szekcio{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;}
+    .tabla-egesz{width:max-content;max-width:none;min-width:max-content;}
+    .idopont-csuszkasav{width:max-content;min-width:max-content;}
 }
 
 .ido-tabla .status-pill{height:20px;line-height:1}
@@ -3671,11 +3713,9 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .storage-tabla td.tarolas-ok{color:#6ee7a8;border-top-color:var(--border);border-bottom-color:var(--border)}
 .storage-tabla td.tarolas-eltérés{color:#ff858d;border-top-color:var(--border);border-bottom-color:var(--border)}
 .storage-tabla td.tarolas-na{color:var(--text);border-top-color:var(--border);border-bottom-color:var(--border)}
-.rendszam-link{display:inline-block;border:0;background:transparent;color:var(--accent);font:inherit;font-weight:750;cursor:pointer;padding:2px 5px;border-radius:6px;text-decoration:underline;text-decoration-color:rgba(110,168,254,.35);text-underline-offset:2px}.rendszam-link:hover{background:rgba(110,168,254,.13);color:#fff;text-decoration-color:var(--accent)}
+.rendszam-link{border:0;background:transparent;color:var(--accent);font:inherit;font-weight:750;cursor:pointer;padding:2px 5px;border-radius:6px;text-decoration:underline;text-decoration-color:rgba(110,168,254,.35);text-underline-offset:2px}.rendszam-link:hover{background:rgba(110,168,254,.13);color:#fff;text-decoration-color:var(--accent)}
 .biztor-sor .adat-fixed{}
 .all-view .fix-tabla tr[data-forras="biztor"] > td,.all-view .storage-tabla tr[data-forras="biztor"] > td{background:rgba(110,168,254,.055)}
-#fo-tabla.all-view .fix-ablak,#fo-tabla.all-view .storage-ablak{z-index:3}
-#fo-tabla.all-view .ido-ablak{z-index:1}
 .all-view .fix-tabla tr[data-forras="biztor"] > td,.all-view .storage-tabla tr[data-forras="biztor"] > td{color:#82b4ff;font-weight:700}
 .all-view .biztor-sor > td .rendszam-link{color:#82b4ff;font-weight:800}
 .map-focus{animation:mapPulse .9s ease-out}.vehicle-pin{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 1px 5px rgba(0,0,0,.45);box-sizing:border-box}.vehicle-pin::after{content:"";display:block;width:7px;height:7px;margin:5px auto 0;border-radius:50%;background:white}.vehicle-pin.green{background:#00b050}.vehicle-pin.red{background:#ff0000}.vehicle-pin.yellow{background:#ffd966}.vehicle-pin.gray{background:#687384}
@@ -3693,82 +3733,7 @@ body.light-mode .storage-tabla td.tarolas-na{color:var(--text);border-top-color:
 body:not(.light-mode) #geozona-terkep .leaflet-tile-pane{filter:invert(90%) hue-rotate(180deg) brightness(78%) contrast(88%) saturate(70%)}
 body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 @media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-adatok{display:block}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:7px}.fejlec-top{margin-bottom:8px}#geozona-terkep{width:94%;margin-left:auto;margin-right:auto;height:42vh;min-height:280px}.nezet-valaszto{width:100%}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}}
-@media(max-width:600px){.cim{font-size:20px}.adat{font-size:11px}#geozona-terkep{width:94%;height:38vh;min-height:250px}.idopont-csuszkasav{height:44px}.csuszka-info{font-size:10px;padding-left:5px}.rendszam-link{padding:2px 5px}}
-/* ================================================================
-   FINAL TABLE LAYOUT OVERRIDE
-   A három panel fizikailag zárt: BAL FIX | IDŐ (csúszka) | JOBB FIX.
-   ================================================================ */
-html,body{overflow-x:hidden!important;}
-.tabla-szekcio{overflow:hidden!important;max-width:100%!important;}
-#fo-tabla{
-    display:grid!important;
-    grid-template-columns:var(--left-width) minmax(0,1fr) var(--storage-width)!important;
-    width:100%!important;
-    min-width:0!important;
-    max-width:100%!important;
-    overflow:hidden!important;
-    position:relative;
-}
-#fo-tabla>.fix-ablak{
-    grid-column:1!important;
-    grid-row:1!important;
-    width:var(--left-width)!important;
-    min-width:var(--left-width)!important;
-    max-width:var(--left-width)!important;
-    overflow:hidden!important;
-    position:relative!important;
-    z-index:10!important;
-}
-#fo-tabla>.ido-ablak{
-    grid-column:2!important;
-    grid-row:1!important;
-    width:100%!important;
-    min-width:0!important;
-    max-width:none!important;
-    overflow:hidden!important;
-    position:relative!important;
-    z-index:1!important;
-    box-sizing:border-box!important;
-}
-#fo-tabla>.storage-ablak{
-    grid-column:3!important;
-    grid-row:1!important;
-    width:var(--storage-width)!important;
-    min-width:var(--storage-width)!important;
-    max-width:var(--storage-width)!important;
-    overflow:hidden!important;
-    position:relative!important;
-    z-index:10!important;
-}
-#fo-tabla .ido-belso{
-    width:max-content!important;
-    min-width:100%!important;
-    max-width:none!important;
-    overflow:visible!important;
-}
-#fo-tabla .ido-tabla{
-    width:max-content!important;
-    min-width:100%!important;
-    max-width:none!important;
-}
-#fo-csuszkasav{
-    display:grid!important;
-    grid-template-columns:var(--left-width) minmax(0,1fr) var(--storage-width)!important;
-    width:100%!important;
-    max-width:100%!important;
-    min-width:0!important;
-    overflow:hidden!important;
-    box-sizing:border-box!important;
-    position:relative!important;
-    z-index:20!important;
-}
-#fo-csuszkasav>.csuszka-info{grid-column:1!important;overflow:hidden!important;}
-#fo-csuszkasav>input[type=range]{grid-column:2!important;min-width:0!important;width:100%!important;}
-#fo-csuszkasav>div:last-child{grid-column:3!important;}
-@media(max-width:900px){
-    .tabla-szekcio{overflow:hidden!important;}
-    #fo-tabla{overflow:hidden!important;}
-}
+@media(max-width:600px){.cim{font-size:20px}.adat{font-size:11px}#geozona-terkep{width:94%;height:38vh;min-height:250px}.idopont-csuszkasav{height:44px}.csuszka-info{font-size:10px;padding-left:5px}.rendszam-link{padding:4px 6px}}
 </style>
 <style>
 /* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
@@ -3873,7 +3838,7 @@ html,body{overflow-x:hidden!important;}
         html.append(f'<td class="végzés adat-fixed">{escape(sor["végzés"])}</td>')
         html.append(f'<td class="hely adat-fixed">{escape(sor["hely"])}</td>')
         rs = str(sor.get("rendszám", "")).strip()
-        rs_html = f'<span class="rendszam-link" data-rendszam="{escape(rs)}" title="Jármű megjelenítése a térképen">{escape(rs)}</span>' if rs else ""
+        rs_html = f'<button type="button" class="rendszam-link" data-rendszam="{escape(rs)}" title="Jármű megjelenítése a térképen">{escape(rs)}</button>' if rs else ""
         html.append(f'<td class="rendszam adat-fixed">{rs_html}</td></tr>')
 
     html.append("""
@@ -4028,12 +3993,6 @@ html,body{overflow-x:hidden!important;}
         }
 
         const szelessegek=termeszetesSzelessegek.slice(0,6);
-
-        // A Rendszám oszlop szélességét SOHA nem a járművek rendszámai
-        // határozzák meg. Fix szélességű marad, így egy hosszabb rendszám
-        // vagy link nem tudja széthúzni a teljes bal oldali blokkot.
-        szelessegek[5]=86;
-
         szelessegek[4]=helyWidth;
         szelessegek.forEach((w,i)=>{
           const col=colgroup.children[i];
@@ -4059,7 +4018,7 @@ html,body{overflow-x:hidden!important;}
     // Mobilon ne szűküljön nullára az időtábla a bal + jobb fix rész miatt.
     // 340 px = kb. 10 db 34 px-es időoszlop, így a külön csúszka
     // mobilon is ténylegesen használható marad. A teljes táblázat
-    // a külső oldal ettől még nem válik vízszintesen görgethetővé.
+    // ettől még kívülről vízszintesen húzható.
     const mobil = window.innerWidth <= 900;
     const middle = mobil
         ? 340
@@ -4084,18 +4043,12 @@ html,body{overflow-x:hidden!important;}
         el.style.width=teljesTablaSzelesseg+'px';
         el.style.minWidth=teljesTablaSzelesseg+'px';
         el.style.maxWidth='none';
-        el.style.overflow='hidden';
       });
-      if(sliderBar){
-        sliderBar.style.width=teljesTablaSzelesseg+'px';
-        sliderBar.style.minWidth=teljesTablaSzelesseg+'px';
-      }
     }
 
     // Az időoszlopok szélessége már adott; a csúszka ezt a tényleges középső
     // viewportot követi, nem fordítva.
     const maxScroll=Math.max(0,idoBelso.scrollWidth-idoAblak.clientWidth);
-    slider.min='0';
     slider.max=String(maxScroll);
 
     // Az időtábla induláskor mindig a jobb szélre álljon.
@@ -4192,20 +4145,10 @@ html,body{overflow-x:hidden!important;}
     if(sliderFrame) return;
     sliderFrame=requestAnimationFrame(()=>{
       sliderFrame=0;
-      const maxScroll=Math.max(0,idoBelso.scrollWidth-idoAblak.clientWidth);
-      const value=Math.min(maxScroll,Math.max(0,Number(slider.value)||0));
-      idoAblak.scrollLeft=value;
-      slider.value=String(value);
+      idoAblak.scrollLeft=Math.min(idoAblak.scrollWidth-idoAblak.clientWidth,Math.max(0,Number(slider.value)||0));
     });
   });
-
-  // Biztonsági szinkron: ha a böngésző valamilyen belső layout-változás
-  // miatt elmozdítaná az időablakot, a saját csúszka marad a vezérlő.
-  idoAblak.addEventListener('scroll',()=>{
-    const maxScroll=Math.max(0,idoBelso.scrollWidth-idoAblak.clientWidth);
-    const value=Math.min(maxScroll,Math.max(0,idoAblak.scrollLeft));
-    slider.value=String(Math.round(value));
-  },{passive:true});
+  idoAblak.addEventListener('scroll',()=>{slider.value=String(Math.round(idoAblak.scrollLeft));},{passive:true});
   buttons.forEach(b=>b.addEventListener('click',()=>applyView(b.dataset.nezet)));
   sortButtons.forEach(b=>b.addEventListener('click',()=>sortRows(b)));
   document.querySelectorAll('.oszlop-kereso').forEach(input=>input.addEventListener('input',applyFilters));
