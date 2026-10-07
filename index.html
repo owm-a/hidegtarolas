@@ -581,6 +581,17 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     background:var(--surface3)!important;
   }
 
+  /* A Rendszámhoz tartozó keresőcella is maradjon a bal szélen a
+     fejléc/adatcellával együtt, amikor jobbra görgetünk. */
+  .fo-kozos-tabla .szuro-sor th.rendszam.sticky-bal{
+    position:sticky!important;
+    left:0!important;
+    z-index:65!important;
+    background:var(--surface2)!important;
+    background-clip:padding-box;
+    box-shadow:inset -1px 0 var(--border),2px 0 0 var(--border)!important;
+  }
+
   /* A jobb oldali "Valós tárolás" oszlop mobilon ne legyen sticky. */
   .fo-kozos-tabla .sticky-jobb{
     position:static!important;
@@ -976,7 +987,7 @@ terkepJarmuvek.forEach(function(jarmu) {
     }
     else if (jarmu.statusz === "PÓTLÁS") {
         statuszSzoveg =
-            '<span style="color:#4da3ff;font-weight:bold;">Pótlásban vesz részt</span>';
+            '<span style="color:#4da3ff;font-weight:bold;">pótlás/cserekocsi</span>';
     }
 
 
