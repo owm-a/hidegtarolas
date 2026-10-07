@@ -3604,7 +3604,7 @@ body{
 .nezet-panel{display:block}.nezet-panel.hidden{display:none!important}
 .tabla-szekcio{width:100%;max-width:100%;margin:0;padding:12px;border-top:1px solid var(--border);overflow:hidden}
 .idopont-csuszkasav{
-    width:80%;height:38px;margin:0 auto;display:flex;align-items:center;justify-content:center;
+    width:90%;height:38px;margin:0 auto;display:flex;align-items:center;justify-content:center;
     background:var(--surface2);border:1px solid var(--border);border-radius:8px;
     box-sizing:border-box;overflow:hidden;padding:0 12px;
 }
@@ -3652,7 +3652,7 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 @media (max-width:900px){
     .tabla-szekcio{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;}
     .tabla-egesz{width:max-content;max-width:none;min-width:max-content;}
-   .idopont-csuszkasav{width:max-content;min-width:max-content;}
+   .idopont-csuszkasav{width:90%;min-width:0;}
 }
 
 .ido-tabla .fo-kozos-tabla{border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto;width:max-content;min-width:100%;}
@@ -3710,7 +3710,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 /* Közvetlen, egyetlen közös tábla – a böngésző nem épít új táblát. */
 .tabla-egesz{display:block;width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;background:var(--surface);scrollbar-width:none}
 .tabla-egesz::-webkit-scrollbar{height:0}
-.fo-kozos-tabla{display:table;border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto;width:max-content;min-width:100%}
+.fo-kozos-tabla{display:table;border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto;width:max-content}
 .fo-kozos-tabla th,.fo-kozos-tabla td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap;background:var(--surface)}
 .fo-kozos-tabla th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .fo-kozos-tabla thead tr{height:31px}.fo-kozos-tabla thead th{height:31px}
@@ -3751,17 +3751,19 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
    ========================================================= */
 .fo-kozos-tabla{
   width:max-content;
-  min-width:100%;
   table-layout:auto;
 }
+/* A fix oszlopok szélességét nem rögzítjük. A böngésző természetes
+   táblázati méretezése dönti el: fejléc + rendezőikon + tartalom. */
 .fo-kozos-tabla .viszonylat,
 .fo-kozos-tabla .forda,
 .fo-kozos-tabla .kezdés,
 .fo-kozos-tabla .végzés,
 .fo-kozos-tabla .hely,
-.fo-kozos-tabla .rendszam{
-  width:max-content;
-  min-width:max-content;
+.fo-kozos-tabla .rendszam,
+.fo-kozos-tabla .sticky-jobb.storage{
+  width:auto;
+  min-width:0;
   max-width:none;
   white-space:nowrap;
 }
@@ -3775,12 +3777,6 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla thead .sticky-bal{
   z-index:110;
   background-color:var(--surface3) !important;
-}
-.fo-kozos-tabla .sticky-jobb.storage{
-  width:max-content;
-  min-width:max-content;
-  max-width:none;
-  white-space:nowrap;
 }
 .fo-kozos-tabla .sticky-jobb{
   position:sticky;
@@ -3815,9 +3811,19 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   white-space:nowrap;
 }
 .fo-kozos-tabla td.tarolas-na{color:var(--text)}
-/* A negatív z-indexű fedő pszeudoelem már nem szükséges,
-   a sticky cella saját teljesen opák háttere takar. */
-.fo-kozos-tabla .sticky-bal::after{content:none !important}
+/* A sticky cellák szélei között a border-collapse miatt maradhat 1px-es
+   festési rés. Ezt egy enyhén túlnyúló, teljesen opák háttérréteg takarja,
+   így az időcellák sem a cellaközben, sem a szegélynél nem látszanak át. */
+.fo-kozos-tabla .sticky-bal{isolation:isolate;overflow:visible}
+.fo-kozos-tabla .sticky-bal::after{
+  content:"";
+  position:absolute;
+  inset:-2px -1px;
+  background:var(--surface);
+  z-index:-1;
+  pointer-events:none;
+}
+.fo-kozos-tabla thead .sticky-bal::after{background:var(--surface3)}
 </style>
 <style>
 /* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
@@ -3879,7 +3885,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 <div id="panel-adatok" class="nezet-panel">
 <div class="tabla-szekcio">
   <div class="idopont-csuszkasav" id="fo-csuszkasav">
-    <div class="csuszka-info"><strong id="aktiv-sorok-szoveg">Végállomás</strong></div>
+    <div class="csuszka-info"><strong id="aktiv-sorok-szoveg">Idővonal:</strong></div>
     <input type="range" id="fo-idopont-csuszka" min="0" max="0" value="0" step="1" aria-label="Időpont görgetése">
     <div></div>
   </div>
