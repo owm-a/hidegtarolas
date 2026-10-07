@@ -1184,14 +1184,14 @@ forda_rendszamok = napi_adatok.get(
     {}
 )
 
-# Régebbi napi_adat fájlokban a mentett forda rekordok még nem
-# tartalmaztak külön `forrás` mezőt. A kulcs alapján ezt visszaállítjuk,
-# hogy a garázsos pozíciórekordok továbbra is `forrás=garazs` értékkel
-# kerüljenek a történetbe és az I/N táblába.
+# Régebbi napi JSON-oknál a garázs rekordokból hiányozhatott a forrás mező.
+# A kulcs alapján ezt visszaállítjuk.
 for _kulcs, _adat in forda_rendszamok.items():
     if isinstance(_adat, dict) and not _adat.get("forrás"):
         _adat["forrás"] = (
-            "garazs" if str(_kulcs).startswith("garazs|") else "biztor"
+            "garazs"
+            if str(_kulcs).startswith("garazs|")
+            else "biztor"
         )
 
 print(
@@ -1206,6 +1206,10 @@ print(
     "Korábban mentett forda → rendszám + ID kapcsolatok:",
     len(forda_rendszamok)
 )
+
+
+# A DataFrame mindig létezzen, így 15:00 után sem lehet NameError.
+jarmuvek = pd.DataFrame()
 
 
 # =========================================================
@@ -1256,6 +1260,50 @@ if azonositas_idoszak:
     print(
         "GTFS-RT entitások száma:",
         len(feed.entity)
+    )
+
+
+    # =========================================================
+    # 10/f. GTFS-RT JÁRMŰVEK
+    # =========================================================
+    # Az azonosításhoz szükséges mezők mellett a TESZT_MOD térképhez
+    # szükséges pozíciómezőket is megtartjuk.
+    # =========================================================
+
+    jarmuvek_lista = []
+
+    for entity in feed.entity:
+
+        if not entity.HasField("vehicle"):
+            continue
+
+        v = entity.vehicle
+
+        rendszam = str(v.vehicle.license_plate).strip().upper()
+        jarmu_id = str(v.vehicle.id).strip()
+        trip_id = str(v.trip.trip_id).strip()
+
+        if not jarmu_id or not trip_id:
+            continue
+
+        jarmuvek_lista.append({
+            "rendszám": rendszam,
+            "jármű_id": jarmu_id,
+            "trip_id": trip_id,
+            "route_id": v.trip.route_id,
+            "direction_id": v.trip.direction_id,
+            "latitude": v.position.latitude if v.HasField("position") else None,
+            "longitude": v.position.longitude if v.HasField("position") else None,
+            "megálló": v.stop_id,
+            "timestamp": v.timestamp,
+            "gps_timestamp": v.timestamp
+        })
+
+    jarmuvek = pd.DataFrame(jarmuvek_lista)
+
+    print(
+        "GTFS-RT trip + jármű ID kapcsolatok:",
+        len(jarmuvek)
     )
 
 else:
@@ -1521,9 +1569,9 @@ for _, forda_sor in (
             ),
             "hely": str(forda_sor["hely"]),
             "helyszín": str(forda_sor["helyszín"]),
+            "forrás": str(forda_sor.get("forrás", "biztor")).strip() or "biztor",
             "rendszám": rendszam,
             "jármű_id": jarmu_id,
-            "forrás": str(forda_sor.get("forrás", "biztor")).strip() or "biztor",
             "frissítve": idopont
         }
 
@@ -1982,6 +2030,10 @@ if pozicio_idoszak:
         # ÚJ történeti rekord
         # ----------------------------------------------------
 
+        forrás_adat = str(adat.get("forrás", "")).strip()
+        if not forrás_adat:
+            forrás_adat = "garazs" if str(forda_kulcs).startswith("garazs|") else "biztor"
+
         pozicio_tortenet.append({
             "viszonylat": adat["viszonylat"],
             "forda": adat["forda"],
@@ -1989,7 +2041,7 @@ if pozicio_idoszak:
             "végzés": adat["végzés"],
             "hely": adat["hely"],
             "helyszín": adat["helyszín"],
-            "forrás": adat.get("forrás", "biztor"),
+            "forrás": forrás_adat,
             "rendszám": rendszam,
             "jármű_id": jarmu_id,
             "pozíció": pozicio,
@@ -3465,7 +3517,7 @@ def html_export():
     --border:#313b49;--text:#e8edf3;--muted:#9ca8b7;--accent:#6ea8fe;
     --accent2:#4f8ff7;--ok:#16a765;--bad:#e05252;--dark:#2c333d;
     --shadow:0 10px 30px rgba(0,0,0,.20);--radius:12px;
-    --left-width:auto;--storage-width:auto;
+    
 }
 html{background:var(--bg);width:100%;max-width:100%;overflow-x:hidden}
 body{
@@ -3496,76 +3548,64 @@ body{
 .nezet-panel{display:block}.nezet-panel.hidden{display:none!important}
 .tabla-szekcio{width:100%;max-width:100%;margin:0;padding:12px;border-top:1px solid var(--border);overflow:hidden}
 .idopont-csuszkasav{
-    width:100%;height:38px;display:grid;grid-template-columns:var(--left-width) minmax(0,1fr) var(--storage-width);
+    width:100%;height:38px;display:grid;grid-template-columns:minmax(170px,1fr) minmax(0,3fr);
     align-items:center;background:var(--surface2);border:1px solid var(--border);border-bottom:0;
     border-radius:8px 8px 0 0;box-sizing:border-box;overflow:hidden;
 }
 .csuszka-info{color:var(--muted);font-size:12px;font-weight:650;white-space:nowrap;padding-left:8px}
 .csuszka-info strong{color:var(--text)}
 .idopont-csuszkasav input[type=range]{width:100%;margin:0;accent-color:var(--accent);cursor:pointer}
-.tabla-egesz{display:grid;grid-template-columns:var(--left-width) minmax(0,1fr) var(--storage-width);width:100%;max-width:100%;min-width:0;overflow:hidden;background:var(--surface)}
-.fix-ablak{min-width:0;overflow:hidden;background:var(--surface)}
-.ido-ablak{min-width:0;overflow:hidden;background:var(--surface);border-left:1px solid var(--border);border-right:1px solid var(--border)}
-.ido-belso{width:max-content;min-width:100%;overflow:visible}
-.storage-ablak{min-width:0;overflow:hidden;background:var(--surface)}
+.tabla-scroll{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;background:var(--surface);-webkit-overflow-scrolling:touch}
 table{border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto}
 th,td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap}
 th{background:var(--surface3);font-weight:600;color:#cbd5e1}
-.fix-tabla,.storage-tabla{width:max-content;min-width:0}
-.fix-tabla th.hely,.fix-tabla td.hely{text-align:left;width:max-content;min-width:0;max-width:none}
-.fix-tabla th.rendszam,.fix-tabla td.rendszam{text-align:right}
-.fix-tabla td.rendszam{font-weight:bold}
-.fix-tabla th.viszonylat,.fix-tabla td.viszonylat,
-.fix-tabla th.forda,.fix-tabla td.forda,
-.fix-tabla th.rendszam,.fix-tabla td.rendszam{width:1%;white-space:nowrap}
-.fix-tabla th.viszonylat,.fix-tabla th.forda,.fix-tabla th.rendszam{padding-left:5px;padding-right:5px}
-.fix-tabla th.viszonylat .rendez-gomb,.fix-tabla th.forda .rendez-gomb,.fix-tabla th.rendszam .rendez-gomb{margin-left:4px}
-/* A kezdés/végzés oszlop szélességét is a tartalom, elsősorban a fejléc határozza meg. */
-.fix-tabla th.kezdés,.fix-tabla td.kezdés,
-.fix-tabla th.végzés,.fix-tabla td.végzés{width:1%;white-space:nowrap;min-width:0}
-.ido-tabla{width:max-content;min-width:100%}.ido-tabla th,.ido-tabla td{width:42px;min-width:42px;max-width:42px;padding:1px;text-align:center}
-.fix-tabla tbody tr,.ido-tabla tbody tr,.storage-tabla tbody tr{height:24px;min-height:24px;max-height:24px}
-.fix-tabla tbody td,.ido-tabla tbody td,.storage-tabla tbody td{height:24px;min-height:24px;max-height:24px;line-height:22px;padding-top:0;padding-bottom:0;box-sizing:border-box;overflow:hidden}
-/* Nézetváltás: csak egy konténerosztály változik, a sorokat nem mérjük/írjuk át egyenként. */
-#fo-tabla.view-biztor .fix-tabla tbody tr[data-forras="garazs"],
-#fo-tabla.view-biztor .ido-tabla tbody tr[data-forras="garazs"],
-#fo-tabla.view-biztor .storage-tabla tbody tr[data-forras="garazs"],
-#fo-tabla.view-garazs .fix-tabla tbody tr[data-forras="biztor"],
-#fo-tabla.view-garazs .ido-tabla tbody tr[data-forras="biztor"],
-#fo-tabla.view-garazs .storage-tabla tbody tr[data-forras="biztor"]{display:none}
-#fo-tabla tbody tr[data-filter-match="0"]{display:none}
-
-/* Mobilon a teljes nagy táblázat vízszintesen görgethető legyen. */
-@media (max-width:900px){
-    .tabla-szekcio{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;}
-    .tabla-egesz{width:max-content;max-width:none;min-width:max-content;}
-    .idopont-csuszkasav{width:max-content;min-width:max-content;}
-}
-
-.ido-tabla .status-pill{height:20px;line-height:1}
-.ido-tabla th.idopont-fejlec{font-size:0;color:transparent;padding:0}
-.ido-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px}
+.fo-tabla{width:max-content;min-width:100%;position:relative}
+.fo-tabla thead tr{height:31px!important;min-height:31px!important;max-height:31px!important}
+.fo-tabla thead th{height:31px!important;min-height:31px!important;max-height:31px!important;box-sizing:border-box;vertical-align:middle;overflow:hidden;position:sticky;z-index:20}
+.fo-tabla tbody tr{height:24px!important;min-height:24px!important;max-height:24px!important}
+.fo-tabla tbody td{height:24px!important;min-height:24px!important;max-height:24px!important;line-height:22px!important;box-sizing:border-box;overflow:hidden;vertical-align:middle}
+.fo-tabla th.viszonylat,.fo-tabla td.viszonylat,.fo-tabla th.forda,.fo-tabla td.forda,.fo-tabla th.rendszam,.fo-tabla td.rendszam{width:1%;white-space:nowrap}
+.fo-tabla th.viszonylat,.fo-tabla th.forda,.fo-tabla th.rendszam{padding-left:5px;padding-right:5px}
+.fo-tabla th.kezdés,.fo-tabla td.kezdés,.fo-tabla th.végzés,.fo-tabla td.végzés{width:1%;white-space:nowrap;min-width:0}
+.fo-tabla th.hely,.fo-tabla td.hely{text-align:left;white-space:nowrap;min-width:0}
+.fo-tabla th.rendszam,.fo-tabla td.rendszam{text-align:right}
+.fo-tabla td.rendszam{font-weight:bold}
+.fo-tabla th.idopont-fejlec,.fo-tabla td.idopont-cella{width:42px;min-width:42px;max-width:42px;padding:1px;text-align:center}
+.fo-tabla th.idopont-fejlec{font-size:0;color:transparent;padding:0}
+.fo-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px}
+.fo-tabla th.sticky-bal,.fo-tabla td.sticky-bal{position:sticky;background:var(--surface);z-index:10}
+.fo-tabla thead th.sticky-bal{background:var(--surface3);z-index:30}
+.fo-tabla th.sticky-jobb,.fo-tabla td.sticky-jobb{position:sticky;right:0;background:var(--surface);z-index:11}
+.fo-tabla thead th.sticky-jobb{background:var(--surface3);z-index:31}
+.fo-tabla .sticky-bal{box-shadow:1px 0 0 var(--border)}
+.fo-tabla .sticky-jobb{box-shadow:-1px 0 0 var(--border)}
+.fo-tabla tbody td.sticky-bal,.fo-tabla tbody td.sticky-jobb{background:var(--surface)}
 .szuro-sor th{background:var(--surface2);height:31px;padding:3px 4px}
 .szuro-sor th:empty{background:var(--surface2)}
 .oszlop-kereso{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:5px;padding:3px 4px;font:inherit;font-size:10px;outline:none}
 .oszlop-kereso:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(110,168,254,.12)}
 .rendez-gomb{border:1px solid var(--border);background:var(--surface2);color:var(--muted);width:21px;min-width:21px;height:21px;padding:0;margin-left:5px;border-radius:5px;cursor:pointer;font-size:11px;line-height:18px;vertical-align:middle;display:inline-flex;align-items:center;justify-content:center}
 .rendez-gomb:hover{color:var(--text);border-color:var(--accent);background:var(--surface3)}.rendez-gomb.active{color:#fff;background:var(--accent2);border-color:var(--accent2)}
-.fejlec-sor th{vertical-align:middle;position:relative}.fejlec-sor th:not(.idopont-fejlec){white-space:nowrap}
+.fejlec-sor th{vertical-align:middle;position:sticky}.fejlec-sor th:not(.idopont-fejlec){white-space:nowrap}
 .status-pill{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:20px;padding:0 7px;border-radius:999px;border:1px solid transparent;font-weight:750;font-size:11px;line-height:1;box-sizing:border-box}
 .status-pill.ok{color:#6ee7a8;background:rgba(54,181,116,.16);border-color:rgba(92,220,150,.34)}
 .status-pill.nem{color:#ff858d;background:rgba(218,75,84,.16);border-color:rgba(255,113,124,.34)}
 .status-pill.neutral{color:var(--muted);background:rgba(148,163,184,.10);border-color:rgba(148,163,184,.20)}
-.fix-tabla td.ellenorzes{background:var(--surface);padding:2px 3px}
-.storage-tabla th{width:max-content;min-width:0;white-space:nowrap}.storage-tabla td.tarolas{width:max-content;min-width:0;white-space:nowrap;font-weight:750;padding:0 8px;line-height:22px;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.storage-tabla td.tarolas-ok{color:#6ee7a8;border-top-color:var(--border);border-bottom-color:var(--border)}
-.storage-tabla td.tarolas-eltérés{color:#ff858d;border-top-color:var(--border);border-bottom-color:var(--border)}
-.storage-tabla td.tarolas-na{color:var(--text);border-top-color:var(--border);border-bottom-color:var(--border)}
+.fo-tabla td.tarolas{width:max-content;min-width:0;white-space:nowrap;font-weight:750;padding:0 8px;line-height:22px;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.fo-tabla td.tarolas-ok{color:#6ee7a8}
+.fo-tabla td.tarolas-eltérés{color:#ff858d}
+.fo-tabla td.tarolas-na{color:var(--text)}
 .rendszam-link{border:0;background:transparent;color:var(--accent);font:inherit;font-weight:750;cursor:pointer;padding:2px 5px;border-radius:6px;text-decoration:underline;text-decoration-color:rgba(110,168,254,.35);text-underline-offset:2px}.rendszam-link:hover{background:rgba(110,168,254,.13);color:#fff;text-decoration-color:var(--accent)}
-.biztor-sor .adat-fixed{}
-.all-view .fix-tabla tr[data-forras="biztor"] > td,.all-view .storage-tabla tr[data-forras="biztor"] > td{background:rgba(110,168,254,.055)}
-.all-view .fix-tabla tr[data-forras="biztor"] > td,.all-view .storage-tabla tr[data-forras="biztor"] > td{color:#82b4ff;font-weight:700}
+.all-view .biztor-sor > td:not(.idopont-cella){background:rgba(110,168,254,.055)}
+.all-view .biztor-sor > td:not(.idopont-cella){color:#82b4ff;font-weight:700}
 .all-view .biztor-sor > td .rendszam-link{color:#82b4ff;font-weight:800}
+#fo-tabla tbody tr[data-filter-match="0"]{display:none}
+@media (max-width:900px){
+    .tabla-szekcio{overflow:hidden}
+    .tabla-scroll{width:100%;max-width:100%;overflow-x:auto}
+    .idopont-csuszkasav{grid-template-columns:120px minmax(0,1fr)}
+}
+
 .map-focus{animation:mapPulse .9s ease-out}.vehicle-pin{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 1px 5px rgba(0,0,0,.45);box-sizing:border-box}.vehicle-pin::after{content:"";display:block;width:7px;height:7px;margin:5px auto 0;border-radius:50%;background:white}.vehicle-pin.green{background:#00b050}.vehicle-pin.red{background:#ff0000}.vehicle-pin.yellow{background:#ffd966}.vehicle-pin.gray{background:#687384}
 @keyframes mapPulse{0%{filter:brightness(1.8)}100%{filter:brightness(1)}}
 .leaflet-popup-content{line-height:1.45}
@@ -3575,17 +3615,44 @@ body.light-mode .cim,body.light-mode .adat b{color:var(--text)}
 body.light-mode .status-pill.ok{color:#198754;background:rgba(25,135,84,.10);border-color:rgba(25,135,84,.28)}
 body.light-mode .status-pill.nem{color:#c93f49;background:rgba(201,63,73,.09);border-color:rgba(201,63,73,.26)}
 body.light-mode .status-pill.neutral{color:#667085;background:rgba(102,112,133,.08);border-color:rgba(102,112,133,.20)}
-body.light-mode .storage-tabla td.tarolas-ok{color:#198754;border-top-color:rgba(25,135,84,.34);border-bottom-color:rgba(25,135,84,.34)}
-body.light-mode .storage-tabla td.tarolas-eltérés{color:#c93f49;border-top-color:rgba(201,63,73,.34);border-bottom-color:rgba(201,63,73,.34)}
-body.light-mode .storage-tabla td.tarolas-na{color:var(--text);border-top-color:var(--border);border-bottom-color:var(--border)}
+body.light-mode .fo-tabla td.tarolas-ok{color:#198754;border-top-color:rgba(25,135,84,.34);border-bottom-color:rgba(25,135,84,.34)}
+body.light-mode .fo-tabla td.tarolas-eltérés{color:#c93f49;border-top-color:rgba(201,63,73,.34);border-bottom-color:rgba(201,63,73,.34)}
+body.light-mode .fo-tabla td.tarolas-na{color:var(--text);border-top-color:var(--border);border-bottom-color:var(--border)}
 body:not(.light-mode) #geozona-terkep .leaflet-tile-pane{filter:invert(90%) hue-rotate(180deg) brightness(78%) contrast(88%) saturate(70%)}
 body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 @media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-adatok{display:block}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:7px}.fejlec-top{margin-bottom:8px}#geozona-terkep{width:94%;margin-left:auto;margin-right:auto;height:42vh;min-height:280px}.nezet-valaszto{width:100%}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}}
 @media(max-width:600px){.cim{font-size:20px}.adat{font-size:11px}#geozona-terkep{width:94%;height:38vh;min-height:250px}.idopont-csuszkasav{height:44px}.csuszka-info{font-size:10px;padding-left:5px}.rendszam-link{padding:4px 6px}}
 </style>
+<style>
+/* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
+.rejtett-poen{
+  position:fixed;
+  top:2px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:9999;
+  color:transparent;
+  background:transparent;
+  font-size:10px;
+  line-height:12px;
+  white-space:nowrap;
+  user-select:text;
+  -webkit-user-select:text;
+  cursor:text;
+}
+.rejtett-poen::selection{
+  color:#fff;
+  background:#3b82f6;
+}
+.rejtett-poen::-moz-selection{
+  color:#fff;
+  background:#3b82f6;
+}
+</style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 </head>
 <body>
+<span class="rejtett-poen">de ki az a Korporéjsön?</span>
 <div class="fejlec">
   <div class="fejlec-top">
     <div class="cim"><b>ArrivaBus hidegtárolás</b></div>
@@ -3618,32 +3685,42 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   <div class="idopont-csuszkasav" id="fo-csuszkasav">
     <div class="csuszka-info"><strong id="aktiv-sorok-szoveg">Végállomás</strong></div>
     <input type="range" id="fo-idopont-csuszka" min="0" max="0" value="0" step="1" aria-label="Időpont görgetése">
-    <div></div>
   </div>
-  <div class="tabla-egesz" id="fo-tabla">
-    <div class="fix-ablak" id="fix-ablak">
-      <table class="fix-tabla">
-        <thead>
-          <tr class="fejlec-sor">
-            <th class="viszonylat">Viszonylat <button class="rendez-gomb" type="button" data-sort-col="0">↕</button></th>
-            <th class="forda">Forda <button class="rendez-gomb" type="button" data-sort-col="1">↕</button></th>
-            <th class="kezdés">Kezdés <button class="rendez-gomb" type="button" data-sort-col="2" data-sort-type="time">↕</button></th>
-            <th class="végzés">Végzés <button class="rendez-gomb" type="button" data-sort-col="3" data-sort-type="time">↕</button></th>
-            <th class="hely">Hely <button class="rendez-gomb" type="button" data-sort-col="4">↕</button></th>
-            <th class="rendszam">Rendszám <button class="rendez-gomb" type="button" data-sort-col="5">↕</button></th>
-          </tr>
-          <tr class="szuro-sor">
-            <th><input class="oszlop-kereso" data-col="0" placeholder="Keresés…" aria-label="Viszonylat keresése"></th>
-            <th><input class="oszlop-kereso" data-col="1" placeholder="Keresés…" aria-label="Forda keresése"></th>
-            <th></th><th></th>
-            <th><input class="oszlop-kereso" data-col="4" placeholder="Keresés…" aria-label="Hely keresése"></th>
-            <th><input class="oszlop-kereso" data-col="5" placeholder="Keresés…" aria-label="Rendszám keresése"></th>
-          </tr>
-        </thead>
-        <tbody id="fix-tbody">
+  <div class="tabla-scroll" id="tabla-scroll">
+    <table class="fo-tabla" id="fo-tabla">
+      <thead>
+        <tr class="fejlec-sor">
+          <th class="viszonylat sticky-bal"><span>Viszonylat</span> <button class="rendez-gomb" type="button" data-sort-col="0">↕</button></th>
+          <th class="forda sticky-bal"><span>Forda</span> <button class="rendez-gomb" type="button" data-sort-col="1">↕</button></th>
+          <th class="kezdés sticky-bal"><span>Kezdés</span> <button class="rendez-gomb" type="button" data-sort-col="2" data-sort-type="time">↕</button></th>
+          <th class="végzés sticky-bal"><span>Végzés</span> <button class="rendez-gomb" type="button" data-sort-col="3" data-sort-type="time">↕</button></th>
+          <th class="hely sticky-bal"><span>Hely</span> <button class="rendez-gomb" type="button" data-sort-col="4">↕</button></th>
+          <th class="rendszam sticky-bal"><span>Rendszám</span> <button class="rendez-gomb" type="button" data-sort-col="5">↕</button></th>
 """)
 
-    # A három táblázat azonos sorazonosítókat kap.
+    for idopont in idopontok:
+        html.append('<th class="idopont-fejlec idopont-fejlec-ures"></th>')
+    html.append("""
+          <th class="storage-fejlec sticky-jobb"><span>Valós tárolás</span> <button class="rendez-gomb" type="button" data-sort-col="storage">↕</button></th>
+        </tr>
+        <tr class="szuro-sor">
+          <th class="sticky-bal"><input class="oszlop-kereso" data-col="0" placeholder="Keresés…" aria-label="Viszonylat keresése"></th>
+          <th class="sticky-bal"><input class="oszlop-kereso" data-col="1" placeholder="Keresés…" aria-label="Forda keresése"></th>
+          <th class="sticky-bal"></th>
+          <th class="sticky-bal"></th>
+          <th class="sticky-bal"><input class="oszlop-kereso" data-col="4" placeholder="Keresés…" aria-label="Hely keresése"></th>
+          <th class="sticky-bal"><input class="oszlop-kereso" data-col="5" placeholder="Keresés…" aria-label="Rendszám keresése"></th>
+    """)
+    for idopont in idopontok:
+        html.append(f'<th class="idopont-ertek">{escape(idopont)}</th>')
+    html.append("""
+          <th class="sticky-jobb"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Valós tárolás keresése"></th>
+        </tr>
+      </thead>
+      <tbody id="fo-tbody">
+    """)
+
+    # Egyetlen valódi HTML-tábla: minden jármű egyetlen <tr>.
     osszes_sor = []
     osszes_sor.extend({**v, "forrás": "biztor", "kulcs": k} for k, v in sorok.items())
     osszes_sor.extend({**v, "forrás": "garazs", "kulcs": k} for k, v in garazs_sorok.items())
@@ -3652,42 +3729,16 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     for row_id, sor in enumerate(osszes_sor):
         forras = sor.get("forrás", "biztor")
         sor_class = "biztor-sor" if forras == "biztor" else "garazs-sor"
-        html.append(f'<tr class="{sor_class}" data-row-id="{row_id}" data-forras="{forras}">')
-        html.append(f'<td class="viszonylat adat-fixed">{escape(sor["viszonylat"])}</td>')
-        html.append(f'<td class="forda adat-fixed">{escape(sor["forda"])}</td>')
-        html.append(f'<td class="kezdés adat-fixed">{escape(sor["kezdés"])}</td>')
-        html.append(f'<td class="végzés adat-fixed">{escape(sor["végzés"])}</td>')
-        html.append(f'<td class="hely adat-fixed">{escape(sor["hely"])}</td>')
+        html.append(f'<tr class="{sor_class}" data-row-id="{row_id}" data-forras="{forras}" data-filter-match="1">')
+        html.append(f'<td class="viszonylat sticky-bal adat-fixed">{escape(sor["viszonylat"])}</td>')
+        html.append(f'<td class="forda sticky-bal adat-fixed">{escape(sor["forda"])}</td>')
+        html.append(f'<td class="kezdés sticky-bal adat-fixed">{escape(sor["kezdés"])}</td>')
+        html.append(f'<td class="végzés sticky-bal adat-fixed">{escape(sor["végzés"])}</td>')
+        html.append(f'<td class="hely sticky-bal adat-fixed">{escape(sor["hely"])}</td>')
         rs = str(sor.get("rendszám", "")).strip()
         rs_html = f'<button type="button" class="rendszam-link" data-rendszam="{escape(rs)}" title="Jármű megjelenítése a térképen">{escape(rs)}</button>' if rs else ""
-        html.append(f'<td class="rendszam adat-fixed">{rs_html}</td></tr>')
+        html.append(f'<td class="rendszam sticky-bal adat-fixed">{rs_html}</td>')
 
-    html.append("""
-        </tbody>
-      </table>
-    </div>
-    <div class="ido-ablak" id="ido-ablak">
-      <div class="ido-belso" id="ido-belso">
-        <table class="ido-tabla">
-          <thead>
-            <tr class="fejlec-sor">
-""")
-    for time_index, idopont in enumerate(idopontok):
-        html.append(f'<th class="idopont-fejlec" data-time-index="{time_index}"></th>')
-    html.append("""
-            </tr>
-            <tr class="szuro-sor">
-""")
-    for time_index, idopont in enumerate(idopontok):
-        html.append(f'<th class="idopont-ertek" data-time-index="{time_index}">{escape(idopont)}</th>')
-    html.append("""
-            </tr>
-          </thead>
-          <tbody id="ido-tbody">
-""")
-
-    for row_id, sor in enumerate(osszes_sor):
-        html.append(f'<tr data-row-id="{row_id}" data-forras="{sor.get("forrás", "biztor")}">')
         for time_index, idopont in enumerate(idopontok):
             eredmeny = sor.get("ellenőrzés", {}).get(idopont, "-")
             megj = {"OK":"I","NEM":"N"}.get(eredmeny,"-")
@@ -3703,25 +3754,8 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
                     megj = "-"
             except (ValueError,TypeError):
                 osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
-            html.append(f'<td data-time-index="{time_index}"><span class="status-pill {osztaly}">{escape(megj)}</span></td>')
-        html.append('</tr>')
+            html.append(f'<td class="idopont-cella" data-time-index="{time_index}"><span class="status-pill {osztaly}">{escape(megj)}</span></td>')
 
-    html.append("""
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="storage-ablak" id="storage-ablak">
-      <table class="storage-tabla">
-        <thead>
-          <tr class="fejlec-sor"><th>Valós tárolás <button class="rendez-gomb" type="button" data-sort-col="storage">↕</button></th></tr>
-          <tr class="szuro-sor"><th><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Valós tárolás keresése"></th></tr>
-        </thead>
-        <tbody id="storage-tbody">
-""")
-
-    for row_id, sor in enumerate(osszes_sor):
-        forras = sor.get("forrás", "biztor")
         riport_map = riport_eredmenyek if forras == "biztor" else garazs_riport_eredmenyek
         rr = riport_map.get(sor["kulcs"], {})
         eredmeny_riport = str(rr.get("eredmény", "")).strip()
@@ -3731,198 +3765,72 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
         else:
             if tarolas in ("Nincs adat", "-"): tarolas = "n.a"
             rcls = "tarolas-ok" if eredmeny_riport == "RENDBEN TÁROLT" else "tarolas-eltérés" if eredmeny_riport == "ELTÉRÉS TÖRTÉNT" else "tarolas-na"
-        html.append(f'<tr data-row-id="{row_id}" data-forras="{forras}"><td class="tarolas {rcls}">{escape(tarolas)}</td></tr>')
+        html.append(f'<td class="storage-cell tarolas {rcls} sticky-jobb">{escape(tarolas)}</td>')
+        html.append('</tr>')
 
     html.append("""
-        </tbody>
-      </table>
-    </div>
+      </tbody>
+    </table>
   </div>
 </div>
 </div>
 
 <script>
 (function(){
-  const fixAblak=document.getElementById('fix-ablak');
-  const idoAblak=document.getElementById('ido-ablak');
-  const idoBelso=document.getElementById('ido-belso');
-  const storageAblak=document.getElementById('storage-ablak');
+  const scrollBox=document.getElementById('tabla-scroll');
+  const table=document.getElementById('fo-tabla');
   const slider=document.getElementById('fo-idopont-csuszka');
-  const sliderBar=document.getElementById('fo-csuszkasav');
   const label=document.getElementById('aktiv-sorok-szoveg');
   const buttons=document.querySelectorAll('.nezet-gomb');
-  const fixTbody=document.getElementById('fix-tbody');
-  const idoTbody=document.getElementById('ido-tbody');
-  const storageTbody=document.getElementById('storage-tbody');
+  const tbody=document.getElementById('fo-tbody');
   const sortButtons=document.querySelectorAll('.rendez-gomb');
-  if(!fixAblak || !idoAblak || !idoBelso || !storageAblak) return;
+  if(!scrollBox || !table || !slider || !tbody) return;
 
   let currentView='biztor';
   let sortState={col:null,dir:1};
 
-  // A három táblázat sorai CSS-ben fix, azonos 24px magasságúak.
-  // Nincs soronkénti getBoundingClientRect / inline height állítás, mert ez
-  // nézetváltáskor felesleges layout újraszámolást és lagot okozna.
-
-  function setLayout(){
-    // A fix és a storage rész természetes szélességét használjuk.
-    // A középső időtábla maradék helyet kap. A csúszka csak EZUTÁN
-    // számolja ki a ténylegesen görgethető időtábla-szélességet.
-    const leftTable=fixAblak.querySelector('table');
-    const storageTable=storageAblak.querySelector('table');
-
-    // A Hely oszlopot ténylegesen a leghosszabb cella szélességére zárjuk.
-    // A mérés a tényleges DOM-szövegen történik, így nem a grid/csúszka
-    // rendelkezésre álló helye dönti el az oszlop szélességét.
-    if(leftTable){
-      // A bal táblát ténylegesen a saját oszlopai méretezzék.
-      // Először megőrizzük a többi oszlop természetes szélességét, majd
-      // a Hely oszlopot külön, a leghosszabb tényleges szöveghez igazítjuk.
-      const fejlecCells=Array.from(leftTable.querySelectorAll('thead tr.fejlec-sor th'));
-      const termeszetesSzelessegek=fejlecCells.map(cell=>Math.ceil(cell.getBoundingClientRect().width));
-      const helyCells=Array.from(leftTable.querySelectorAll('tbody td.hely'));
-      const helyHeader=leftTable.querySelector('thead th.hely');
-      const canvas=document.createElement('canvas');
-      const ctx=canvas.getContext('2d');
-      let helyWidth=0;
-      if(ctx){
-        helyCells.forEach(cell=>{
-          const cs=getComputedStyle(cell);
-          ctx.font=cs.font;
-          const w=ctx.measureText(cell.textContent.trim()).width +
-                  parseFloat(cs.paddingLeft || 0) + parseFloat(cs.paddingRight || 0) + 2;
-          helyWidth=Math.max(helyWidth,w);
-        });
-        if(helyHeader){
-          const hs=getComputedStyle(helyHeader);
-          ctx.font=hs.font;
-          const w=ctx.measureText('Hely').width +
-                  parseFloat(hs.paddingLeft || 0) + parseFloat(hs.paddingRight || 0) + 24;
-          helyWidth=Math.max(helyWidth,w);
-        }
-        helyWidth=Math.ceil(helyWidth);
-
-        // A böngésző táblázat-layoutja különben a grid rendelkezésre álló
-        // szélességéhez nyújthatja a Hely oszlopot. Fix layout + colgroup
-        // mellett ez többé nem történhet meg.
-        let colgroup=leftTable.querySelector('colgroup.fix-colgroup');
-        if(!colgroup){
-          colgroup=document.createElement('colgroup');
-          colgroup.className='fix-colgroup';
-          for(let i=0;i<6;i++) colgroup.appendChild(document.createElement('col'));
-          leftTable.insertBefore(colgroup,leftTable.firstChild);
-        }
-
-        const szelessegek=termeszetesSzelessegek.slice(0,6);
-        szelessegek[4]=helyWidth;
-        szelessegek.forEach((w,i)=>{
-          const col=colgroup.children[i];
-          col.style.width=Math.max(1,w)+'px';
-        });
-
-        const teljesSzelesseg=szelessegek.reduce((a,b)=>a+b,0);
-        leftTable.style.tableLayout='fixed';
-        leftTable.style.width=teljesSzelesseg+'px';
-        leftTable.style.minWidth=teljesSzelesseg+'px';
-        leftTable.style.maxWidth=teljesSzelesseg+'px';
-      }
-    }
-
-    const leftWidth=leftTable ? Math.ceil(leftTable.getBoundingClientRect().width) : 0;
-    const storageWidth=storageTable ? Math.ceil(storageTable.getBoundingClientRect().width) : 0;
-    const section=document.querySelector('.tabla-szekcio');
-    const available=section ? section.clientWidth : window.innerWidth;
-
-    document.documentElement.style.setProperty('--left-width',leftWidth+'px');
-    document.documentElement.style.setProperty('--storage-width',storageWidth+'px');
-
-    // Mobilon ne szűküljön nullára az időtábla a bal + jobb fix rész miatt.
-    // 340 px = kb. 10 db 34 px-es időoszlop, így a külön csúszka
-    // mobilon is ténylegesen használható marad. A teljes táblázat
-    // ettől még kívülről vízszintesen húzható.
-    const mobil = window.innerWidth <= 900;
-    const middle = mobil
-        ? 340
-        : Math.max(0, available-leftWidth-storageWidth-2);
-
-    document.documentElement.style.setProperty('--time-viewport-width',middle+'px');
-
-    if(sliderBar){
-      sliderBar.style.gridTemplateColumns=leftWidth+'px '+middle+'px '+storageWidth+'px';
-      if(mobil){
-        sliderBar.style.width=(leftWidth+middle+storageWidth)+'px';
-        sliderBar.style.minWidth=(leftWidth+middle+storageWidth)+'px';
-      }else{
-        sliderBar.style.width='100%';
-        sliderBar.style.minWidth='0';
-      }
-    }
-
-    if(mobil){
-      const teljesTablaSzelesseg=leftWidth+middle+storageWidth;
-      document.querySelectorAll('.tabla-egesz').forEach(el=>{
-        el.style.width=teljesTablaSzelesseg+'px';
-        el.style.minWidth=teljesTablaSzelesseg+'px';
-        el.style.maxWidth='none';
-      });
-    }
-
-    // Az időoszlopok szélessége már adott; a csúszka ezt a tényleges középső
-    // viewportot követi, nem fordítva.
-    const maxScroll=Math.max(0,idoBelso.scrollWidth-idoAblak.clientWidth);
-    slider.max=String(maxScroll);
-    const value=Math.min(maxScroll,Math.max(0,Number(slider.value)||0));
-    slider.value=String(value);
-    idoAblak.scrollLeft=value;
-  }
-
-  function allRows(){return Array.from(fixTbody.querySelectorAll('tr'));}
-  function rowParts(id){
-    return {
-      fix:fixTbody.querySelector('tr[data-row-id="'+id+'"]'),
-      ido:idoTbody.querySelector('tr[data-row-id="'+id+'"]'),
-      storage:storageTbody.querySelector('tr[data-row-id="'+id+'"]')
-    };
-  }
+  function allRows(){return Array.from(tbody.querySelectorAll('tr'));}
 
   function frissitAlapKeresok(view){
     const helyInput=document.querySelector('.oszlop-kereso[data-col="4"]');
     const storageInput=document.querySelector('.oszlop-kereso[data-col="storage"]');
     const alapSzoveg='ArrivaBus ';
-
     [helyInput,storageInput].forEach(input=>{
       if(!input) return;
-
       if(view==='garazs'){
-        // Csak Garázs nézetben jelenik meg alapértékként.
-        // Ez az alapérték önmagában NEM szűr.
         if(!input.value || input.dataset.defaultArrivabus==='1'){
           input.value=alapSzoveg;
           input.dataset.defaultArrivabus='1';
         }
-      }else{
-        // Végállomás nézetben ne legyen benne az alapérték.
-        if(input.dataset.defaultArrivabus==='1'){
-          input.value='';
-          input.dataset.defaultArrivabus='0';
-        }
+      }else if(input.dataset.defaultArrivabus==='1'){
+        input.value='';
+        input.dataset.defaultArrivabus='0';
       }
+    });
+  }
+
+  function applyRowVisibility(){
+    allRows().forEach(row=>{
+      const filterOk=row.dataset.filterMatch!=='0';
+      const source=row.dataset.forras||'biztor';
+      const viewOk=currentView==='mindketto' || source===currentView;
+      row.style.display=(filterOk && viewOk)?'table-row':'none';
     });
   }
 
   function applyView(view){
     currentView=view;
     buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===view));
-    const tabla=document.getElementById('fo-tabla');
-    tabla.classList.remove('view-biztor','view-garazs','view-mindketto');
-    tabla.classList.add('view-'+view);
-    tabla.classList.toggle('all-view',view==='mindketto');
+    table.classList.toggle('all-view',view==='mindketto');
     if(label) label.textContent=view==='biztor'?'Végállomás':view==='garazs'?'Garázs':'Összes';
 
+    document.querySelectorAll('.oszlop-kereso').forEach(input=>{
+      input.value='';
+      input.dataset.defaultArrivabus='0';
+    });
     frissitAlapKeresok(view);
-
-    // A szűrés külön kezeli a sorok filterMatch állapotát.
-    // A nézetváltás az alap ArrivaBus szöveget nem tekinti aktív szűrőnek.
+    allRows().forEach(r=>r.dataset.filterMatch='1');
+    applyRowVisibility();
   }
 
   function applyFilters(){
@@ -3930,21 +3838,14 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     allRows().forEach(row=>{
       let ok=true;
       inputs.forEach(input=>{
-        if(!ok) return;
-
-        // A Garázs nézetben megjelenő alap "ArrivaBus "
-        // csak előre kitöltött segítség, önmagában nem szűr.
-        if(input.dataset.defaultArrivabus==='1'){
-          return;
-        }
-
+        if(!ok || input.dataset.defaultArrivabus==='1') return;
         const q=input.value.trim().toLocaleLowerCase('hu-HU');
         if(!q) return;
         const col=input.dataset.col;
         let txt='';
         if(col==='storage'){
-          const sr=storageTbody.querySelector('tr[data-row-id="'+row.dataset.rowId+'"]');
-          txt=sr ? sr.textContent.trim().toLocaleLowerCase('hu-HU') : '';
+          const cell=row.querySelector('.storage-cell');
+          txt=cell ? cell.textContent.trim().toLocaleLowerCase('hu-HU') : '';
         }else{
           const cell=row.children[Number(col)];
           txt=cell ? cell.textContent.trim().toLocaleLowerCase('hu-HU') : '';
@@ -3953,13 +3854,13 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
       });
       row.dataset.filterMatch=ok?'1':'0';
     });
-    applyView(currentView);
+    applyRowVisibility();
   }
 
   function valueForSort(row,col){
     if(col==='storage'){
-      const sr=storageTbody.querySelector('tr[data-row-id="'+row.dataset.rowId+'"]');
-      return sr ? sr.textContent.trim() : '';
+      const cell=row.querySelector('.storage-cell');
+      return cell ? cell.textContent.trim() : '';
     }
     const cell=row.children[Number(col)];
     return cell ? cell.textContent.trim() : '';
@@ -3983,13 +3884,25 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     button.classList.add('active'); button.textContent=sortState.dir===1?'↑':'↓';
     const rows=allRows();
     rows.sort((a,b)=>compareValues(valueForSort(a,col),valueForSort(b,col),type)*sortState.dir);
-    rows.forEach(row=>{
-      const parts=rowParts(row.dataset.rowId);
-      [parts.fix,parts.ido,parts.storage].forEach((r,t)=>{
-        const parent=t===0?fixTbody:t===1?idoTbody:storageTbody;
-        if(r) parent.appendChild(r);
-      });
-    });
+    rows.forEach(row=>tbody.appendChild(row));
+  }
+
+  function updateStickyOffsets(){
+    const headCells=Array.from(table.querySelectorAll('thead tr.fejlec-sor th')).slice(0,6);
+    const widths=headCells.map(th=>th.getBoundingClientRect().width);
+    let left=0;
+    for(let i=0;i<6;i++){
+      table.querySelectorAll('tr > :nth-child('+(i+1)+')').forEach(cell=>cell.style.left=left+'px');
+      left += widths[i] || 0;
+    }
+    table.querySelectorAll('tr > :last-child').forEach(cell=>cell.style.right='0px');
+  }
+
+  function updateSlider(){
+    const maxScroll=Math.max(0,scrollBox.scrollWidth-scrollBox.clientWidth);
+    slider.max=String(maxScroll);
+    scrollBox.scrollLeft=maxScroll;
+    slider.value=String(maxScroll);
   }
 
   let sliderFrame=0;
@@ -3997,39 +3910,20 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     if(sliderFrame) return;
     sliderFrame=requestAnimationFrame(()=>{
       sliderFrame=0;
-      idoAblak.scrollLeft=Math.min(idoAblak.scrollWidth-idoAblak.clientWidth,Math.max(0,Number(slider.value)||0));
+      scrollBox.scrollLeft=Math.min(scrollBox.scrollWidth-scrollBox.clientWidth,Math.max(0,Number(slider.value)||0));
     });
   });
-  idoAblak.addEventListener('scroll',()=>{slider.value=String(Math.round(idoAblak.scrollLeft));},{passive:true});
-
-  function valtasNezet(view){
-    // Nézetváltáskor minden korábbi keresést elengedünk.
-    // Ezután az Összes/Garázs nézet kapja meg újra az alap "ArrivaBus " szöveget,
-    // ami önmagában nem számít aktív szűrésnek.
-    document.querySelectorAll('.oszlop-kereso[data-col="4"], .oszlop-kereso[data-col="storage"]').forEach(input=>{
-      input.value='';
-      input.dataset.defaultArrivabus='0';
-    });
-    allRows().forEach(r=>r.dataset.filterMatch='1');
-    applyView(view);
-  }
-
-  buttons.forEach(b=>b.addEventListener('click',()=>valtasNezet(b.dataset.nezet)));
+  scrollBox.addEventListener('scroll',()=>{slider.value=String(Math.round(scrollBox.scrollLeft));},{passive:true});
+  buttons.forEach(b=>b.addEventListener('click',()=>applyView(b.dataset.nezet)));
   sortButtons.forEach(b=>b.addEventListener('click',()=>sortRows(b)));
-  document.querySelectorAll('.oszlop-kereso').forEach(input=>{
-    input.addEventListener('input',()=>{
-      // Ha a felhasználó beleír vagy töröl az ArrivaBus alapértékből,
-      // onnantól valódi keresésként kezeljük.
-      input.dataset.defaultArrivabus='0';
-      applyFilters();
-    });
-  });
-  window.addEventListener('resize',()=>requestAnimationFrame(setLayout));
+  document.querySelectorAll('.oszlop-kereso').forEach(input=>input.addEventListener('input',()=>{
+    input.dataset.defaultArrivabus='0';
+    applyFilters();
+  }));
+  window.addEventListener('resize',()=>requestAnimationFrame(()=>{updateStickyOffsets();updateSlider();}));
   allRows().forEach(r=>r.dataset.filterMatch='1');
-
-  // A kezdő nézet Végállomás marad, ezért ott nincs ArrivaBus alapérték.
   applyView('biztor');
-  setLayout();
+  requestAnimationFrame(()=>{updateStickyOffsets();updateSlider();});
 })();
 
 (function(){
