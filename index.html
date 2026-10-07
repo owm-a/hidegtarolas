@@ -3,7 +3,7 @@
 <html lang="hu">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ArrivaBus hidegtárolás</title>
 <style>
 :root{
@@ -622,6 +622,19 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<style>
+@media (max-width:900px){
+  /* Mobilon ne legyen pinch zoom, és az input fókusza se indítson automatikus nagyítást.
+     iOS/Safari esetén a legalább 16px-es input betűméret akadályozza meg a fókusz miatti zoomot. */
+  html, body{
+    -webkit-text-size-adjust:100%;
+  }
+  .fo-kozos-tabla .szuro-sor .oszlop-kereso{
+    font-size:16px!important;
+    line-height:18px!important;
+  }
+}
+</style>
 </head>
 <body>
 <span class="rejtett-poen">de ki az a Korporéjsön?</span>
