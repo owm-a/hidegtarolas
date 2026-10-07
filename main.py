@@ -1248,6 +1248,60 @@ if azonositas_idoszak:
         len(feed.entity)
     )
 
+
+    # =========================================================
+    # 10/f. GTFS-RT JÁRMŰVEK
+    # =========================================================
+    #
+    # A GTFS-RT-ből csak az azonosításhoz szükséges adatokat
+    # készítjük elő:
+    #   - rendszám
+    #   - jármű ID
+    #   - trip ID
+    #
+    # A tényleges pozíciót később kizárólag a FUTÁR adja.
+    # =========================================================
+
+    jarmuvek = []
+
+    for entity in feed.entity:
+
+        if not entity.HasField("vehicle"):
+            continue
+
+        v = entity.vehicle
+
+        rendszam = str(
+            v.vehicle.license_plate
+        ).strip().upper()
+
+        jarmu_id = str(
+            v.vehicle.id
+        ).strip()
+
+        trip_id = str(
+            v.trip.trip_id
+        ).strip()
+
+        if not jarmu_id or not trip_id:
+            continue
+
+        jarmuvek.append({
+            "rendszám": rendszam,
+            "jármű_id": jarmu_id,
+            "trip_id": trip_id,
+            "route_id": v.trip.route_id,
+            "direction_id": v.trip.direction_id
+        })
+
+
+    jarmuvek = pd.DataFrame(jarmuvek)
+
+    print(
+        "GTFS-RT trip + jármű ID kapcsolatok:",
+        len(jarmuvek)
+    )
+
 else:
 
     # 13:30 után (és 07:00 előtt) nincs GTFS-RT azonosítási lekérés.
