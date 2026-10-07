@@ -128,7 +128,7 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .all-view .fix-tabla tr[data-forras="biztor"] > td,.all-view .storage-tabla tr[data-forras="biztor"] > td{background:rgba(110,168,254,.055)}
 .all-view .fix-tabla tr[data-forras="biztor"] > td,.all-view .storage-tabla tr[data-forras="biztor"] > td{color:#82b4ff;font-weight:700}
 .all-view .biztor-sor > td .rendszam-link{color:#82b4ff;font-weight:800}
-.map-focus{animation:mapPulse .9s ease-out}.vehicle-pin{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 1px 5px rgba(0,0,0,.45);box-sizing:border-box}.vehicle-pin::after{content:"";display:block;width:7px;height:7px;margin:5px auto 0;border-radius:50%;background:white}.vehicle-pin.green{background:#00b050}.vehicle-pin.red{background:#ff0000}.vehicle-pin.yellow{background:#ffd966}.vehicle-pin.gray{background:#687384}
+.map-focus{animation:mapPulse .9s ease-out}.vehicle-pin{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 1px 5px rgba(0,0,0,.45);box-sizing:border-box}.vehicle-pin::after{content:"";display:block;width:7px;height:7px;margin:5px auto 0;border-radius:50%;background:white}.vehicle-pin.green{background:#00b050}.vehicle-pin.red{background:#ff0000}.vehicle-pin.yellow{background:#ffd966}.vehicle-pin.blue{background:#4da3ff}.vehicle-pin.gray{background:#687384}
 @keyframes mapPulse{0%{filter:brightness(1.8)}100%{filter:brightness(1)}}
 .leaflet-popup-content{line-height:1.45}
 body.light-mode{--bg:#eef2f6;--surface:#fff;--surface2:#f4f6f8;--surface3:#e7ebf0;--border:#cbd3dc;--text:#1f2937;--muted:#667085;--accent:#2f6fed;--accent2:#4f7ff5;--ok:#16a765;--bad:#df4f4f;--dark:#4b5563;--shadow:0 8px 24px rgba(15,23,42,.10);background:var(--bg);color:var(--text)}
@@ -177,12 +177,14 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla td.tarolas-ok{color:#6ee7a8}
 .fo-kozos-tabla td.tarolas-eltérés{color:#ff858d}
 .fo-kozos-tabla td.tarolas-na{color:var(--text)}
+.fo-kozos-tabla td.tarolas-potlas{color:#4da3ff !important;font-weight:800}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td{background:rgba(110,168,254,.055);color:#82b4ff;font-weight:700}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td .rendszam-link{color:#82b4ff;font-weight:800}
 /* A tárolási eredmény színe minden nézetben elsőbbséget kap. */
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-ok{color:#6ee7a8}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-eltérés{color:#ff858d}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-na{color:var(--text)}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-potlas{color:#4da3ff !important}
 #fo-tabla.view-biztor .fo-kozos-tabla tbody tr[data-forras="garazs"],#fo-tabla.view-garazs .fo-kozos-tabla tbody tr[data-forras="biztor"],#fo-tabla .fo-kozos-tabla tbody tr[data-filter-match="0"]{display:none}
 /* =========================================================
    VÉGLEGES KÖZÖS TÁBLA MÉRETEZÉS / STICKY RÉTEG
@@ -244,11 +246,13 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-ok{color:#6ee7a8}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-eltérés{color:#ff858d}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-na{color:var(--text)}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-potlas{color:#4da3ff !important}
 .fo-kozos-tabla td.tarolas{
   font-weight:750;
   white-space:nowrap;
 }
 .fo-kozos-tabla td.tarolas-na{color:var(--text)}
+.fo-kozos-tabla td.tarolas-potlas{color:#4da3ff !important;font-weight:800}
 /* A sticky cellák szélei között a border-collapse miatt maradhat 1px-es
    festési rés. Ezt egy enyhén túlnyúló, teljesen opák háttérréteg takarja,
    így az időcellák sem a cellaközben, sem a szegélynél nem látszanak át. */
@@ -660,6 +664,9 @@ function jarmuIkon(statusz) {
     else if (statusz === "SÁRGA") {
         osztaly = "yellow";
     }
+    else if (statusz === "PÓTLÁS") {
+        osztaly = "blue";
+    }
 
     return L.divIcon({
 
@@ -752,6 +759,10 @@ terkepJarmuvek.forEach(function(jarmu) {
         statuszSzoveg =
             '<span style="color:#e00000;font-weight:bold;">ELTÉRÉS</span>';
     }
+    else if (jarmu.statusz === "PÓTLÁS") {
+        statuszSzoveg =
+            '<span style="color:#4da3ff;font-weight:bold;">Pótlásban vesz részt</span>';
+    }
 
 
     marker.bindPopup(
@@ -829,7 +840,7 @@ function fokuszJarmure(rendszam) {
     const marker = jarmuMarkerek[kulcs];
     if (!marker) return;
     const pos = marker.getLatLng();
-    map.flyTo(pos, Math.min(TERKEP_MAX_ZOOM, Math.max(map.getZoom(), 15)), {duration: 0.7});
+    map.flyTo(pos, Math.min(TERKEP_MAX_ZOOM, Math.max(map.getZoom(), 11)), {duration: 0.7});
     setTimeout(function(){
         marker.openPopup();
         const el = marker.getElement();

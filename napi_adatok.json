@@ -73956,7 +73956,7 @@
     "kesz": true,
     "excel_kesz": true,
     "keszult": "2026-10-07 16:47:35",
-    "utolso_futas": "2026-10-07 17:24:43",
+    "utolso_futas": "2026-10-07 17:47:02",
     "vizsgalt_fordak": 21,
     "forrás": "biztor",
     "dontesek": {
@@ -74116,7 +74116,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:05:12"
+        "döntés időpontja": "12:05:12",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74125,7 +74127,9 @@
         "rendszám": "AAHY812",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "Békásmegyer",
-        "döntés időpontja": "13:49:24"
+        "döntés időpontja": "13:49:24",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74134,7 +74138,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:34:12"
+        "döntés időpontja": "12:34:12",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74143,7 +74149,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:13:18"
+        "döntés időpontja": "12:13:18",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74152,7 +74160,9 @@
         "rendszám": "PDN623",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "Csepel, Szent Imre tér",
-        "döntés időpontja": "13:06:54"
+        "döntés időpontja": "13:06:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74161,7 +74171,9 @@
         "rendszám": "AOJM873",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "Csepel, Szent Imre tér",
-        "döntés időpontja": "13:55:54"
+        "döntés időpontja": "13:55:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74170,7 +74182,9 @@
         "rendszám": "AOGF659",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "Csepel, Szent Imre tér",
-        "döntés időpontja": "13:19:30"
+        "döntés időpontja": "13:19:30",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74179,7 +74193,9 @@
         "rendszám": "SGY804",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "Csepel, Szent Imre tér",
-        "döntés időpontja": "13:27:48"
+        "döntés időpontja": "13:27:48",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74188,7 +74204,9 @@
         "rendszám": "AOGF671",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "Kőbánya alsó",
-        "döntés időpontja": "12:42:30"
+        "döntés időpontja": "12:42:30",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74197,7 +74215,9 @@
         "rendszám": "AOGF672",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "Kőbánya alsó",
-        "döntés időpontja": "13:03:54"
+        "döntés időpontja": "13:03:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74206,7 +74226,9 @@
         "rendszám": "AOIM014",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "Kőbánya alsó",
-        "döntés időpontja": "13:23:48"
+        "döntés időpontja": "13:23:48",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74215,7 +74237,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:46:36"
+        "döntés időpontja": "12:46:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74224,7 +74248,9 @@
         "rendszám": "SGY813",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "Kőbánya-Kispest",
-        "döntés időpontja": "13:53:54"
+        "döntés időpontja": "13:53:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74233,7 +74259,9 @@
         "rendszám": "AOJM872",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "Kőbánya-Kispest",
-        "döntés időpontja": "12:00:06"
+        "döntés időpontja": "12:00:06",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74242,7 +74270,9 @@
         "rendszám": "PDN637",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "Kőbánya-Kispest",
-        "döntés időpontja": "13:45:42"
+        "döntés időpontja": "13:45:42",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74251,7 +74281,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:43:18"
+        "döntés időpontja": "12:43:18",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74260,7 +74292,9 @@
         "rendszám": "AAHY805",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "Mexikói út",
-        "döntés időpontja": "12:55:24"
+        "döntés időpontja": "12:55:24",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74269,7 +74303,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:16:30"
+        "döntés időpontja": "12:16:30",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74278,7 +74314,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:23:18"
+        "döntés időpontja": "12:23:18",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74287,7 +74325,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:02:36"
+        "döntés időpontja": "12:02:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -74296,7 +74336,9 @@
         "rendszám": "",
         "eredmény": "NINCS ADAT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "13:37:54"
+        "döntés időpontja": "13:37:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       }
     ]
   },
@@ -74305,7 +74347,7 @@
     "kesz": true,
     "excel_kesz": true,
     "keszult": "2026-10-07 16:47:35",
-    "utolso_futas": "2026-10-07 17:24:43",
+    "utolso_futas": "2026-10-07 17:47:02",
     "vizsgalt_fordak": 104,
     "forrás": "garazs",
     "dontesek": {
@@ -75046,7 +75088,9 @@
         "rendszám": "AOCT657",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "13:25:06"
+        "döntés időpontja": "13:25:06",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75055,7 +75099,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "10:25:18"
+        "döntés időpontja": "10:25:18",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75064,7 +75110,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:47:36"
+        "döntés időpontja": "12:47:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75073,7 +75121,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:52:24"
+        "döntés időpontja": "11:52:24",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75082,7 +75132,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:27:36"
+        "döntés időpontja": "12:27:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75091,7 +75143,9 @@
         "rendszám": "AAMH617",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "14:25:24"
+        "döntés időpontja": "14:25:24",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75100,7 +75154,9 @@
         "rendszám": "AAMH616",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "14:39:48"
+        "döntés időpontja": "14:39:48",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75109,7 +75165,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:35:36"
+        "döntés időpontja": "12:35:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75118,7 +75176,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "13:06:06"
+        "döntés időpontja": "13:06:06",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75127,7 +75187,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:41:00"
+        "döntés időpontja": "11:41:00",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75136,7 +75198,9 @@
         "rendszám": "AAMH634",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "14:09:00"
+        "döntés időpontja": "14:09:00",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75145,7 +75209,9 @@
         "rendszám": "AAMH674",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "13:14:06"
+        "döntés időpontja": "13:14:06",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75154,7 +75220,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:40:42"
+        "döntés időpontja": "11:40:42",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75163,7 +75231,9 @@
         "rendszám": "",
         "eredmény": "NINCS ADAT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "13:20:18"
+        "döntés időpontja": "13:20:18",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75172,7 +75242,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:36:30"
+        "döntés időpontja": "11:36:30",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75181,7 +75253,9 @@
         "rendszám": "",
         "eredmény": "NINCS ADAT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "13:20:36"
+        "döntés időpontja": "13:20:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75190,7 +75264,9 @@
         "rendszám": "PDN606",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Andor telephely",
-        "döntés időpontja": "14:48:00"
+        "döntés időpontja": "14:48:00",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75199,7 +75275,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:16:42"
+        "döntés időpontja": "12:16:42",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75208,7 +75286,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:55:18"
+        "döntés időpontja": "11:55:18",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75217,7 +75297,9 @@
         "rendszám": "AOGF652",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Szállító telephely",
-        "döntés időpontja": "13:22:54"
+        "döntés időpontja": "13:22:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75226,7 +75308,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:22:54"
+        "döntés időpontja": "12:22:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75235,7 +75319,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:52:00"
+        "döntés időpontja": "11:52:00",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75244,7 +75330,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:12:36"
+        "döntés időpontja": "12:12:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75253,7 +75341,9 @@
         "rendszám": "",
         "eredmény": "NINCS ADAT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "13:29:00"
+        "döntés időpontja": "13:29:00",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75262,7 +75352,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:51:30"
+        "döntés időpontja": "12:51:30",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75271,7 +75363,9 @@
         "rendszám": "PDN604",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Andor telephely",
-        "döntés időpontja": "13:07:00"
+        "döntés időpontja": "13:07:00",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75280,7 +75374,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:21:42"
+        "döntés időpontja": "11:21:42",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75289,7 +75385,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:49:36"
+        "döntés időpontja": "11:49:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75298,7 +75396,9 @@
         "rendszám": "AAHY837",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:27:36"
+        "döntés időpontja": "12:27:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75307,7 +75407,9 @@
         "rendszám": "AAHY834",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "12:44:30"
+        "döntés időpontja": "12:44:30",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75316,7 +75418,9 @@
         "rendszám": "AAHY836",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "13:07:42"
+        "döntés időpontja": "13:07:42",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75325,7 +75429,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:02:30"
+        "döntés időpontja": "12:02:30",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75334,7 +75440,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "13:04:36"
+        "döntés időpontja": "13:04:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75343,7 +75451,9 @@
         "rendszám": "AOGL324",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Andor telephely",
-        "döntés időpontja": "14:30:36"
+        "döntés időpontja": "14:30:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75352,7 +75462,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:48:24"
+        "döntés időpontja": "12:48:24",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75361,7 +75473,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:55:36"
+        "döntés időpontja": "12:55:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75370,7 +75484,9 @@
         "rendszám": "AOGL312",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "14:29:54"
+        "döntés időpontja": "14:29:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75379,7 +75495,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:28:36"
+        "döntés időpontja": "12:28:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75388,7 +75506,9 @@
         "rendszám": "AOIM043",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Andor telephely",
-        "döntés időpontja": "13:44:24"
+        "döntés időpontja": "13:44:24",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75397,7 +75517,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:33:00"
+        "döntés időpontja": "11:33:00",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75406,7 +75528,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:41:42"
+        "döntés időpontja": "11:41:42",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75415,7 +75539,9 @@
         "rendszám": "AOCT671",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "13:13:12"
+        "döntés időpontja": "13:13:12",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75424,7 +75550,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "13:13:54"
+        "döntés időpontja": "13:13:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75433,7 +75561,9 @@
         "rendszám": "AOCT674",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "14:27:42"
+        "döntés időpontja": "14:27:42",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75442,7 +75572,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:28:54"
+        "döntés időpontja": "11:28:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75451,7 +75583,9 @@
         "rendszám": "AAHY859",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:49:06"
+        "döntés időpontja": "12:49:06",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75460,7 +75594,9 @@
         "rendszám": "AAHY854",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "14:02:18"
+        "döntés időpontja": "14:02:18",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75469,7 +75605,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:34:06"
+        "döntés időpontja": "12:34:06",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75478,7 +75616,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "13:11:42"
+        "döntés időpontja": "13:11:42",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75487,7 +75627,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:08:36"
+        "döntés időpontja": "12:08:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75496,7 +75638,9 @@
         "rendszám": "AAHY880",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "12:57:06"
+        "döntés időpontja": "12:57:06",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75505,7 +75649,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:17:18"
+        "döntés időpontja": "12:17:18",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75514,7 +75660,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:57:48"
+        "döntés időpontja": "12:57:48",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75523,7 +75671,9 @@
         "rendszám": "AAHY826",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "13:21:54"
+        "döntés időpontja": "13:21:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75532,7 +75682,9 @@
         "rendszám": "",
         "eredmény": "NINCS ADAT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "13:19:48"
+        "döntés időpontja": "13:19:48",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75541,7 +75693,9 @@
         "rendszám": "",
         "eredmény": "NINCS ADAT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "13:43:06"
+        "döntés időpontja": "13:43:06",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75550,7 +75704,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:00:24"
+        "döntés időpontja": "12:00:24",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75559,7 +75715,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:14:48"
+        "döntés időpontja": "12:14:48",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75568,7 +75726,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:28:54"
+        "döntés időpontja": "12:28:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75577,7 +75737,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:07:18"
+        "döntés időpontja": "12:07:18",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75586,7 +75748,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:59:00"
+        "döntés időpontja": "11:59:00",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75595,7 +75759,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "08:19:42"
+        "döntés időpontja": "08:19:42",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75604,7 +75770,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:04:00"
+        "döntés időpontja": "12:04:00",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75613,7 +75781,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:43:36"
+        "döntés időpontja": "12:43:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75622,7 +75792,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:58:36"
+        "döntés időpontja": "12:58:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75631,7 +75803,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "13:12:54"
+        "döntés időpontja": "13:12:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75640,7 +75814,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:04:54"
+        "döntés időpontja": "12:04:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75649,7 +75825,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:22:48"
+        "döntés időpontja": "12:22:48",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75658,7 +75836,9 @@
         "rendszám": "AOCT669",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "12:56:48"
+        "döntés időpontja": "12:56:48",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75667,7 +75847,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:25:30"
+        "döntés időpontja": "12:25:30",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75676,7 +75858,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:47:30"
+        "döntés időpontja": "12:47:30",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75685,7 +75869,9 @@
         "rendszám": "AONW965",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Andor telephely",
-        "döntés időpontja": "13:55:18"
+        "döntés időpontja": "13:55:18",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75694,7 +75880,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "13:15:24"
+        "döntés időpontja": "13:15:24",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75703,7 +75891,9 @@
         "rendszám": "",
         "eredmény": "NINCS ADAT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "13:23:12"
+        "döntés időpontja": "13:23:12",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75712,7 +75902,9 @@
         "rendszám": "AONW951",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Andor telephely",
-        "döntés időpontja": "13:39:24"
+        "döntés időpontja": "13:39:24",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75721,7 +75913,9 @@
         "rendszám": "AAHY817",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "12:44:30"
+        "döntés időpontja": "12:44:30",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75730,7 +75924,9 @@
         "rendszám": "AAHY869",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "13:59:48"
+        "döntés időpontja": "13:59:48",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75739,7 +75935,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:44:18"
+        "döntés időpontja": "12:44:18",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75748,7 +75946,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:56:18"
+        "döntés időpontja": "11:56:18",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75757,7 +75957,9 @@
         "rendszám": "PDN644",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Andor telephely",
-        "döntés időpontja": "14:08:06"
+        "döntés időpontja": "14:08:06",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75766,7 +75968,9 @@
         "rendszám": "",
         "eredmény": "NINCS ADAT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "13:39:24"
+        "döntés időpontja": "13:39:24",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75775,7 +75979,9 @@
         "rendszám": "PDN631",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Andor telephely",
-        "döntés időpontja": "13:40:48"
+        "döntés időpontja": "13:40:48",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75784,7 +75990,9 @@
         "rendszám": "AOJM885",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Szállító telephely",
-        "döntés időpontja": "13:22:54"
+        "döntés időpontja": "13:22:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75793,7 +76001,9 @@
         "rendszám": "AOJM886",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Szállító telephely",
-        "döntés időpontja": "13:37:54"
+        "döntés időpontja": "13:37:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75802,7 +76012,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:12:06"
+        "döntés időpontja": "12:12:06",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75811,7 +76023,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:24:24"
+        "döntés időpontja": "12:24:24",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75820,7 +76034,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:58:00"
+        "döntés időpontja": "12:58:00",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75829,7 +76045,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:48:36"
+        "döntés időpontja": "11:48:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75838,7 +76056,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:08:24"
+        "döntés időpontja": "12:08:24",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75847,7 +76067,9 @@
         "rendszám": "AOLH515",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Bogáncs telephely",
-        "döntés időpontja": "14:01:12"
+        "döntés időpontja": "14:01:12",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75856,7 +76078,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:25:00"
+        "döntés időpontja": "11:25:00",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75865,7 +76089,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "09:44:48"
+        "döntés időpontja": "09:44:48",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75874,7 +76100,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:32:18"
+        "döntés időpontja": "12:32:18",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75883,7 +76111,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:58:54"
+        "döntés időpontja": "11:58:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75892,7 +76122,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:25:06"
+        "döntés időpontja": "12:25:06",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75901,7 +76133,9 @@
         "rendszám": "",
         "eredmény": "NINCS ADAT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "13:42:12"
+        "döntés időpontja": "13:42:12",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75910,7 +76144,9 @@
         "rendszám": "AOIB802",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Andor telephely",
-        "döntés időpontja": "13:47:36"
+        "döntés időpontja": "13:47:36",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75919,7 +76155,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:39:00"
+        "döntés időpontja": "11:39:00",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75928,7 +76166,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:15:54"
+        "döntés időpontja": "12:15:54",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75937,7 +76177,9 @@
         "rendszám": "AOIB804",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Andor telephely",
-        "döntés időpontja": "14:07:30"
+        "döntés időpontja": "14:07:30",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75946,7 +76188,9 @@
         "rendszám": "PDN614",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Szállító telephely",
-        "döntés időpontja": "14:14:24"
+        "döntés időpontja": "14:14:24",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75955,7 +76199,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "11:24:12"
+        "döntés időpontja": "11:24:12",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75964,7 +76210,9 @@
         "rendszám": "",
         "eredmény": "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": "Nincs adat",
-        "döntés időpontja": "12:54:48"
+        "döntés időpontja": "12:54:48",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       },
       {
         "dátum": "2026-10-07",
@@ -75973,7 +76221,9 @@
         "rendszám": "AOJM867",
         "eredmény": "RENDBEN TÁROLT",
         "tárolás helye": "ArrivaBus Szállító telephely",
-        "döntés időpontja": "13:11:24"
+        "döntés időpontja": "13:11:24",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": ""
       }
     ]
   }
