@@ -3893,6 +3893,22 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla .sticky-bal{
   border-bottom:1px solid var(--border)!important;
 }
+/* A szűrősor is ugyanúgy sticky, mint a fejléc és az adatcellák.
+   A korábbi position:relative felülírta a sticky-bal működését, ezért
+   a keresősáv a 2. idősort együtt követte. */
+.fo-kozos-tabla .szuro-sor th.sticky-bal{
+  position:sticky!important;
+  z-index:40!important;
+  background:var(--surface2)!important;
+  background-clip:padding-box;
+}
+.fo-kozos-tabla .szuro-sor th.sticky-jobb{
+  position:sticky!important;
+  right:0;
+  z-index:40!important;
+  background:var(--surface2)!important;
+  background-clip:padding-box;
+}
 @media (max-width:900px){
   .fo-kozos-tabla .sticky-jobb{
     position:static!important;
