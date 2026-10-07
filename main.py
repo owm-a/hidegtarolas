@@ -483,10 +483,10 @@ HELYSZINEK = {
 
     "andor": {
         "kulcsszo": "ArrivaBus Andor telephely",
-        "lat_min": 47.456897452614015,
+        "lat_min": 47.45703696628262,
         "lat_max": 47.45974359947361,
         "lon_min": 19.025296690497736,
-        "lon_max": 19.03053059847878
+        "lon_max": 19.02988619533237
     },
 
     "bogancs": {
@@ -1164,14 +1164,14 @@ azonositas_idoszak = (
 # A 70%-os döntés előtti "Pótlásban vesz részt" figyeléshez
 # 15:00 után is szükség van az aktuális GTFS-RT tripre.
 gtfs_rt_trip_figyeles_idoszak = (
-    time(7, 30)
+    time(7, 0)
     <= fazis_ideje
     <= time(17, 30)
 )
 
 pozicio_idoszak = (
-    time(6, 30)
-    <= fazis_ideje
+    time(7, 30)
+    < fazis_ideje
     <= time(17, 30)
 )
 
@@ -4057,6 +4057,55 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
    továbbra is a táblával együtt görgethető. */
 </style>
 <style>
+
+/* =========================================================
+   MOBIL – 12 időoszlopos ablak
+   A bal 6 oszlop és a Valós tárolás fix marad.
+   A csúszka a 12 látható időoszlop ablakát mozgatja.
+   ========================================================= */
+@media (max-width:900px){
+    .tabla-egesz{
+        overflow-x:auto;
+        overflow-y:hidden;
+        -webkit-overflow-scrolling:touch;
+    }
+
+    .fo-kozos-tabla .mobile-time-hidden{
+        display:none!important;
+    }
+
+    .fo-kozos-tabla .idopont-fejlec,
+    .fo-kozos-tabla .idopont-ertek,
+    .fo-kozos-tabla .idopont-cella{
+        width:42px!important;
+        min-width:42px!important;
+        max-width:42px!important;
+    }
+
+    .fo-kozos-tabla .sticky-jobb.storage{
+        position:sticky!important;
+        right:0!important;
+        z-index:55!important;
+        background:var(--surface)!important;
+        background-clip:padding-box;
+    }
+
+    .fo-kozos-tabla thead .sticky-jobb.storage{
+        z-index:70!important;
+        background:var(--surface3)!important;
+    }
+}
+
+@media (max-width:600px){
+    .fo-kozos-tabla .idopont-fejlec,
+    .fo-kozos-tabla .idopont-ertek,
+    .fo-kozos-tabla .idopont-cella{
+        width:40px!important;
+        min-width:40px!important;
+        max-width:40px!important;
+    }
+}
+
 /* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
 .rejtett-poen{
   position:fixed;
@@ -4310,13 +4359,63 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
       left+=w;
     }
   }
+  const MOBILE_TIME_WINDOW=12;
+
+  function isMobile(){
+    return window.matchMedia('(max-width:900px)').matches;
+  }
+
+  function setMobileTimeWindow(startIndex){
+    if(!isMobile()) return;
+
+    const timeCells=table.querySelectorAll('[data-time-index]');
+    let maxIndex=-1;
+
+    timeCells.forEach(function(cell){
+      const idx=Number(cell.dataset.timeIndex);
+      if(Number.isFinite(idx)) maxIndex=Math.max(maxIndex,idx);
+    });
+
+    const maxStart=Math.max(0,maxIndex-MOBILE_TIME_WINDOW+1);
+    startIndex=Math.max(0,Math.min(maxStart,Number(startIndex)||0));
+
+    timeCells.forEach(function(cell){
+      const idx=Number(cell.dataset.timeIndex);
+      cell.classList.toggle(
+        'mobile-time-hidden',
+        idx < startIndex || idx >= startIndex + MOBILE_TIME_WINDOW
+      );
+    });
+
+    slider.min='0';
+    slider.max=String(maxStart);
+    slider.step='1';
+    slider.value=String(startIndex);
+  }
+
   function layoutScroll(){
+    if(isMobile()){
+      setMobileTimeWindow(+slider.value||0);
+      fo.scrollLeft=0;
+      return;
+    }
+
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
     slider.max=String(max);
     if (fo.scrollLeft > max) fo.scrollLeft=max;
   }
+
   function layout(){
     sticky();
+
+    if(isMobile()){
+      // Mobilon a csúszka nem pixelben görget, hanem a 12 időoszlopos
+      // látható ablak kezdő időoszlopát választja ki.
+      setMobileTimeWindow(999999);
+      fo.scrollLeft=0;
+      return;
+    }
+
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
     slider.max=String(max);
     slider.value=String(max);
@@ -4364,8 +4463,24 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
     rows().sort((a,b)=>cmp(val(a,c),val(b,c),t)*sortState.dir).forEach(r=>tbody.appendChild(r));
     requestAnimationFrame(()=>{sticky();layoutScroll();});
   }
-  slider.addEventListener('input',()=>{fo.scrollLeft=Math.min(fo.scrollWidth-fo.clientWidth,Math.max(0,+slider.value||0));});
-  fo.addEventListener('scroll',()=>{slider.value=String(Math.round(fo.scrollLeft));},{passive:true});
+  slider.addEventListener('input',()=>{
+    if(isMobile()){
+      setMobileTimeWindow(+slider.value||0);
+      fo.scrollLeft=0;
+      return;
+    }
+
+    fo.scrollLeft=Math.min(
+      fo.scrollWidth-fo.clientWidth,
+      Math.max(0,+slider.value||0)
+    );
+  });
+
+  fo.addEventListener('scroll',()=>{
+    if(!isMobile()){
+      slider.value=String(Math.round(fo.scrollLeft));
+    }
+  },{passive:true});
   buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet)));
   document.querySelectorAll('.rendez-gomb').forEach(b=>b.addEventListener('click',()=>sort(b)));
   document.querySelectorAll('.oszlop-kereso').forEach(i=>i.addEventListener('input',filters));
