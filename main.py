@@ -3707,27 +3707,44 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 @media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-adatok{display:block}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:7px}.fejlec-top{margin-bottom:8px}#geozona-terkep{width:94%;margin-left:auto;margin-right:auto;height:42vh;min-height:280px}.nezet-valaszto{width:100%}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}}
 @media(max-width:600px){.cim{font-size:20px}.adat{font-size:11px}#geozona-terkep{width:94%;height:38vh;min-height:250px}.idopont-csuszkasav{height:44px}.csuszka-info{font-size:10px;padding-left:5px}.rendszam-link{padding:4px 6px}}
 
-/* Közvetlen, egyetlen közös tábla – nincs DOM-újraépítés. */
+/* Közvetlen, egyetlen közös tábla – a böngésző nem épít új táblát. */
 .tabla-egesz{display:block;width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;background:var(--surface);scrollbar-width:none}
 .tabla-egesz::-webkit-scrollbar{height:0}
-.fo-kozos-tabla{display:table;border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto;width:max-content}
-.fo-kozos-tabla th,.fo-kozos-tabla td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap}
+.fo-kozos-tabla{display:table;border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto;width:max-content;min-width:100%}
+.fo-kozos-tabla th,.fo-kozos-tabla td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap;background:var(--surface)}
 .fo-kozos-tabla th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .fo-kozos-tabla thead tr{height:31px}.fo-kozos-tabla thead th{height:31px}
 .fo-kozos-tabla tbody tr{height:24px}.fo-kozos-tabla tbody td{height:24px;line-height:22px;padding-top:0;padding-bottom:0;overflow:hidden;vertical-align:middle}
-.fo-kozos-tabla .viszonylat,.fo-kozos-tabla .forda,.fo-kozos-tabla .rendszam,.fo-kozos-tabla .kezdés,.fo-kozos-tabla .végzés,.fo-kozos-tabla .hely{width:1%;white-space:nowrap}
+/* A 6 bal oldali oszlop mindig csak a saját tartalmának helyét foglalja. */
+.fo-kozos-tabla .viszonylat,.fo-kozos-tabla .forda,.fo-kozos-tabla .rendszam,.fo-kozos-tabla .kezdés,.fo-kozos-tabla .végzés,.fo-kozos-tabla .hely{width:1px;min-width:0;white-space:nowrap}
 .fo-kozos-tabla .hely{text-align:left}.fo-kozos-tabla .rendszam{text-align:right;font-weight:bold}
+/* Az időoszlopok fix 42 px-es oszlopok; a rendelkezésre álló helyet ők töltik ki. */
 .fo-kozos-tabla .idopont-fejlec,.fo-kozos-tabla .idopont-ertek,.fo-kozos-tabla .idopont-cella{width:42px;min-width:42px;max-width:42px;padding:1px}
 .fo-kozos-tabla .idopont-fejlec{font-size:0;color:transparent}.fo-kozos-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px;text-align:left}
-.fo-kozos-tabla .sticky-bal{position:sticky;z-index:30;background:var(--surface)}
+/* A jobb szélső oszlop csak a saját tartalmának szélességét kapja. */
+.fo-kozos-tabla .sticky-jobb.storage{width:1px;min-width:0;max-width:max-content;white-space:nowrap}
+.fo-kozos-tabla .sticky-bal{position:sticky;z-index:30;background:var(--surface);background-clip:padding-box}
 .fo-kozos-tabla thead .sticky-bal{z-index:50;background:var(--surface3)}
-.fo-kozos-tabla .sticky-jobb{position:sticky;right:0;z-index:30;background:var(--surface);box-shadow:-2px 0 0 var(--border)}
+.fo-kozos-tabla .sticky-jobb{position:sticky;right:0;z-index:30;background:var(--surface);background-clip:padding-box;box-shadow:-2px 0 0 var(--border)}
 .fo-kozos-tabla thead .sticky-jobb{z-index:50;background:var(--surface3)}
 .fo-kozos-tabla .bal-1{left:0}.fo-kozos-tabla .bal-2{left:var(--bal-2,0px)}.fo-kozos-tabla .bal-3{left:var(--bal-3,0px)}.fo-kozos-tabla .bal-4{left:var(--bal-4,0px)}.fo-kozos-tabla .bal-5{left:var(--bal-5,0px)}.fo-kozos-tabla .bal-6{left:var(--bal-6,0px)}
+/* Ízléses, folytonos elválasztó a hat fix oszlop között. */
 .fo-kozos-tabla .sticky-bal.bal-1,.fo-kozos-tabla .sticky-bal.bal-2,.fo-kozos-tabla .sticky-bal.bal-3,.fo-kozos-tabla .sticky-bal.bal-4,.fo-kozos-tabla .sticky-bal.bal-5{box-shadow:inset -1px 0 rgba(255,255,255,.10)}
 .fo-kozos-tabla .sticky-bal.bal-6{box-shadow:2px 0 0 var(--border),inset -1px 0 rgba(255,255,255,.08)}
+/* A bal oldali réteg teljesen fedje az időcellákat, az alsó időtartalom se látszódjon át. */
+.fo-kozos-tabla .sticky-bal{isolation:isolate}
+.fo-kozos-tabla .sticky-bal::after{content:"";position:absolute;inset:0;background:inherit;z-index:-1;pointer-events:none}
+/* Valós tárolás formázása a közös táblában is. */
+.fo-kozos-tabla td.tarolas{font-weight:750;padding:0 8px;line-height:22px;background:var(--surface);white-space:nowrap}
+.fo-kozos-tabla td.tarolas-ok{color:#6ee7a8}
+.fo-kozos-tabla td.tarolas-eltérés{color:#ff858d}
+.fo-kozos-tabla td.tarolas-na{color:var(--text)}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td{background:rgba(110,168,254,.055);color:#82b4ff;font-weight:700}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td .rendszam-link{color:#82b4ff;font-weight:800}
+/* A tárolási eredmény színe minden nézetben elsőbbséget kap. */
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-ok{color:#6ee7a8}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-eltérés{color:#ff858d}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-na{color:var(--text)}
 #fo-tabla.view-biztor .fo-kozos-tabla tbody tr[data-forras="garazs"],#fo-tabla.view-garazs .fo-kozos-tabla tbody tr[data-forras="biztor"],#fo-tabla .fo-kozos-tabla tbody tr[data-filter-match="0"]{display:none}
 </style>
 <style>
@@ -3881,12 +3898,15 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 
   function rows(){return Array.from(tbody.children);}
   function sticky(){
+    const head=table.querySelector('thead tr:first-child');
+    if(!head)return;
+    const heads=Array.from(head.children).slice(0,6);
     let left=0;
-    for(let i=1;i<=6;i++){
-      const cells=table.querySelectorAll('.bal-'+i);
-      const w=cells[0]?.getBoundingClientRect().width||0;
-      cells.forEach(c=>c.style.left=left+'px');
-      document.documentElement.style.setProperty('--bal-'+i,left+'px');
+    for(let i=0;i<6;i++){
+      const w=heads[i]?.offsetWidth||0;
+      const px=Math.round(left)+'px';
+      table.querySelectorAll('.bal-'+(i+1)).forEach(c=>c.style.left=px);
+      document.documentElement.style.setProperty('--bal-'+(i+1),px);
       left+=w;
     }
   }
