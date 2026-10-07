@@ -660,8 +660,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 
 
 @media(max-width:900px){
-  html, body{
-    touch-action: pan-x pan-y;
+  input, button{
+    touch-action: manipulation;
   }
 }
 
@@ -744,22 +744,34 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   mobilTablaSorrend();
   const rowList=Array.from(tbody.children);
   const filterInputs=Array.from(document.querySelectorAll('.oszlop-kereso[data-col]'));
+  // Mobilon a kereső fókusza ne okozzon automatikus lapugrást.
+  filterInputs.forEach(inp=>{
+    inp.addEventListener('touchstart',()=>{
+      if(window.innerWidth<=900){
+        inp.dataset.savedScrollY=String(window.scrollY);
+      }
+    },{passive:true});
+
+    inp.addEventListener('focus',()=>{
+      if(window.innerWidth<=900){
+        const savedY=Number(inp.dataset.savedScrollY||window.scrollY);
+        const restore=()=>{
+          window.scrollTo(window.scrollX,savedY);
+        };
+        restore();
+        requestAnimationFrame(restore);
+        setTimeout(restore,50);
+        setTimeout(restore,150);
+        setTimeout(restore,300);
+      }
+    });
+  });
+
   // Mobil kereső fókusz: a böngésző ne ugorjon a lap tetejére
   // a billentyűzet megnyitásakor.
   let mobilKeresesiScrollY=null;
   filterInputs.forEach(inp=>{
-  // Mobilon a kereső fókusza ne görgesse át automatikusan a lapot.
-  filterInputs.forEach(inp=>{
-    if(window.innerWidth<=900){
-      inp.addEventListener('focus', function(){
-        // A preventScroll csak a fókusz automatikus görgetését tiltja;
-        // a billentyűzet és a normál görgetés ettől még működik.
-        try{
-          this.focus({preventScroll:true});
-        }catch(e){}
-      });
-    }
-  });
+
     inp.addEventListener('focus',()=>{
       if(window.matchMedia('(max-width:900px)').matches){
         mobilKeresesiScrollY=window.scrollY;
