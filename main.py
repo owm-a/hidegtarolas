@@ -3900,8 +3900,8 @@ body.light-mode .storage-tabla td.tarolas-eltérés{color:#c93f49;border-top-col
 body.light-mode .storage-tabla td.tarolas-na{color:var(--text);border-top-color:var(--border);border-bottom-color:var(--border)}
 body:not(.light-mode) #geozona-terkep .leaflet-tile-pane{filter:invert(90%) hue-rotate(180deg) brightness(78%) contrast(88%) saturate(70%)}
 body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
-@media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-adatok{display:block}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:7px}.fejlec-top{margin-bottom:8px}#geozona-terkep{width:94%;margin-left:auto;margin-right:auto;height:42vh;min-height:280px}.nezet-valaszto{width:calc(100% - 16px);margin-left:8px;margin-right:8px}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}}
-@media(max-width:600px){.cim{font-size:20px}.adat{font-size:11px}#geozona-terkep{width:94%;height:38vh;min-height:250px}.idopont-csuszkasav{height:44px}.csuszka-info{font-size:10px;padding-left:5px}.rendszam-link{padding:4px 6px}}
+@media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-adatok{display:block}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:7px}.fejlec-top{margin-bottom:8px}#geozona-terkep{width:90%;margin-left:auto;margin-right:auto;height:42vh;min-height:280px}.nezet-valaszto{width:95%;margin-left:auto;margin-right:auto;box-sizing:border-box}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}}
+@media(max-width:600px){.cim{font-size:20px}.adat{font-size:11px}#geozona-terkep{width:90%;height:38vh;min-height:250px}.nezet-valaszto{width:95%;margin-left:auto;margin-right:auto;box-sizing:border-box}.idopont-csuszkasav{height:44px}.csuszka-info{font-size:10px;padding-left:5px}.rendszam-link{padding:4px 6px}}
 
 /* Mobil: valódi, egyszerűen görgethető táblázat.
    Nincs sticky/átfedés; a Valós tárolás az időoszlopok elé kerül. */
@@ -4519,6 +4519,24 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   mobilTablaSorrend();
   const rowList=Array.from(tbody.children);
   const filterInputs=Array.from(document.querySelectorAll('.oszlop-kereso[data-col]'));
+  // Mobil kereső fókusz: a böngésző ne ugorjon a lap tetejére
+  // a billentyűzet megnyitásakor.
+  let mobilKeresesiScrollY=null;
+  filterInputs.forEach(inp=>{
+    inp.addEventListener('focus',()=>{
+      if(window.matchMedia('(max-width:900px)').matches){
+        mobilKeresesiScrollY=window.scrollY;
+        const visszaallit=()=>{
+          if(mobilKeresesiScrollY!==null){
+            window.scrollTo(window.scrollX,mobilKeresesiScrollY);
+          }
+        };
+        setTimeout(visszaallit,0);
+        setTimeout(visszaallit,100);
+        setTimeout(visszaallit,300);
+      }
+    });
+  });
   const sortButtons=Array.from(document.querySelectorAll('.rendez-gomb'));
   function rows(){return rowList;}
 
