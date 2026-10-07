@@ -3176,68 +3176,65 @@ def html_export():
             if rendszam_map:
                 vizsgalt_rendszamok.add(rendszam_map)
 
-        for _, jarmu in jarmuvek.iterrows():
+        # A jarmuvek DataFrame itt NEM használható pozícióforrásként:
+        # az csak GTFS-RT azonosítási adatokat tartalmaz
+        # (rendszám + jármű ID + trip ID). A tényleges GPS-pozíció
+        # kizárólag a FUTÁR vehicles-for-location adatából jön.
+        for _, forda_sor_map in figyelt_fordak.iterrows():
+
+            kulcs_map = forda_kulcs_adat(forda_sor_map)
+            forda_adat_map = forda_rendszamok.get(kulcs_map, {})
 
             rendszam = str(
-                jarmu.get("rendszám", "")
+                forda_adat_map.get("rendszám", "")
             ).strip().upper()
 
-            if not rendszam:
+            if not rendszam or rendszam not in vizsgalt_rendszamok:
                 continue
 
-            # Tesztben csak a vizsgált fordákhoz tartozó
-            # rendszámok jelenjenek meg a térképen.
-            if rendszam not in vizsgalt_rendszamok:
+            jarmu_id_map = str(
+                forda_adat_map.get("jármű_id", "")
+            ).strip()
+            if not jarmu_id_map:
                 continue
+
+            futar_id_map = jarmu_id_map
+            if not futar_id_map.upper().startswith("BKK_"):
+                futar_id_map = f"BKK_{futar_id_map}"
+
+            jarmu_map = futar_jarmuvek.get(futar_id_map)
+            if not jarmu_map:
+                continue
+
+            location_map = jarmu_map.get("location") or {}
 
             try:
-                latitude = float(jarmu["latitude"])
-                longitude = float(jarmu["longitude"])
-            except (ValueError, TypeError, KeyError):
+                latitude = float(location_map.get("lat"))
+                longitude = float(location_map.get("lon"))
+            except (ValueError, TypeError):
                 continue
 
             if latitude == 0 or longitude == 0:
                 continue
 
-            elozo_rekord = None
+            viszonylat = str(forda_sor_map.get("viszonylat", "")).strip()
+            forda = str(forda_sor_map.get("forda", "")).strip()
+            helyszin_nev = str(forda_sor_map.get("hely", "")).strip()
 
+            statusz = "-"
             for rekord in reversed(pozicio_tortenet):
                 if (
-                    str(rekord.get("rendszám", ""))
-                    .strip()
-                    .upper()
-                    == rendszam
+                    str(rekord.get("rendszám", "")).strip().upper() == rendszam
+                    and forda_kulcs_rekord(rekord) == kulcs_map
                 ):
-                    elozo_rekord = rekord
+                    statusz = str(
+                        rekord.get("ellenőrzés", "-")
+                    ).strip().upper()
                     break
 
-            if elozo_rekord is not None:
-                statusz = str(
-                    elozo_rekord.get("ellenőrzés", "-")
-                ).strip().upper()
-                viszonylat = str(
-                    elozo_rekord.get("viszonylat", "")
-                )
-                forda = str(
-                    elozo_rekord.get("forda", "")
-                )
-                helyszin_nev = str(
-                    elozo_rekord.get("helyszín", "")
-                )
-            else:
-                statusz = "-"
-                viszonylat = ""
-                forda = ""
-                helyszin_nev = ""
-
-            try:
-                timestamp = int(jarmu.get("timestamp", 0))
-                pozicio_frissitve = datetime.fromtimestamp(
-                    timestamp,
-                    tz=ZoneInfo("Europe/Budapest")
-                ).strftime("%H:%M:%S")
-            except (ValueError, TypeError, OverflowError):
-                pozicio_frissitve = ""
+            pozicio_frissitve = futar_idopont(
+                jarmu_map.get("lastUpdateTime")
+            ) or ""
 
             terkep_jarmuvek[rendszam] = {
                 "rendszam": rendszam,
