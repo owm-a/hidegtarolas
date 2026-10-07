@@ -3686,7 +3686,7 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .ido-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px;text-align:left}
 .szuro-sor th{background:var(--surface2);height:31px;padding:3px 4px}
 .szuro-sor th:empty{background:var(--surface2)}
-.oszlop-kereso{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:5px;padding:3px 4px;font:inherit;font-size:10px;outline:none}
+.oszlop-kereso{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:5px;padding:1px 4px;font:inherit;font-size:10px;outline:none}
 .oszlop-kereso:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(110,168,254,.12)}
 .rendez-gomb{border:1px solid var(--border);background:var(--surface2);color:var(--muted);width:21px;min-width:21px;height:21px;padding:0;margin-left:5px;border-radius:5px;cursor:pointer;font-size:11px;line-height:18px;vertical-align:middle;display:inline-flex;align-items:center;justify-content:center}
 .rendez-gomb:hover{color:var(--text);border-color:var(--accent);background:var(--surface3)}.rendez-gomb.active{color:#fff;background:var(--accent2);border-color:var(--accent2)}
@@ -3734,8 +3734,8 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla .viszonylat,.fo-kozos-tabla .forda,.fo-kozos-tabla .rendszam,.fo-kozos-tabla .kezdés,.fo-kozos-tabla .végzés,.fo-kozos-tabla .hely{width:1px;min-width:0;white-space:nowrap}
 .fo-kozos-tabla .hely{text-align:left}.fo-kozos-tabla .rendszam{text-align:right;font-weight:bold}
 /* Az időoszlopok fix 42 px-es oszlopok; a rendelkezésre álló helyet ők töltik ki. */
-.fo-kozos-tabla .idopont-fejlec,.fo-kozos-tabla .idopont-ertek,.fo-kozos-tabla .idopont-cella{width:42px;min-width:42px;max-width:42px;padding:1px}
-.fo-kozos-tabla .idopont-fejlec{font-size:0;color:transparent}.fo-kozos-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px;text-align:left}
+.fo-kozos-tabla .idopont-fejlec,.fo-kozos-tabla .idopont-ertek,.fo-kozos-tabla .idopont-cella{width:42px;min-width:42px;max-width:42px;padding:1px;text-align:center}
+.fo-kozos-tabla .idopont-fejlec{font-size:0;color:transparent}.fo-kozos-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px;text-align:center}
 /* A jobb szélső oszlop csak a saját tartalmának szélességét kapja. */
 .fo-kozos-tabla .sticky-jobb.storage{width:1px;min-width:0;max-width:max-content;white-space:nowrap}
 .fo-kozos-tabla .sticky-bal{position:sticky;z-index:30;background:var(--surface);background-clip:padding-box}
@@ -3837,7 +3837,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla .szuro-sor th{position:relative;overflow:visible}
 .fo-kozos-tabla .szuro-sor .oszlop-kereso{
   position:absolute;
-  left:3px;right:3px;top:2px;
+  left:3px;right:3px;top:2px;height:18px;
   width:auto;min-width:0;max-width:none;
   box-sizing:border-box;
 }
@@ -3877,7 +3877,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla .szuro-sor th{position:relative;overflow:visible}
 .fo-kozos-tabla .szuro-sor .oszlop-kereso{
   position:absolute;
-  left:3px;right:3px;top:2px;
+  left:3px;right:3px;top:2px;height:18px;
   width:auto;min-width:0;max-width:none;
   box-sizing:border-box;
 }
@@ -3982,7 +3982,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 <div id="panel-adatok" class="nezet-panel">
 <div class="tabla-szekcio">
   <div class="idopont-csuszkasav" id="fo-csuszkasav">
-    <div class="csuszka-info"><strong id="aktiv-sorok-szoveg">Idővonal:</strong></div>
+    <div class="csuszka-info"><strong id="aktiv-sorok-szoveg">Idővonal</strong></div>
     <input type="range" id="fo-idopont-csuszka" min="0" max="0" value="0" step="1" aria-label="Időpont görgetése">
     <div></div>
   </div>
@@ -4135,7 +4135,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
   function val(r,c){const x=c==='storage'?r.querySelector('.sticky-jobb'):r.children[+c];return x?.textContent.trim()||'';}
   function cmp(a,b,t){
     if(t==='time'){
-      const ma=/^(\d{1,2}):(\d{2})$/.exec(a),mb=/^(\d{1,2}):(\d{2})$/.exec(b);
+      const ma=/^(\\d{1,2}):(\\d{2})$/.exec(a),mb=/^(\\d{1,2}):(\\d{2})$/.exec(b);
       if(ma&&mb)return(+ma[1]*60+ +ma[2])-(+mb[1]*60+ +mb[2]);
     }
     return a.localeCompare(b,'hu',{numeric:true,sensitivity:'base'});
