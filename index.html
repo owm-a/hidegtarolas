@@ -183,6 +183,8 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 /* Mobil: valódi, egyszerűen görgethető táblázat.
    Nincs sticky/átfedés; a Valós tárolás az időoszlopok elé kerül. */
 @media(max-width:600px){
+  .tabla-szekcio{height:auto!important;min-height:0!important}
+  .tabla-egesz{height:auto!important;min-height:0!important}
   .idopont-csuszkasav{display:none!important}
   .fo-kozos-tabla .sticky-bal,
   .fo-kozos-tabla .sticky-jobb{
@@ -221,7 +223,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla th,.fo-kozos-tabla td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap;background:var(--surface)}
 .fo-kozos-tabla th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .fo-kozos-tabla thead tr{height:31px}.fo-kozos-tabla thead th{height:31px}
-.fo-kozos-tabla tbody tr{height:24px;content-visibility:auto;contain-intrinsic-size:24px}.fo-kozos-tabla tbody td{height:24px;line-height:22px;padding-top:0;padding-bottom:0;overflow:hidden;vertical-align:middle}
+.fo-kozos-tabla tbody tr{height:24px}.fo-kozos-tabla tbody td{height:24px;line-height:22px;padding-top:0;padding-bottom:0;overflow:hidden;vertical-align:middle}
 /* A 6 bal oldali oszlop mindig csak a saját tartalmának helyét foglalja. */
 .fo-kozos-tabla .viszonylat,.fo-kozos-tabla .forda,.fo-kozos-tabla .rendszam,.fo-kozos-tabla .kezdés,.fo-kozos-tabla .végzés,.fo-kozos-tabla .hely{width:1px;min-width:0;white-space:nowrap}
 .fo-kozos-tabla .hely{text-align:left}.fo-kozos-tabla .rendszam{text-align:right;font-weight:bold}
