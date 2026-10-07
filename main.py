@@ -1161,6 +1161,14 @@ azonositas_idoszak = (
     <= time(15, 0)
 )
 
+# A 70%-os döntés előtti "Pótlásban vesz részt" figyeléshez
+# 15:00 után is szükség van az aktuális GTFS-RT tripre.
+gtfs_rt_trip_figyeles_idoszak = (
+    time(7, 0)
+    <= fazis_ideje
+    <= time(17, 30)
+)
+
 pozicio_idoszak = (
     time(7, 30)
     < fazis_ideje
@@ -1253,7 +1261,7 @@ print(
 # és elmentjük a rendszám + jármű ID párost.
 # =========================================================
 
-if azonositas_idoszak:
+if gtfs_rt_trip_figyeles_idoszak:
 
     url = (
         "https://go.bkk.hu/api/query/v1/ws/"
@@ -1350,13 +1358,12 @@ if azonositas_idoszak:
 
 else:
 
-    # 13:30 után (és 07:00 előtt) nincs GTFS-RT azonosítási lekérés.
+    # A GTFS-RT tripfigyelésen kívül nincs aktuális feed.
     # A korábban elmentett rendszám + jármű ID marad érvényben.
     feed = gtfs_realtime_pb2.FeedMessage()
 
     print(
-        "GTFS-RT azonosítási lekérés kihagyva: "
-        "nincs aktív 07:00–13:30 azonosítási fázis."
+        "GTFS-RT lekérés kihagyva: nincs aktív 07:00–17:30-as figyelési fázis."
     )
 
 # =========================================================
@@ -2574,6 +2581,87 @@ def gps_geozona_vagy_koordinata(pozicio):
     return f"{latitude}, {longitude}"
 
 
+def _gtfs_rt_potlasban_van(forda_sor, rendszam, most):
+    """
+    GTFS-RT alapján eldönti, hogy a forda saját 70%-os döntési pontja előtt
+    a hozzá rendelt rendszám éppen egy, a saját fordán kívüli tripet teljesít-e.
+
+    Fontos: nem a forrás Excel másik fordáit vizsgáljuk.
+    A forrás Excel csak azt mondja meg, melyik forda rendszámát figyeljük.
+    Az aktuális trip kizárólag a GTFS-RT-ből származhat.
+    """
+    rendszam = str(rendszam or "").strip().upper()
+    if not rendszam or not isinstance(jarmuvek, pd.DataFrame) or jarmuvek.empty:
+        return None
+
+    kezdés = _ido_objektum(forda_sor.get("kezdés"))
+    végzés = _ido_objektum(forda_sor.get("végzés"))
+    if kezdés is None or végzés is None:
+        return None
+
+    budapest_tz = ZoneInfo("Europe/Budapest")
+    mai_datum = most.date()
+    kezdés_dt = datetime.combine(mai_datum, kezdés, tzinfo=budapest_tz)
+    végzés_dt = datetime.combine(mai_datum, végzés, tzinfo=budapest_tz)
+    if végzés_dt < kezdés_dt:
+        végzés_dt += timedelta(days=1)
+
+    if not (kezdés_dt <= most < végzés_dt):
+        return None
+
+    teljes_idotartam = (végzés_dt - kezdés_dt).total_seconds()
+    if teljes_idotartam <= 0:
+        return None
+
+    döntés_dt = kezdés_dt + timedelta(seconds=teljes_idotartam * 0.70)
+
+    # A 70%-os döntés után a pótlásfigyelés már irreleváns.
+    if most >= döntés_dt:
+        return None
+
+    # A saját forda mai, tényleges tripjei.
+    viszonylat = str(forda_sor.get("viszonylat", "")).strip()
+    forda = str(forda_sor.get("forda", "")).strip()
+
+    try:
+        sajat_forda_trips = trips[
+            trips["service_id"].astype(str).isin(mai_service_ids)
+            & trips["block_id"].astype(str).str.contains(
+                f"_{viszonylat}_{forda}_", na=False, regex=False
+            )
+        ]
+    except Exception:
+        return None
+
+    sajat_trip_ids = set(sajat_forda_trips["trip_id"].astype(str))
+    if not sajat_trip_ids:
+        return None
+
+    talalatok = jarmuvek[
+        jarmuvek["rendszám"].astype(str).str.strip().str.upper() == rendszam
+    ].copy()
+
+    if talalatok.empty:
+        return None
+
+    # Ha a GTFS-RT-ben az adott rendszám aktuális tripje ismert,
+    # és az nem tartozik a vizsgált forda mai tripjei közé,
+    # akkor a jármű fordán kívüli tripet teljesít.
+    for _, rt in talalatok.iterrows():
+        aktualis_trip_id = str(rt.get("trip_id", "")).strip()
+        if not aktualis_trip_id:
+            continue
+        if aktualis_trip_id not in sajat_trip_ids:
+            return {
+                "trip_id": aktualis_trip_id,
+                "jármű_id": str(rt.get("jármű_id", "")).strip(),
+                "route_id": str(rt.get("route_id", "")).strip(),
+                "direction_id": str(rt.get("direction_id", "")).strip(),
+            }
+
+    return None
+
+
 def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
     """
     A hidegtárolási döntés a forda saját idejének 70%-os pontján születik.
@@ -2606,6 +2694,32 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
 
     if végzés_dt < kezdés_dt:
         végzés_dt += timedelta(days=1)
+
+    # A forda saját kezdése után, de a 70%-os döntési pont előtt
+    # GTFS-RT alapján figyeljük, hogy a hozzárendelt rendszám
+    # fordán kívüli tripben vesz-e részt.
+    # Ez a döntés végleges, a későbbi 70%-os döntés nem írhatja felül.
+    if kezdés_dt <= budapest_now < végzés_dt:
+        forda_kulcs = forda_kulcs_adat(forda_sor)
+        forda_adat = forda_rendszamok.get(forda_kulcs, {})
+        rendszam = str(forda_adat.get("rendszám", "")).strip()
+
+        potlas = _gtfs_rt_potlasban_van(
+            forda_sor,
+            rendszam,
+            budapest_now
+        )
+
+        if potlas is not None:
+            return {
+                "eredmény": "Pótlásban vesz részt",
+                "tárolás helye": "---",
+                "döntés időpontja": budapest_now.strftime("%H:%M:%S"),
+                "pótlás_trip_id": potlas["trip_id"],
+                "pótlás_jármű_id": potlas["jármű_id"],
+                "pótlás_route_id": potlas["route_id"],
+                "pótlás_direction_id": potlas["direction_id"],
+            }
 
     teljes_idotartam = (végzés_dt - kezdés_dt).total_seconds()
     if teljes_idotartam <= 0:
@@ -2680,9 +2794,9 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
     """
     A 70%-os döntéseket minden futáskor ellenőrzi és véglegesen elmenti.
 
-    Az Excel-riport naponta egyszer készül el, amikor minden figyelt forda
-    elérte a saját 70%-os döntési pontját. Így az Excel is már a végleges,
-    70%-nál rögzített eredményt és tárolási helyet kapja.
+    Az Excel-riport naponta egyszer, 16:30 után készül el az aktuális állapotról.
+    Nem várjuk meg hozzá, hogy minden forda 70%-os döntése megszülessen;
+    a még nem eldöntött sorok is bekerülnek az exportba.
     """
 
     most = budapesti_most()
@@ -2735,7 +2849,13 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
                 "forda": forda,
                 "eredmény": dontes["eredmény"],
                 "tárolás helye": dontes["tárolás helye"],
-                "döntés időpontja": dontes["döntés időpontja"]
+                "döntés időpontja": dontes["döntés időpontja"],
+                "pótlás_viszonylata": dontes.get("pótlás_viszonylata", ""),
+                "pótlás_fordája": dontes.get("pótlás_fordája", ""),
+                "pótlás_trip_id": dontes.get("pótlás_trip_id", ""),
+                "pótlás_jármű_id": dontes.get("pótlás_jármű_id", ""),
+                "pótlás_route_id": dontes.get("pótlás_route_id", ""),
+                "pótlás_direction_id": dontes.get("pótlás_direction_id", "")
             }
             uj_dontes += 1
 
@@ -2757,10 +2877,12 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             "rendszám": rendszam,
             "eredmény": dontes.get("eredmény", ""),
             "tárolás helye": dontes.get("tárolás helye", ""),
-            "döntés időpontja": dontes.get("döntés időpontja", "")
+            "döntés időpontja": dontes.get("döntés időpontja", ""),
+            "pótlás_viszonylata": dontes.get("pótlás_viszonylata", ""),
+            "pótlás_fordája": dontes.get("pótlás_fordája", "")
         })
 
-    # Excel csak akkor készüljön el, amikor minden forda döntése megvan.
+    # Excel 16:30 után mindenképpen készüljön el az aktuális állapotról.
     minden_döntött = (
         len(figyelt_forras) == 0
         or len(dontesek) >= len(figyelt_forras)
@@ -2788,7 +2910,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
 
     riport_idopont = korabbi_riport.get("keszult", "-")
 
-    if riport_indithato and minden_döntött and not excel_mar_mentve:
+    if riport_indithato and not excel_mar_mentve:
         os.makedirs("data", exist_ok=True)
 
         if os.path.exists(export_fajl):
@@ -2816,7 +2938,9 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         feher_betu = openpyxl.styles.Font(color="FFFFFF", bold=True)
 
         for sor in eredmenyek:
-            if sor["eredmény"] == "NINCS ADAT" or (not sor["rendszám"] and sor["forda"]):
+            if sor["eredmény"] == "Pótlásban vesz részt":
+                export_eredmeny = "P"
+            elif sor["eredmény"] == "NINCS ADAT" or (not sor["rendszám"] and sor["forda"]):
                 export_eredmeny = "?"
             elif sor["eredmény"] == "RENDBEN TÁROLT":
                 export_eredmeny = "I"
@@ -2842,7 +2966,10 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             eredmeny_cella = export_ws.cell(export_ws.max_row, 5)
             tarolas_cella = export_ws.cell(export_ws.max_row, 6)
 
-            if sor["eredmény"] == "NINCS ADAT" or (not sor["rendszám"] and sor["forda"]):
+            if sor["eredmény"] == "Pótlásban vesz részt":
+                eredmeny_cella.fill = openpyxl.styles.PatternFill(fill_type="solid", fgColor="5B9BD5")
+                eredmeny_cella.font = feher_betu
+            elif sor["eredmény"] == "NINCS ADAT" or (not sor["rendszám"] and sor["forda"]):
                 eredmeny_cella.fill = fekete_toltes
                 eredmeny_cella.font = feher_betu
             elif sor["eredmény"] == "RENDBEN TÁROLT":
@@ -2860,7 +2987,10 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
                 and tarolas_helye not in ("Nincs adat", "-")
             )
 
-            if van_tarolas_adat:
+            if sor["eredmény"] == "Pótlásban vesz részt":
+                # A pótlás geolokációja szándékosan "---", és kék.
+                tarolas_cella.font = openpyxl.styles.Font(color="4DA3FF", bold=True)
+            elif van_tarolas_adat:
                 if sor["eredmény"] == "RENDBEN TÁROLT":
                     tarolas_cella.fill = zold_toltes
                     tarolas_cella.font = feher_betu
@@ -2902,7 +3032,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
     print("=== HIDEGTÁROLÁSI RIPORT ===")
     print("Új 70%-os döntések:", uj_dontes)
     print("Meghozott döntések:", len(dontesek), "/", len(figyelt_forras))
-    print("Excel:", "mentve" if excel_mar_mentve else "még vár a teljes döntésre")
+    print("Excel:", "mentve" if excel_mar_mentve else "16:30-ra vár")
 
     return riportok
 
@@ -3402,6 +3532,20 @@ def html_export():
                     )
                 ).strip().upper()
 
+                # A pótlásos döntés a térképen is kék.
+                if str(rekord.get("döntés", "")).strip() == "Pótlásban vesz részt":
+                    statusz = "PÓTLÁS"
+
+                # A végleges riportdöntés az irányadó a térképen is.
+                rekord_forras = str(rekord.get("forrás", "biztor")).strip() or "biztor"
+                rekord_kulcs = forda_kulcs_rekord(rekord)
+                riport_adat = (
+                    (garazstarolas_riport if rekord_forras == "garazs" else hidegtarolas_riport)
+                    or {}
+                ).get("dontesek", {}).get(rekord_kulcs, {})
+                if str(riport_adat.get("eredmény", "")).strip() == "Pótlásban vesz részt":
+                    statusz = "PÓTLÁS"
+
                 # A tényleges kezdés előtti 15 percben a PIN sárga,
                 # függetlenül attól, hogy az ellenőrzés OK vagy NEM.
                 try:
@@ -3705,7 +3849,7 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .all-view .fix-tabla tr[data-forras="biztor"] > td,.all-view .storage-tabla tr[data-forras="biztor"] > td{background:rgba(110,168,254,.055)}
 .all-view .fix-tabla tr[data-forras="biztor"] > td,.all-view .storage-tabla tr[data-forras="biztor"] > td{color:#82b4ff;font-weight:700}
 .all-view .biztor-sor > td .rendszam-link{color:#82b4ff;font-weight:800}
-.map-focus{animation:mapPulse .9s ease-out}.vehicle-pin{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 1px 5px rgba(0,0,0,.45);box-sizing:border-box}.vehicle-pin::after{content:"";display:block;width:7px;height:7px;margin:5px auto 0;border-radius:50%;background:white}.vehicle-pin.green{background:#00b050}.vehicle-pin.red{background:#ff0000}.vehicle-pin.yellow{background:#ffd966}.vehicle-pin.gray{background:#687384}
+.map-focus{animation:mapPulse .9s ease-out}.vehicle-pin{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 1px 5px rgba(0,0,0,.45);box-sizing:border-box}.vehicle-pin::after{content:"";display:block;width:7px;height:7px;margin:5px auto 0;border-radius:50%;background:white}.vehicle-pin.green{background:#00b050}.vehicle-pin.red{background:#ff0000}.vehicle-pin.yellow{background:#ffd966}.vehicle-pin.blue{background:#4da3ff}.vehicle-pin.gray{background:#687384}
 @keyframes mapPulse{0%{filter:brightness(1.8)}100%{filter:brightness(1)}}
 .leaflet-popup-content{line-height:1.45}
 body.light-mode{--bg:#eef2f6;--surface:#fff;--surface2:#f4f6f8;--surface3:#e7ebf0;--border:#cbd3dc;--text:#1f2937;--muted:#667085;--accent:#2f6fed;--accent2:#4f7ff5;--ok:#16a765;--bad:#df4f4f;--dark:#4b5563;--shadow:0 8px 24px rgba(15,23,42,.10);background:var(--bg);color:var(--text)}
@@ -3754,12 +3898,14 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla td.tarolas-ok{color:#6ee7a8}
 .fo-kozos-tabla td.tarolas-eltérés{color:#ff858d}
 .fo-kozos-tabla td.tarolas-na{color:var(--text)}
+.fo-kozos-tabla td.tarolas-potlas{color:#4da3ff !important;font-weight:800}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td{background:rgba(110,168,254,.055);color:#82b4ff;font-weight:700}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td .rendszam-link{color:#82b4ff;font-weight:800}
 /* A tárolási eredmény színe minden nézetben elsőbbséget kap. */
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-ok{color:#6ee7a8}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-eltérés{color:#ff858d}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-na{color:var(--text)}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-potlas{color:#4da3ff !important}
 #fo-tabla.view-biztor .fo-kozos-tabla tbody tr[data-forras="garazs"],#fo-tabla.view-garazs .fo-kozos-tabla tbody tr[data-forras="biztor"],#fo-tabla .fo-kozos-tabla tbody tr[data-filter-match="0"]{display:none}
 /* =========================================================
    VÉGLEGES KÖZÖS TÁBLA MÉRETEZÉS / STICKY RÉTEG
@@ -3821,11 +3967,13 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-ok{color:#6ee7a8}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-eltérés{color:#ff858d}
 .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-na{color:var(--text)}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-potlas{color:#4da3ff !important}
 .fo-kozos-tabla td.tarolas{
   font-weight:750;
   white-space:nowrap;
 }
 .fo-kozos-tabla td.tarolas-na{color:var(--text)}
+.fo-kozos-tabla td.tarolas-potlas{color:#4da3ff !important;font-weight:800}
 /* A sticky cellák szélei között a border-collapse miatt maradhat 1px-es
    festési rés. Ezt egy enyhén túlnyúló, teljesen opák háttérréteg takarja,
    így az időcellák sem a cellaközben, sem a szegélynél nem látszanak át. */
@@ -4105,6 +4253,9 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
         if not rr or not eredmeny_riport:
             tarolas = "n.a"
             rcls = "tarolas-na"
+        elif eredmeny_riport == "Pótlásban vesz részt":
+            tarolas = "---"
+            rcls = "tarolas-potlas"
         elif tarolas in ("Nincs adat", "-"):
             # Az ELTÉRÉS lehet valódi ellenőrzési eredmény, de ha
             # nincs hozzá tényleges tárolási hely, az n.a nem lehet
@@ -4314,6 +4465,9 @@ function jarmuIkon(statusz) {
     else if (statusz === "SÁRGA") {
         osztaly = "yellow";
     }
+    else if (statusz === "PÓTLÁS") {
+        osztaly = "blue";
+    }
 
     return L.divIcon({
 
@@ -4406,6 +4560,10 @@ terkepJarmuvek.forEach(function(jarmu) {
         statuszSzoveg =
             '<span style="color:#e00000;font-weight:bold;">ELTÉRÉS</span>';
     }
+    else if (jarmu.statusz === "PÓTLÁS") {
+        statuszSzoveg =
+            '<span style="color:#4da3ff;font-weight:bold;">Pótlásban vesz részt</span>';
+    }
 
 
     marker.bindPopup(
@@ -4483,7 +4641,7 @@ function fokuszJarmure(rendszam) {
     const marker = jarmuMarkerek[kulcs];
     if (!marker) return;
     const pos = marker.getLatLng();
-    map.flyTo(pos, Math.min(TERKEP_MAX_ZOOM, Math.max(map.getZoom(), 15)), {duration: 0.7});
+    map.flyTo(pos, Math.min(TERKEP_MAX_ZOOM, Math.max(map.getZoom(), 11)), {duration: 0.7});
     setTimeout(function(){
         marker.openPopup();
         const el = marker.getElement();
