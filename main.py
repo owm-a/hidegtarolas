@@ -4879,78 +4879,7 @@ window.addEventListener("load", frissitGarazsCsuszkat);
 
 </script>
 
-<script>
-/* MOBIL – a fő táblázat vízszintes pozícióját őrizzük meg,
-   hogy a függőleges görgetés ne rántsa jobbra a táblát. */
-(function(){
-  if (window.innerWidth > 900) return;
-  const tabla = document.querySelector('.tabla-egesz');
-  if (!tabla) return;
 
-  let mentettScrollX = tabla.scrollLeft || 0;
-  let erintesiX = null;
-  let erintesiY = null;
-  let vizszintesGesztus = false;
-  let visszaallitando = false;
-
-  tabla.addEventListener('touchstart', function(e){
-    const t = e.touches && e.touches[0];
-    if (!t) return;
-    erintesiX = t.clientX;
-    erintesiY = t.clientY;
-    vizszintesGesztus = false;
-  }, {passive:true});
-
-  tabla.addEventListener('touchmove', function(e){
-    const t = e.touches && e.touches[0];
-    if (!t || erintesiX === null || erintesiY === null) return;
-    const dx = t.clientX - erintesiX;
-    const dy = t.clientY - erintesiY;
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 3) {
-      vizszintesGesztus = true;
-    }
-  }, {passive:true});
-
-  tabla.addEventListener('touchend', function(){
-    erintesiX = null;
-    erintesiY = null;
-    vizszintesGesztus = false;
-  }, {passive:true});
-
-  tabla.addEventListener('scroll', function(){
-    /* Ha a felhasználó ténylegesen vízszintesen húzza a táblát,
-       az új pozíció legyen az új megőrzött pozíció. Egyébként a
-       böngésző által okozott automatikus jobbra ugrást azonnal
-       visszakényszerítjük a korábbi vízszintes pozícióra. */
-    if (vizszintesGesztus) {
-      mentettScrollX = tabla.scrollLeft;
-    } else if (Math.abs(tabla.scrollLeft - mentettScrollX) > 1) {
-      tabla.scrollLeft = mentettScrollX;
-    }
-  }, {passive:true});
-
-  function vedettScroll(){
-    if (visszaallitando) return;
-    const cel = mentettScrollX;
-    if (Math.abs(tabla.scrollLeft - cel) < 1) return;
-    visszaallitando = true;
-    requestAnimationFrame(function(){
-      tabla.scrollLeft = cel;
-      visszaallitando = false;
-    });
-  }
-
-  /* A függőleges oldal-görgetés minden fázisában visszaállítjuk
-     az előző vízszintes helyzetet, ha a böngésző magától elmozdította. */
-  window.addEventListener('scroll', vedettScroll, {passive:true});
-  window.addEventListener('touchmove', function(){
-    if (!vizszintesGesztus) requestAnimationFrame(vedettScroll);
-  }, {passive:true});
-  window.addEventListener('resize', function(){
-    if (window.innerWidth <= 900) requestAnimationFrame(vedettScroll);
-  }, {passive:true});
-})();
-</script>
 </body>
 
 </html>
