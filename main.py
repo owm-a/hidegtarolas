@@ -4396,7 +4396,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     flex:1 1 0;
   }
   .nezet-valaszto .nezet-gomb[data-nezet="biztor"]{
-    flex:1.15 1 0;
+    flex:1.2 1 0;
   }
 }
 
