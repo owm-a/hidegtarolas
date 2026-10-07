@@ -4380,9 +4380,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     </div>
     <div class="fejlec-jobb">
       <div class="adat"><b>Riport készült:</b> """ + escape(str(hidegtarolas_riport.get("keszult", "-"))) + """</div>
-      <div class="adat"><b>Exportált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0) if hidegtarolas_riport.get("kesz", False) else 0) + "+" + str(garazstarolas_riport.get("vizsgalt_fordak", 0) if garazstarolas_riport.get("kesz", False) else 0) + "=" + str((hidegtarolas_riport.get("vizsgalt_fordak", 0) if hidegtarolas_riport.get("kesz", False) else 0) + (garazstarolas_riport.get("vizsgalt_fordak", 0) if garazstarolas_riport.get("kesz", False) else 0)) + """</div>
-    </div>
-  </div>
+      <div class="adat"><b>Exportált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0) if hidegtarolas_riport.get("kesz", False) else 0) + " → " + str(garazstarolas_riport.get("vizsgalt_fordak", 0) if garazstarolas_riport.get("kesz", False) else 0) + " → " + str((hidegtarolas_riport.get("vizsgalt_fordak", 0) if hidegtarolas_riport.get("kesz", False) else 0) + (garazstarolas_riport.get("vizsgalt_fordak", 0) if garazstarolas_riport.get("kesz", False) else 0)) + """</div>
 </div>
 <div id="geozona-terkep"></div>
 <div class="nezet-valaszto" role="tablist" aria-label="Megjelenítés">
