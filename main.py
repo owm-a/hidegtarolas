@@ -1622,7 +1622,6 @@ for _, forda_sor in (
         forda_rendszamok[forda_kulcs] = {
             "viszonylat": viszonylat,
             "forda": forda,
-            "forrás": str(forda_sor.get("forrás", "biztor")).strip() or "biztor",
             "kezdés": (
                 forda_sor["kezdés"].strftime("%H:%M:%S")
                 if pd.notna(forda_sor["kezdés"])
@@ -2092,13 +2091,7 @@ if pozicio_idoszak:
             "végzés": adat["végzés"],
             "hely": adat["hely"],
             "helyszín": adat["helyszín"],
-            # A forda kulcsa forrás-prefixes, ezért régi napi JSON esetén
-            # is biztosan helyesen állapítható meg a forrás.
-            "forrás": (
-                "garazs"
-                if str(forda_kulcs).startswith("garazs|")
-                else "biztor"
-            ),
+            "forrás": adat.get("forrás", "biztor"),
             "rendszám": rendszam,
             "jármű_id": jarmu_id,
             "pozíció": pozicio,
@@ -3191,7 +3184,7 @@ def html_export():
 
             for rekord in pozicio_tortenet
 
-            if str(rekord.get("forrás", "biztor")).strip() in ("biztor", "garazs")
+            if str(rekord.get("forrás", "biztor")).strip() == "biztor"
             and rekord.get("frissítve")
         }
     )
@@ -4655,11 +4648,14 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
       fo.scrollLeft=max;
     }
   }
-  function view(v){
+  function view(v,save=true){
     currentView=v;
     buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===v));
     fo.classList.remove('view-biztor','view-garazs','view-mindketto');
     fo.classList.add('view-'+v);fo.classList.toggle('all-view',v==='mindketto');
+    if(save){
+      try{localStorage.setItem('futar-view',v);}catch(e){}
+    }
     requestAnimationFrame(()=>{sticky();layoutScroll();});
   }
   function applyFilters(){
@@ -4720,12 +4716,18 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
       scrollFrame=0;
     });
   },{passive:true});
-  buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet)));
+  buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet,true)));
   sortButtons.forEach(b=>b.addEventListener('click',()=>sort(b)));
   filterInputs.forEach(i=>i.addEventListener('input',filters));
   window.addEventListener('resize',()=>requestAnimationFrame(()=>{mobilTablaSorrend();layout();}));
   rowList.forEach(r=>r.dataset.filterMatch='1');
-  view('biztor');layout();
+  let savedView='biztor';
+  try{
+    const v=localStorage.getItem('futar-view');
+    if(v==='biztor'||v==='garazs'||v==='mindketto') savedView=v;
+  }catch(e){}
+  view(savedView,false);
+  layout();
 })();
 (function(){
   const btn=document.getElementById('theme-toggle');
