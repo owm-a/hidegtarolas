@@ -1622,6 +1622,7 @@ for _, forda_sor in (
         forda_rendszamok[forda_kulcs] = {
             "viszonylat": viszonylat,
             "forda": forda,
+            "forrás": str(forda_sor.get("forrás", "biztor")).strip() or "biztor",
             "kezdés": (
                 forda_sor["kezdés"].strftime("%H:%M:%S")
                 if pd.notna(forda_sor["kezdés"])
@@ -2091,7 +2092,13 @@ if pozicio_idoszak:
             "végzés": adat["végzés"],
             "hely": adat["hely"],
             "helyszín": adat["helyszín"],
-            "forrás": adat.get("forrás", "biztor"),
+            # A forda kulcsa forrás-prefixes, ezért régi napi JSON esetén
+            # is biztosan helyesen állapítható meg a forrás.
+            "forrás": (
+                "garazs"
+                if str(forda_kulcs).startswith("garazs|")
+                else "biztor"
+            ),
             "rendszám": rendszam,
             "jármű_id": jarmu_id,
             "pozíció": pozicio,
@@ -3184,7 +3191,7 @@ def html_export():
 
             for rekord in pozicio_tortenet
 
-            if str(rekord.get("forrás", "biztor")).strip() == "biztor"
+            if str(rekord.get("forrás", "biztor")).strip() in ("biztor", "garazs")
             and rekord.get("frissítve")
         }
     )
