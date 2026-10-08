@@ -3388,14 +3388,11 @@ def html_export():
                 jarmu_map.get("lastUpdateTime")
             ) or ""
 
-            terkep_forras = str(forda_sor_map.get("forrás", "biztor")).strip() or "biztor"
-            terkep_kulcs = (terkep_forras, rendszam)
-
-            terkep_jarmuvek[terkep_kulcs] = {
+            terkep_jarmuvek[rendszam] = {
                 "rendszam": rendszam,
                 "viszonylat": viszonylat,
                 "forda": forda,
-                "forras": terkep_forras,
+                "forras": str(forda_sor_map.get("forrás", "biztor")).strip() or "biztor",
                 "helyszin": helyszin_nev,
                 "statusz": statusz,
                 "latitude": latitude,
@@ -3503,11 +3500,8 @@ def html_export():
                     continue
 
 
-                rekord_forras = str(rekord.get("forrás", "biztor")).strip() or "biztor"
-                terkep_kulcs = (rekord_forras, rendszam)
-
                 elozo = terkep_jarmuvek.get(
-                    terkep_kulcs
+                    rendszam
                 )
 
 
@@ -3550,6 +3544,7 @@ def html_export():
                     statusz = "PÓTLÁS"
 
                 # A végleges riportdöntés az irányadó a térképen is.
+                rekord_forras = str(rekord.get("forrás", "biztor")).strip() or "biztor"
                 rekord_kulcs = forda_kulcs_rekord(rekord)
                 riport_adat = (
                     (garazstarolas_riport if rekord_forras == "garazs" else hidegtarolas_riport)
@@ -3597,7 +3592,7 @@ def html_export():
                         else "Nincs kijelölt geozóna"
                     )
 
-                terkep_jarmuvek[terkep_kulcs] = {
+                terkep_jarmuvek[rendszam] = {
 
                     "rendszam": rendszam,
 
@@ -3615,7 +3610,7 @@ def html_export():
                         )
                     ),
 
-                    "forras": rekord_forras,
+                    "forras": str(rekord.get("forrás", "biztor")).strip() or "biztor",
 
                     "helyszin": helyszin_nev,
 
@@ -5012,11 +5007,7 @@ function frissitTerkepNezet(view) {
 
 document.querySelectorAll(".nezet-gomb").forEach(function(btn){
     btn.addEventListener("click", function(){
-        const view = this.dataset.nezet;
-        frissitTerkepNezet(view);
-        try {
-            localStorage.setItem("futar-nezet", view);
-        } catch(e) {}
+        frissitTerkepNezet(this.dataset.nezet);
     });
 });
 
@@ -5049,14 +5040,7 @@ document.querySelectorAll(".rendszam-link").forEach(function(btn){
 // TÉRKÉP NÉZET BEÁLLÍTÁSA
 // ---------------------------------------------------------
 
-let kezdoTerkepNezet = "biztor";
-try {
-    const mentett = localStorage.getItem("futar-nezet");
-    if (["biztor", "garazs", "mindketto"].includes(mentett)) {
-        kezdoTerkepNezet = mentett;
-    }
-} catch(e) {}
-frissitTerkepNezet(kezdoTerkepNezet);
+frissitTerkepNezet("biztor");
 
 const garazsAblak = document.getElementById("garazs-idopont-ablak");
 const garazsBelso = document.getElementById("garazs-idopont-belső");
