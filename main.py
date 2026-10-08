@@ -4553,23 +4553,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   if(!fo||!slider||!table||!tbody)return;
   let currentView='biztor',sortState={col:null,dir:1};
 
-  // Az utoljára kiválasztott nézet megjegyzése frissítés után is.
-  // Első megnyitáskor továbbra is Végállomás (biztor) az alapértelmezett.
-  function mentettNezet(){
-    try{
-      const saved=localStorage.getItem('futar-nezet');
-      return ['biztor','garazs','mindketto'].includes(saved) ? saved : 'biztor';
-    }catch(e){
-      return 'biztor';
-    }
-  }
-
-  function mentsNezet(v){
-    try{
-      localStorage.setItem('futar-nezet',v);
-    }catch(e){}
-  }
-
 
   function mobilTablaSorrend(){
     const mobil=window.matchMedia('(max-width:600px)').matches;
@@ -4674,7 +4657,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   }
   function view(v){
     currentView=v;
-    mentsNezet(v);
     buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===v));
     fo.classList.remove('view-biztor','view-garazs','view-mindketto');
     fo.classList.add('view-'+v);fo.classList.toggle('all-view',v==='mindketto');
@@ -4743,7 +4725,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   filterInputs.forEach(i=>i.addEventListener('input',filters));
   window.addEventListener('resize',()=>requestAnimationFrame(()=>{mobilTablaSorrend();layout();}));
   rowList.forEach(r=>r.dataset.filterMatch='1');
-  view(mentettNezet());layout();
+  view('biztor');layout();
 })();
 (function(){
   const btn=document.getElementById('theme-toggle');
