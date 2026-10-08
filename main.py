@@ -5007,7 +5007,11 @@ function frissitTerkepNezet(view) {
 
 document.querySelectorAll(".nezet-gomb").forEach(function(btn){
     btn.addEventListener("click", function(){
-        frissitTerkepNezet(this.dataset.nezet);
+        const view = this.dataset.nezet;
+        frissitTerkepNezet(view);
+        try {
+            localStorage.setItem("futar-nezet", view);
+        } catch(e) {}
     });
 });
 
@@ -5040,7 +5044,14 @@ document.querySelectorAll(".rendszam-link").forEach(function(btn){
 // TÉRKÉP NÉZET BEÁLLÍTÁSA
 // ---------------------------------------------------------
 
-frissitTerkepNezet("biztor");
+let kezdoTerkepNezet = "biztor";
+try {
+    const mentett = localStorage.getItem("futar-nezet");
+    if (["biztor", "garazs", "mindketto"].includes(mentett)) {
+        kezdoTerkepNezet = mentett;
+    }
+} catch(e) {}
+frissitTerkepNezet(kezdoTerkepNezet);
 
 const garazsAblak = document.getElementById("garazs-idopont-ablak");
 const garazsBelso = document.getElementById("garazs-idopont-belső");
