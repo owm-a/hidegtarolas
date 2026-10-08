@@ -3388,11 +3388,14 @@ def html_export():
                 jarmu_map.get("lastUpdateTime")
             ) or ""
 
-            terkep_jarmuvek[rendszam] = {
+            terkep_forras = str(forda_sor_map.get("forrás", "biztor")).strip() or "biztor"
+            terkep_kulcs = (terkep_forras, rendszam)
+
+            terkep_jarmuvek[terkep_kulcs] = {
                 "rendszam": rendszam,
                 "viszonylat": viszonylat,
                 "forda": forda,
-                "forras": str(forda_sor_map.get("forrás", "biztor")).strip() or "biztor",
+                "forras": terkep_forras,
                 "helyszin": helyszin_nev,
                 "statusz": statusz,
                 "latitude": latitude,
@@ -3500,8 +3503,11 @@ def html_export():
                     continue
 
 
+                rekord_forras = str(rekord.get("forrás", "biztor")).strip() or "biztor"
+                terkep_kulcs = (rekord_forras, rendszam)
+
                 elozo = terkep_jarmuvek.get(
-                    rendszam
+                    terkep_kulcs
                 )
 
 
@@ -3544,7 +3550,6 @@ def html_export():
                     statusz = "PÓTLÁS"
 
                 # A végleges riportdöntés az irányadó a térképen is.
-                rekord_forras = str(rekord.get("forrás", "biztor")).strip() or "biztor"
                 rekord_kulcs = forda_kulcs_rekord(rekord)
                 riport_adat = (
                     (garazstarolas_riport if rekord_forras == "garazs" else hidegtarolas_riport)
@@ -3592,7 +3597,7 @@ def html_export():
                         else "Nincs kijelölt geozóna"
                     )
 
-                terkep_jarmuvek[rendszam] = {
+                terkep_jarmuvek[terkep_kulcs] = {
 
                     "rendszam": rendszam,
 
@@ -3610,7 +3615,7 @@ def html_export():
                         )
                     ),
 
-                    "forras": str(rekord.get("forrás", "biztor")).strip() or "biztor",
+                    "forras": rekord_forras,
 
                     "helyszin": helyszin_nev,
 
