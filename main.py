@@ -625,19 +625,9 @@ def forda_aktiv_e(kezdés, végzés, időpont):
         return False
     if veg < kezdet:
         veg += 24 * 3600
-    idotartam = veg - kezdet
-    rovid_forda = 0 < idotartam < 15 * 60
-    kezdes_elotti_perc = 5 if rovid_forda else 15
-    vegzes_utani_perc = 15
-    # A kezdés előtti, közeli időpontot ne tekintsük automatikusan másnapnak.
-    # Rövid fordáknál -5/+15 perc a figyelési ablak; más fordáknál a korábbi ±15 perc.
-    if most < kezdet and kezdet - most > kezdes_elotti_perc * 60:
+    if most < kezdet:
         most += 24 * 3600
-    return (
-        kezdet - kezdes_elotti_perc * 60
-        <= most
-        <= veg + vegzes_utani_perc * 60
-    )
+    return kezdet - 15 * 60 <= most <= veg + 15 * 60
 
 
 def atomikus_json_mentes(fajl, adat):
@@ -690,15 +680,20 @@ def ido_konvertalasa(ertek):
 
 
 
-def forda_15_percnel_rovidebb(kezdes, vegzes):
-    """Igaz, ha a forda rövidebb 15 percnél; ezeket is figyelni kell."""
+def forda_idotartam_legalabb_15_perc(kezdes, vegzes):
+    """Csak a legalább 15 perces fordák maradjanak a figyelési listában."""
     kezdet_mp = ido_masodpercben(kezdes)
     veg_mp = ido_masodpercben(vegzes)
+
+    # Hiányzó vagy nem értelmezhető idő esetén nem szűrünk ki találomra.
     if kezdet_mp is None or veg_mp is None:
-        return False
+        return True
+
+    # Éjfélen átnyúló forda kezelése.
     if veg_mp < kezdet_mp:
         veg_mp += 24 * 60 * 60
-    return 0 < veg_mp - kezdet_mp < 15 * 60
+
+    return veg_mp - kezdet_mp >= 15 * 60
 
 
 # =========================================================
@@ -952,8 +947,13 @@ for i in range(7, len(excel)):
         vegzes
     )
 
-    # A 15 percnél rövidebb fordák is bekerülnek; külön, -10/+10 perces
-    # figyelési és késői kiértékelési ablakot kapnak.
+    # 15 percnél rövidebb forda nem kerül be egyik táblába sem.
+    if not forda_idotartam_legalabb_15_perc(kezdes, vegzes):
+        print(
+            f"Kihagyva (15 percnél rövidebb forda): "
+            f"{viszonylat} / {forda} ({kezdes}–{vegzes})"
+        )
+        continue
 
 
     # -----------------------------------------------------
@@ -1105,8 +1105,13 @@ for i in range(5, len(excel_garazs)):
     kezdes = ido_konvertalasa(kezdes)
     vegzes = ido_konvertalasa(vegzes)
 
-    # A 15 percnél rövidebb fordák is bekerülnek; külön, -10/+10 perces
-    # figyelési és késői kiértékelési ablakot kapnak.
+    # 15 percnél rövidebb forda nem kerül be egyik táblába sem.
+    if not forda_idotartam_legalabb_15_perc(kezdes, vegzes):
+        print(
+            f"Kihagyva (15 percnél rövidebb forda): "
+            f"{viszonylat} / {forda} ({kezdes}–{vegzes})"
+        )
+        continue
 
     hely = str(hely).strip() if pd.notna(hely) else ""
 
@@ -2638,11 +2643,7 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
     if végzés_dt < kezdés_dt:
         végzés_dt += timedelta(days=1)
 
-    teljes_idotartam = (végzés_dt - kezdés_dt).total_seconds()
-    rovid_forda = 0 < teljes_idotartam < 15 * 60
-    figyelési_kezdés_dt = kezdés_dt - timedelta(minutes=5) if rovid_forda else kezdés_dt
-    figyelési_végzés_dt = végzés_dt + timedelta(minutes=15) if rovid_forda else végzés_dt
-    if not (figyelési_kezdés_dt <= most <= figyelési_végzés_dt):
+    if not (kezdés_dt <= most < végzés_dt):
         return None
 
     teljes_idotartam = (végzés_dt - kezdés_dt).total_seconds()
@@ -2678,10 +2679,10 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
             if ido is None:
                 continue
             rekord_dt = datetime.combine(mai_datum, ido, tzinfo=budapest_tz)
-            if rekord_dt < figyelési_kezdés_dt:
+            if rekord_dt < kezdés_dt:
                 rekord_dt += timedelta(days=1)
             if (
-                figyelési_kezdés_dt <= rekord_dt <= most
+                kezdés_dt <= rekord_dt <= most
                 and most - rekord_dt <= timedelta(minutes=10)
             ):
                 sajat_rekordok.append((rekord_dt, rekord))
@@ -2739,9 +2740,7 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
 
 def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
     """
-    A hosszabb fordák döntése a menetrendi idő 70%-os pontján születik.
-    A 15 percnél rövidebb fordáknál a figyelés kezdés-5/végzés+15 perces,
-    a végleges értékelés pedig a menetrendi végzés+10 perces pontján történik.
+    A hidegtárolási döntés a forda saját idejének 70%-os pontján születik.
 
     Fontos:
     - Nem a forda későbbi állapotát nézzük.
@@ -2776,23 +2775,13 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
     if teljes_idotartam <= 0:
         return None
 
-    rovid_forda = teljes_idotartam < 15 * 60
-    figyelési_kezdés_dt = kezdés_dt - timedelta(minutes=5) if rovid_forda else kezdés_dt
-    figyelési_végzés_dt = végzés_dt + timedelta(minutes=15) if rovid_forda else végzés_dt
-    # Rövid fordáknál a megfigyelési ablak kezdés-5 és végzés+15 perc,
-    # de a végleges értékelés mindig végzés+10 perckor történik.
-    # A hosszabb fordáknál változatlanul a tervezett időtartam 70%-a dönt.
-    döntés_dt = (
-        végzés_dt + timedelta(minutes=10)
-        if rovid_forda
-        else kezdés_dt + timedelta(seconds=teljes_idotartam * 0.70)
-    )
+    döntés_dt = kezdés_dt + timedelta(seconds=teljes_idotartam * 0.70)
     potlas = None
 
-    # A forda saját kezdése után (rövid fordánál már -5 perctől) ellenőrizzük a pótlásállapotot.
+    # A forda saját kezdése után ellenőrizzük a pillanatnyi pótlásállapotot.
     # A 70% előtt ez csak ideiglenes kijelzés; a döntési pontnál már nem
     # fagyasztjuk be, hanem normál 70%-os döntés készül belőle.
-    if figyelési_kezdés_dt <= budapest_now <= figyelési_végzés_dt:
+    if kezdés_dt <= budapest_now < végzés_dt:
         forda_kulcs = forda_kulcs_adat(forda_sor)
         forda_adat = forda_rendszamok.get(forda_kulcs, {})
         rendszam = str(forda_adat.get("rendszám", "")).strip()
@@ -2848,14 +2837,14 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
             continue
 
         rekord_dt = datetime.combine(mai_datum, ido, tzinfo=budapest_tz)
-        if rekord_dt < figyelési_kezdés_dt:
+        if rekord_dt < kezdés_dt:
             rekord_dt += timedelta(days=1)
 
-        # Legfeljebb 10 perces tényleges GPS-adat fogadható el a döntésnél.
-        # Rövid fordánál a keresési ablak kezdése -5 perc, a döntés végzés+10,
-        # miközben a megfigyelési időszak végzés+15 percig tart.
+        # Legfeljebb 10 perces GPS-adat fogadható el a 70%-os pillanatban.
+        # Ha ennél régebbi az utolsó valódi pozíció, az eredmény NINCS ADAT,
+        # nem pedig egy elavult helyzet alapján adott I/N.
         if (
-            figyelési_kezdés_dt <= rekord_dt <= döntés_dt
+            kezdés_dt <= rekord_dt <= döntés_dt
             and döntés_dt - rekord_dt <= timedelta(minutes=10)
         ):
             rekordok.append((rekord_dt, rekord))
@@ -2970,42 +2959,6 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         )
 
         if dontes is not None:
-            # A pótlás miatti kék N történeti megjelenítését rögzítjük az adott
-            # idővonal-mintán. Ez kizárólag megjelenítési jelölő: nem módosítja
-            # a végleges I/N kiértékelést, és geozónába visszatéréskor sem töröljük.
-            if str(dontes.get("eredmény", "")).strip() == "pótlás/cserekocsi":
-                # Elsőként a mostani perc mintáját keressük. Ha ebben a futásban
-                # nem érkezett új pozíciórekord, akkor a legutóbbi, legfeljebb
-                # 10 perces mintát jelöljük; régi mintát nem színezünk át.
-                jelolheto = []
-                for rekord in pozicio_tortenet:
-                    if str(rekord.get("viszonylat", "")).strip() != viszonylat:
-                        continue
-                    if str(rekord.get("forda", "")).strip() != forda:
-                        continue
-                    if str(rekord.get("forrás", "biztor")).strip() != forrás:
-                        continue
-                    rekord_frissitve = str(rekord.get("frissítve", "")).strip()
-                    if not rekord_frissitve:
-                        continue
-                    rekord_dt = None
-                    for fmt in ("%H:%M:%S", "%H:%M"):
-                        try:
-                            rekord_ido = datetime.strptime(rekord_frissitve[:8] if fmt == "%H:%M:%S" else rekord_frissitve[:5], fmt).time()
-                            rekord_dt = datetime.combine(most.date(), rekord_ido, tzinfo=ZoneInfo("Europe/Budapest"))
-                            break
-                        except (ValueError, TypeError):
-                            continue
-                    if rekord_dt is None:
-                        continue
-                    if rekord_dt - most > timedelta(minutes=1):
-                        rekord_dt -= timedelta(days=1)
-                    if timedelta(0) <= most - rekord_dt <= timedelta(minutes=10):
-                        jelolheto.append((rekord_dt, rekord))
-                if jelolheto:
-                    _, legfrissebb_minta = max(jelolheto, key=lambda item: item[0])
-                    legfrissebb_minta["pótlás_kék_N"] = True
-
             dontesek[kulcs] = {
                 "viszonylat": viszonylat,
                 "forda": forda,
@@ -3415,8 +3368,7 @@ def html_export():
             "hely": str(forda_sor.get("hely", "")),
             "rendszám": str(forda_adat.get("rendszám", "")).strip(),
             "forrás": "biztor",
-            "ellenőrzés": {},
-            "pótlás_idopontok": set()
+            "ellenőrzés": {}
         }
 
     # A történeti rekordok rákerülnek az előre létrehozott Excel-sorokra.
@@ -3444,8 +3396,6 @@ def html_export():
             sorok[kulcs]["ellenőrzés"][idopont] = (
                 rekord.get("ellenőrzés", "-")
             )
-            if rekord.get("pótlás_kék_N"):
-                sorok[kulcs]["pótlás_idopontok"].add(idopont)
 
 
     # --------------------------------------------------------
@@ -3611,16 +3561,12 @@ def html_export():
                         "%H:%M:%S"
                     )
 
-                    if végzés_dt_map < kezdés_dt_map:
-                        végzés_dt_map += timedelta(days=1)
-                    map_duration = (végzés_dt_map - kezdés_dt_map).total_seconds()
-                    map_window_minutes = 10 if 0 < map_duration < 15 * 60 else 15
                     ellenőrzési_kezdés_map = (
-                        kezdés_dt_map - timedelta(minutes=map_window_minutes)
+                        kezdés_dt_map - timedelta(minutes=15)
                     )
 
                     ellenőrzési_végzés_map = (
-                        végzés_dt_map + timedelta(minutes=map_window_minutes)
+                        végzés_dt_map + timedelta(minutes=15)
                     )
 
                     if not (
@@ -3732,17 +3678,8 @@ def html_export():
                         "%H:%M:%S"
                     )
 
-                    try:
-                        végzés_szoveg = végzés.strip()
-                        végzés_dt_map = datetime.strptime(végzés_szoveg, "%H:%M:%S")
-                        if végzés_dt_map < kezdés_dt_map:
-                            végzés_dt_map += timedelta(days=1)
-                        map_duration = (végzés_dt_map - kezdés_dt_map).total_seconds()
-                    except (ValueError, TypeError):
-                        map_duration = None
-                    prestart_minutes = 10 if map_duration is not None and 0 < map_duration < 15 * 60 else 15
                     prestart_sarga = (
-                        kezdés_dt_map - timedelta(minutes=prestart_minutes)
+                        kezdés_dt_map - timedelta(minutes=15)
                         <= lekérdezés_dt_map
                         < kezdés_dt_map
                     )
@@ -3863,7 +3800,7 @@ def html_export():
             "végzés": str(forda_sor_g.get("végzés", ""))[:5],
             "hely": str(forda_sor_g.get("hely", "")),
             "rendszám": str(forda_rendszamok.get(forda_kulcs_adat(forda_sor_g), {}).get("rendszám", "")),
-            "forrás": "garazs", "ellenőrzés": {}, "pótlás_idopontok": set()
+            "forrás": "garazs", "ellenőrzés": {}
         }
 
     for rekord in pozicio_tortenet:
@@ -3878,8 +3815,6 @@ def html_export():
         idopont_g = str(rekord.get("frissítve", "")).strip()[:5]
         if idopont_g:
             garazs_sorok[kulcs_g]["ellenőrzés"][idopont_g] = rekord.get("ellenőrzés", "-")
-            if rekord.get("pótlás_kék_N"):
-                garazs_sorok[kulcs_g]["pótlás_idopontok"].add(idopont_g)
 
     idopontok = sorted({
         str(rekord.get("frissítve", ""))[:5]
@@ -4682,72 +4617,24 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
         rr = riport_map.get(sor["kulcs"], {})
         eredmeny_riport = str(rr.get("eredmény", "")).strip()
 
-        # A rövid fordáknál a zöld/piros I/N idővonal a teljes, kibővített
-        # figyelési ablakot lefedi: kezdés -5 perc és végzés +15 perc.
-        # A végleges döntést ettől függetlenül a Python döntési logika a
-        # végzés +10 perces időpontjában rögzíti.
-        try:
-            k_dt = datetime.strptime(str(sor["kezdés"]), "%H:%M")
-            v_dt = datetime.strptime(str(sor["végzés"]), "%H:%M")
-            k_perc = k_dt.hour * 60 + k_dt.minute
-            v_perc = v_dt.hour * 60 + v_dt.minute
-            if v_perc < k_perc:
-                v_perc += 24 * 60
-            forda_idotartam_perc = v_perc - k_perc
-            rovid_idotartam = 0 < forda_idotartam_perc < 15
-        except (ValueError, TypeError, KeyError):
-            k_perc = v_perc = None
-            rovid_idotartam = False
-
         for time_index, idopont in enumerate(idopontok):
             eredmeny = sor.get("ellenőrzés", {}).get(idopont, "-")
-            potlas_kek_n = idopont in sor.get("pótlás_idopontok", set())
-            megj = "N" if potlas_kek_n else {"OK":"I","NEM":"N","NINCS ADAT":"?"}.get(eredmeny,"-")
-            osztaly = "potlas" if potlas_kek_n else "neutral"
+            megj = {"OK":"I","NEM":"N","NINCS ADAT":"?"}.get(eredmeny,"-")
+            osztaly = "neutral"
             try:
-                t_dt = datetime.strptime(idopont, "%H:%M")
-                t_perc = t_dt.hour * 60 + t_dt.minute
-                k = datetime.strptime(sor["kezdés"], "%H:%M")
-                v = datetime.strptime(sor["végzés"], "%H:%M")
-                t = t_dt
-                if v < k:
-                    v += timedelta(days=1)
-                if t < k and v.date() > k.date():
-                    t += timedelta(days=1)
-
-                if rovid_idotartam and k_perc is not None:
-                    # A kezdéshez viszonyított legkisebb előjeles időeltérés
-                    # kezeli a kezdés előtti -5 percet és az éjfélváltást is.
-                    eltelt_perc = ((t_perc - k_perc + 720) % (24 * 60)) - 720
-                    ablakban = -5 <= eltelt_perc <= (forda_idotartam_perc + 15)
-                    if ablakban:
-                        if potlas_kek_n:
-                            megj = "N"
-                            osztaly = "potlas"
-                        else:
-                            osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
-                            if eredmeny not in ("OK", "NEM", "NINCS ADAT"):
-                                megj = "-"
-                    else:
-                        megj = "-"
-                        osztaly = "neutral"
-                elif k <= t <= v:
-                    if potlas_kek_n:
-                        megj = "N"
-                        osztaly = "potlas"
-                    else:
-                        osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
-                    # A pótláskor rögzített kék N történeti kijelzés marad,
-                    # akkor is, ha egy későbbi pozíció már saját geozónát jelez.
-                    if (not potlas_kek_n and eredmeny_riport == "pótlás/cserekocsi"
+                t=datetime.strptime(idopont,"%H:%M"); k=datetime.strptime(sor["kezdés"],"%H:%M"); v=datetime.strptime(sor["végzés"],"%H:%M")
+                if k <= t <= v:
+                    osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
+                    # Végállomási forda pótlás/cserekocsi állapotánál a kezdés
+                    # utáni N jelzés kék, nem a szokásos piros.
+                    if (eredmeny_riport == "pótlás/cserekocsi"
                             and t >= k and eredmeny == "NEM"):
                         osztaly = "potlas"
                 elif k - timedelta(minutes=15) <= t < k or v < t <= v + timedelta(minutes=15):
-                    osztaly = "neutral"
-                    megj = "-" if eredmeny not in ("OK", "NEM") else megj
+                    osztaly = "neutral"; megj = "-" if eredmeny not in ("OK","NEM") else megj
                 else:
                     megj = "-"
-            except (ValueError, TypeError, KeyError):
+            except (ValueError,TypeError):
                 osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
             html.append(f'<td class="idopont-cella" data-time-index="{time_index}"><span class="status-pill {osztaly}">{escape(megj)}</span></td>')
 
@@ -4784,15 +4671,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   const tbody=table?.querySelector('tbody');
   const buttons=document.querySelectorAll('.nezet-gomb');
   if(!fo||!slider||!table||!tbody)return;
-  const NEZET_STORAGE_KEY='hidegtarolas-aktiv-nezet';
-  const ERVENYES_NEZETEK=['mindketto','biztor','garazs'];
-  function betoltottNezet(){
-    try{
-      const mentett=localStorage.getItem(NEZET_STORAGE_KEY);
-      return ERVENYES_NEZETEK.includes(mentett) ? mentett : 'mindketto';
-    }catch(e){return 'mindketto';}
-  }
-  let currentView=betoltottNezet(),sortState={col:null,dir:1};
+  let currentView='biztor',sortState={col:null,dir:1};
 
 
   function mobilTablaSorrend(){
@@ -4896,12 +4775,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
       fo.scrollLeft=max;
     }
   }
-  function view(v,mentes=true){
-    if(!ERVENYES_NEZETEK.includes(v)) v='mindketto';
+  function view(v){
     currentView=v;
-    if(mentes){
-      try{localStorage.setItem(NEZET_STORAGE_KEY,v);}catch(e){}
-    }
     buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===v));
     fo.classList.remove('view-biztor','view-garazs','view-mindketto');
     fo.classList.add('view-'+v);fo.classList.toggle('all-view',v==='mindketto');
@@ -4965,15 +4840,12 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
       scrollFrame=0;
     });
   },{passive:true});
-  buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet,true)));
+  buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet)));
   sortButtons.forEach(b=>b.addEventListener('click',()=>sort(b)));
   filterInputs.forEach(i=>i.addEventListener('input',filters));
   window.addEventListener('resize',()=>requestAnimationFrame(()=>{mobilTablaSorrend();layout();}));
   rowList.forEach(r=>r.dataset.filterMatch='1');
-  // Első megnyitáskor nincs korábbi választás: az Összes nézet az alapértelmezés.
-  // Frissítéskor az ezen a böngészőn legutóbb kiválasztott nézet áll vissza.
-  view(currentView,false);
-  layout();
+  view('biztor');layout();
 })();
 (function(){
   const btn=document.getElementById('theme-toggle');
@@ -5235,24 +5107,9 @@ function frissitTerkepNezet(view) {
     }
 }
 
-const NEZET_STORAGE_KEY = 'hidegtarolas-aktiv-nezet';
-const ERVENYES_NEZETEK = ['mindketto', 'biztor', 'garazs'];
-function betoltottTerkepNezet(){
-    try {
-        const mentett = localStorage.getItem(NEZET_STORAGE_KEY);
-        return ERVENYES_NEZETEK.includes(mentett) ? mentett : 'mindketto';
-    } catch (e) {
-        return 'mindketto';
-    }
-}
-
 document.querySelectorAll(".nezet-gomb").forEach(function(btn){
     btn.addEventListener("click", function(){
-        const nezet = ERVENYES_NEZETEK.includes(this.dataset.nezet)
-            ? this.dataset.nezet
-            : 'mindketto';
-        try { localStorage.setItem(NEZET_STORAGE_KEY, nezet); } catch (e) {}
-        frissitTerkepNezet(nezet);
+        frissitTerkepNezet(this.dataset.nezet);
     });
 });
 
@@ -5285,8 +5142,7 @@ document.querySelectorAll(".rendszam-link").forEach(function(btn){
 // TÉRKÉP NÉZET BEÁLLÍTÁSA
 // ---------------------------------------------------------
 
-// A térkép ugyanazt a nézetet állítja vissza, mint a táblázat.
-frissitTerkepNezet(betoltottTerkepNezet());
+frissitTerkepNezet("biztor");
 
 const garazsAblak = document.getElementById("garazs-idopont-ablak");
 const garazsBelso = document.getElementById("garazs-idopont-belső");
