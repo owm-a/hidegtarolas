@@ -679,23 +679,6 @@ def ido_konvertalasa(ertek):
     )
 
 
-
-def forda_idotartam_legalabb_15_perc(kezdes, vegzes):
-    """Csak a legalább 15 perces fordák maradjanak a figyelési listában."""
-    kezdet_mp = ido_masodpercben(kezdes)
-    veg_mp = ido_masodpercben(vegzes)
-
-    # Hiányzó vagy nem értelmezhető idő esetén nem szűrünk ki találomra.
-    if kezdet_mp is None or veg_mp is None:
-        return True
-
-    # Éjfélen átnyúló forda kezelése.
-    if veg_mp < kezdet_mp:
-        veg_mp += 24 * 60 * 60
-
-    return veg_mp - kezdet_mp >= 15 * 60
-
-
 # =========================================================
 # 9/b. AKTUÁLIS BUDAPESTI DÁTUM
 # =========================================================
@@ -947,14 +930,6 @@ for i in range(7, len(excel)):
         vegzes
     )
 
-    # 15 percnél rövidebb forda nem kerül be egyik táblába sem.
-    if not forda_idotartam_legalabb_15_perc(kezdes, vegzes):
-        print(
-            f"Kihagyva (15 percnél rövidebb forda): "
-            f"{viszonylat} / {forda} ({kezdes}–{vegzes})"
-        )
-        continue
-
 
     # -----------------------------------------------------
     # Hely
@@ -1104,15 +1079,6 @@ for i in range(5, len(excel_garazs)):
 
     kezdes = ido_konvertalasa(kezdes)
     vegzes = ido_konvertalasa(vegzes)
-
-    # 15 percnél rövidebb forda nem kerül be egyik táblába sem.
-    if not forda_idotartam_legalabb_15_perc(kezdes, vegzes):
-        print(
-            f"Kihagyva (15 percnél rövidebb forda): "
-            f"{viszonylat} / {forda} ({kezdes}–{vegzes})"
-        )
-        continue
-
     hely = str(hely).strip() if pd.notna(hely) else ""
 
     helyszin_talalatok = []
