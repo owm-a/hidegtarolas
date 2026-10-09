@@ -625,9 +625,13 @@ def forda_aktiv_e(kezdés, végzés, időpont):
         return False
     if veg < kezdet:
         veg += 24 * 3600
-    if most < kezdet:
+    idotartam = veg - kezdet
+    ablak_perc = 10 if 0 < idotartam < 15 * 60 else 15
+    # A kezdés előtti, közeli időpontot ne tekintsük automatikusan másnapnak.
+    # Csak akkor léptetjük át éjfélen az aktuális időt, ha nem a pre-start ablakban van.
+    if most < kezdet and kezdet - most > ablak_perc * 60:
         most += 24 * 3600
-    return kezdet - 15 * 60 <= most <= veg + 15 * 60
+    return kezdet - ablak_perc * 60 <= most <= veg + ablak_perc * 60
 
 
 def atomikus_json_mentes(fajl, adat):
@@ -680,20 +684,15 @@ def ido_konvertalasa(ertek):
 
 
 
-def forda_idotartam_legalabb_15_perc(kezdes, vegzes):
-    """Csak a legalább 15 perces fordák maradjanak a figyelési listában."""
+def forda_15_percnel_rovidebb(kezdes, vegzes):
+    """Igaz, ha a forda rövidebb 15 percnél; ezeket is figyelni kell."""
     kezdet_mp = ido_masodpercben(kezdes)
     veg_mp = ido_masodpercben(vegzes)
-
-    # Hiányzó vagy nem értelmezhető idő esetén nem szűrünk ki találomra.
     if kezdet_mp is None or veg_mp is None:
-        return True
-
-    # Éjfélen átnyúló forda kezelése.
+        return False
     if veg_mp < kezdet_mp:
         veg_mp += 24 * 60 * 60
-
-    return veg_mp - kezdet_mp >= 15 * 60
+    return 0 < veg_mp - kezdet_mp < 15 * 60
 
 
 # =========================================================
@@ -947,13 +946,8 @@ for i in range(7, len(excel)):
         vegzes
     )
 
-    # 15 percnél rövidebb forda nem kerül be egyik táblába sem.
-    if not forda_idotartam_legalabb_15_perc(kezdes, vegzes):
-        print(
-            f"Kihagyva (15 percnél rövidebb forda): "
-            f"{viszonylat} / {forda} ({kezdes}–{vegzes})"
-        )
-        continue
+    # A 15 percnél rövidebb fordák is bekerülnek; külön, -10/+10 perces
+    # figyelési és késői kiértékelési ablakot kapnak.
 
 
     # -----------------------------------------------------
@@ -1105,13 +1099,8 @@ for i in range(5, len(excel_garazs)):
     kezdes = ido_konvertalasa(kezdes)
     vegzes = ido_konvertalasa(vegzes)
 
-    # 15 percnél rövidebb forda nem kerül be egyik táblába sem.
-    if not forda_idotartam_legalabb_15_perc(kezdes, vegzes):
-        print(
-            f"Kihagyva (15 percnél rövidebb forda): "
-            f"{viszonylat} / {forda} ({kezdes}–{vegzes})"
-        )
-        continue
+    # A 15 percnél rövidebb fordák is bekerülnek; külön, -10/+10 perces
+    # figyelési és késői kiértékelési ablakot kapnak.
 
     hely = str(hely).strip() if pd.notna(hely) else ""
 
@@ -2643,7 +2632,11 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
     if végzés_dt < kezdés_dt:
         végzés_dt += timedelta(days=1)
 
-    if not (kezdés_dt <= most < végzés_dt):
+    teljes_idotartam = (végzés_dt - kezdés_dt).total_seconds()
+    rovid_forda = 0 < teljes_idotartam < 15 * 60
+    figyelési_kezdés_dt = kezdés_dt - timedelta(minutes=10) if rovid_forda else kezdés_dt
+    figyelési_végzés_dt = végzés_dt + timedelta(minutes=10) if rovid_forda else végzés_dt
+    if not (figyelési_kezdés_dt <= most <= figyelési_végzés_dt):
         return None
 
     teljes_idotartam = (végzés_dt - kezdés_dt).total_seconds()
@@ -2679,10 +2672,10 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
             if ido is None:
                 continue
             rekord_dt = datetime.combine(mai_datum, ido, tzinfo=budapest_tz)
-            if rekord_dt < kezdés_dt:
+            if rekord_dt < figyelési_kezdés_dt:
                 rekord_dt += timedelta(days=1)
             if (
-                kezdés_dt <= rekord_dt <= most
+                figyelési_kezdés_dt <= rekord_dt <= most
                 and most - rekord_dt <= timedelta(minutes=10)
             ):
                 sajat_rekordok.append((rekord_dt, rekord))
@@ -2740,7 +2733,8 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
 
 def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
     """
-    A hidegtárolási döntés a forda saját idejének 70%-os pontján születik.
+    A hosszabb fordák döntése a menetrendi idő 70%-os pontján születik.
+    A 15 percnél rövidebb fordáknál a figyelés -10/+10 perces, a döntés a végzés+10 ponton történik.
 
     Fontos:
     - Nem a forda későbbi állapotát nézzük.
@@ -2775,13 +2769,23 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
     if teljes_idotartam <= 0:
         return None
 
-    döntés_dt = kezdés_dt + timedelta(seconds=teljes_idotartam * 0.70)
+    rovid_forda = teljes_idotartam < 15 * 60
+    figyelési_kezdés_dt = kezdés_dt - timedelta(minutes=10) if rovid_forda else kezdés_dt
+    figyelési_végzés_dt = végzés_dt + timedelta(minutes=10) if rovid_forda else végzés_dt
+    # Rövid fordáknál a teljes megfigyelési ablak -10 perctől +10 percig tart,
+    # és a végleges értékelés a tervezett végzés után 10 perccel történik.
+    # A hosszabb fordáknál változatlanul a tervezett időtartam 70%-a dönt.
+    döntés_dt = (
+        figyelési_végzés_dt
+        if rovid_forda
+        else kezdés_dt + timedelta(seconds=teljes_idotartam * 0.70)
+    )
     potlas = None
 
-    # A forda saját kezdése után ellenőrizzük a pillanatnyi pótlásállapotot.
+    # A forda saját kezdése után (rövid fordánál már -10 perctől) ellenőrizzük a pótlásállapotot.
     # A 70% előtt ez csak ideiglenes kijelzés; a döntési pontnál már nem
     # fagyasztjuk be, hanem normál 70%-os döntés készül belőle.
-    if kezdés_dt <= budapest_now < végzés_dt:
+    if figyelési_kezdés_dt <= budapest_now <= figyelési_végzés_dt:
         forda_kulcs = forda_kulcs_adat(forda_sor)
         forda_adat = forda_rendszamok.get(forda_kulcs, {})
         rendszam = str(forda_adat.get("rendszám", "")).strip()
@@ -2837,14 +2841,14 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
             continue
 
         rekord_dt = datetime.combine(mai_datum, ido, tzinfo=budapest_tz)
-        if rekord_dt < kezdés_dt:
+        if rekord_dt < figyelési_kezdés_dt:
             rekord_dt += timedelta(days=1)
 
-        # Legfeljebb 10 perces GPS-adat fogadható el a 70%-os pillanatban.
-        # Ha ennél régebbi az utolsó valódi pozíció, az eredmény NINCS ADAT,
-        # nem pedig egy elavult helyzet alapján adott I/N.
+        # Legfeljebb 10 perces tényleges GPS-adat fogadható el a döntésnél.
+        # Rövid fordánál a keresési ablak kezdete 10 perccel a menetrendi
+        # kezdés elé kerül, a döntés pedig a végzés +10 perces pontján születik.
         if (
-            kezdés_dt <= rekord_dt <= döntés_dt
+            figyelési_kezdés_dt <= rekord_dt <= döntés_dt
             and döntés_dt - rekord_dt <= timedelta(minutes=10)
         ):
             rekordok.append((rekord_dt, rekord))
@@ -3561,12 +3565,16 @@ def html_export():
                         "%H:%M:%S"
                     )
 
+                    if végzés_dt_map < kezdés_dt_map:
+                        végzés_dt_map += timedelta(days=1)
+                    map_duration = (végzés_dt_map - kezdés_dt_map).total_seconds()
+                    map_window_minutes = 10 if 0 < map_duration < 15 * 60 else 15
                     ellenőrzési_kezdés_map = (
-                        kezdés_dt_map - timedelta(minutes=15)
+                        kezdés_dt_map - timedelta(minutes=map_window_minutes)
                     )
 
                     ellenőrzési_végzés_map = (
-                        végzés_dt_map + timedelta(minutes=15)
+                        végzés_dt_map + timedelta(minutes=map_window_minutes)
                     )
 
                     if not (
@@ -3678,8 +3686,17 @@ def html_export():
                         "%H:%M:%S"
                     )
 
+                    try:
+                        végzés_szoveg = végzés.strip()
+                        végzés_dt_map = datetime.strptime(végzés_szoveg, "%H:%M:%S")
+                        if végzés_dt_map < kezdés_dt_map:
+                            végzés_dt_map += timedelta(days=1)
+                        map_duration = (végzés_dt_map - kezdés_dt_map).total_seconds()
+                    except (ValueError, TypeError):
+                        map_duration = None
+                    prestart_minutes = 10 if map_duration is not None and 0 < map_duration < 15 * 60 else 15
                     prestart_sarga = (
-                        kezdés_dt_map - timedelta(minutes=15)
+                        kezdés_dt_map - timedelta(minutes=prestart_minutes)
                         <= lekérdezés_dt_map
                         < kezdés_dt_map
                     )
