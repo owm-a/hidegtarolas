@@ -2588,14 +2588,14 @@ def gps_geozona_vagy_koordinata(pozicio):
     return f"{latitude}, {longitude}"
 
 
-def _gtfs_rt_potlasban_van(forda_sor, rendszam, most):
+def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
     """
-    GTFS-RT alapján eldönti, hogy a forda saját 70%-os döntési pontja előtt
-    a hozzá rendelt rendszám éppen egy, a saját fordán kívüli tripet teljesít-e.
+    GTFS-RT alapján felismeri a fordán kívüli tripet.
 
-    Fontos: nem a forrás Excel másik fordáit vizsgáljuk.
-    A forrás Excel csak azt mondja meg, melyik forda rendszámát figyeljük.
-    Az aktuális trip kizárólag a GTFS-RT-ből származhat.
+    A végállomásos (BIZTOR) sorban a pótlásjelzés ideiglenes:
+    ha a pótlás megfigyelése után a jármű a saját geozónájába ér,
+    a normál I/N állapotnak kell visszaállnia. A garázsforrásra ez a
+    geozónás visszaváltási szabály nem vonatkozik.
     """
     rendszam = str(rendszam or "").strip().upper()
     if not rendszam or not isinstance(jarmuvek, pd.DataFrame) or jarmuvek.empty:
@@ -2622,9 +2622,36 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most):
 
     döntés_dt = kezdés_dt + timedelta(seconds=teljes_idotartam * 0.70)
 
-    # A 70%-os döntés után a pótlásfigyelés már irreleváns.
-    if most >= döntés_dt:
-        return None
+    # A BIZTOR táblázatban az aktuális GPS-ellenőrzés mutatja, hogy a
+    # jármű visszaért-e a saját (Excelben megadott) geozónájába.
+    # Csak a forda kezdése utáni legfrissebb pozíciót vesszük figyelembe.
+    forrás = str(forda_sor.get("forrás", "biztor")).strip() or "biztor"
+    if forrás == "biztor" and isinstance(pozicio_tortenet, list):
+        sajat_rekordok = []
+        for rekord in pozicio_tortenet:
+            if str(rekord.get("viszonylat", "")).strip() != str(forda_sor.get("viszonylat", "")).strip():
+                continue
+            if str(rekord.get("forda", "")).strip() != str(forda_sor.get("forda", "")).strip():
+                continue
+            if str(rekord.get("forrás", "biztor")).strip() != "biztor":
+                continue
+            try:
+                frissites = datetime.strptime(str(rekord.get("frissítve", "")).strip(), "%H:%M:%S").time()
+                rekord_dt = datetime.combine(mai_datum, frissites, tzinfo=budapest_tz)
+                if rekord_dt < kezdés_dt:
+                    rekord_dt += timedelta(days=1)
+            except (ValueError, TypeError):
+                continue
+            if kezdés_dt <= rekord_dt <= most:
+                sajat_rekordok.append((rekord_dt, rekord))
+
+        if sajat_rekordok:
+            _, legutobbi_pozicio = max(sajat_rekordok, key=lambda x: x[0])
+            if str(legutobbi_pozicio.get("ellenőrzés", "-")).strip().upper() == "OK":
+                return None
+
+    # A 70%-os pont után is meg kell tudnunk állapítani, hogy a jármű
+    # éppen pótláson van-e, mert a 70%-os döntésnél ez I-nek számít.
 
     # A saját forda mai, tényleges tripjei.
     viszonylat = str(forda_sor.get("viszonylat", "")).strip()
@@ -2702,10 +2729,16 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
     if végzés_dt < kezdés_dt:
         végzés_dt += timedelta(days=1)
 
-    # A forda saját kezdése után, de a 70%-os döntési pont előtt
-    # GTFS-RT alapján figyeljük, hogy a hozzárendelt rendszám
-    # fordán kívüli tripben vesz-e részt.
-    # Ez a döntés végleges, a későbbi 70%-os döntés nem írhatja felül.
+    teljes_idotartam = (végzés_dt - kezdés_dt).total_seconds()
+    if teljes_idotartam <= 0:
+        return None
+
+    döntés_dt = kezdés_dt + timedelta(seconds=teljes_idotartam * 0.70)
+    potlas = None
+
+    # A forda saját kezdése után ellenőrizzük a pillanatnyi pótlásállapotot.
+    # A 70% előtt ez csak ideiglenes kijelzés; a döntési pontnál már nem
+    # fagyasztjuk be, hanem normál 70%-os döntés készül belőle.
     if kezdés_dt <= budapest_now < végzés_dt:
         forda_kulcs = forda_kulcs_adat(forda_sor)
         forda_adat = forda_rendszamok.get(forda_kulcs, {})
@@ -2714,10 +2747,11 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
         potlas = _gtfs_rt_potlasban_van(
             forda_sor,
             rendszam,
-            budapest_now
+            budapest_now,
+            pozicio_tortenet=pozicio_tortenet
         )
 
-        if potlas is not None:
+        if potlas is not None and budapest_now < döntés_dt:
             return {
                 "eredmény": "pótlás/cserekocsi",
                 "tárolás helye": "---",
@@ -2728,13 +2762,7 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
                 "pótlás_direction_id": potlas["direction_id"],
             }
 
-    teljes_idotartam = (végzés_dt - kezdés_dt).total_seconds()
-    if teljes_idotartam <= 0:
-        return None
-
-    döntés_dt = kezdés_dt + timedelta(seconds=teljes_idotartam * 0.70)
-
-    # A 70%-os pont előtt még nincs döntés.
+    # A 70%-os pont előtt még nincs végleges döntés.
     if budapest_now < döntés_dt:
         return None
 
@@ -2768,6 +2796,8 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
     if rekordok:
         _, rekord = rekordok[-1]
         állapot = str(rekord.get("ellenőrzés", "-")).strip().upper()
+        if potlas is not None and str(forda_sor.get("forrás", "biztor")).strip() != "garazs":
+            állapot = "OK"
         if állapot == "OK":
             eredmény = "RENDBEN TÁROLT"
         elif állapot == "NEM":
@@ -2778,9 +2808,15 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
             rekord.get("pozíció", "")
         )
     else:
-        # A 70%-os pontig nem volt használható GPS-adat: ez nem NEM.
-        eredmény = "NINCS ADAT"
-        tárolás_helye = "Nincs adat"
+        # Ha a BIZTOR jármű a 70%-os pillanatban még pótlásban van,
+        # az értékelés I legyen akkor is, ha nincs külön GPS-rekord.
+        if potlas is not None and str(forda_sor.get("forrás", "biztor")).strip() != "garazs":
+            eredmény = "RENDBEN TÁROLT"
+            tárolás_helye = "---"
+        else:
+            # A 70%-os pontig nem volt használható GPS-adat: ez nem NEM.
+            eredmény = "NINCS ADAT"
+            tárolás_helye = "Nincs adat"
 
     return {
         "eredmény": eredmény,
@@ -2840,8 +2876,16 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         forda = str(forda_sor["forda"]).strip()
         kulcs = forda_kulcs_adat(forda_sor)
 
-        # Ha már döntöttünk róla, az eredmény és a hely végleges.
-        if kulcs in dontesek:
+        korabbi_dontes = dontesek.get(kulcs, {})
+        korabbi_potlas = (
+            isinstance(korabbi_dontes, dict)
+            and str(korabbi_dontes.get("eredmény", "")).strip() == "pótlás/cserekocsi"
+        )
+
+        # A végleges döntés változatlan marad. A BIZTOR pótlásjelzés viszont
+        # ideiglenes: minden futáskor újraértékeljük, és töröljük, ha a busz
+        # visszaért a saját geozónájába a 70%-os pont előtt.
+        if kulcs in dontesek and (not korabbi_potlas or forrás == "garazs"):
             continue
 
         dontes = hidegtarolas_70_dontes(
@@ -2865,6 +2909,10 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
                 "pótlás_direction_id": dontes.get("pótlás_direction_id", "")
             }
             uj_dontes += 1
+        elif korabbi_potlas and forrás != "garazs":
+            # A pótlás megszűnt a 70%-os döntés előtt: ne maradjon bent
+            # korábbi, ideiglenes eredmény; a Valós tárolás n.a lesz.
+            dontesek.pop(kulcs, None)
 
     eredmenyek = []
 
@@ -4531,7 +4579,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
             rcls = "tarolas-na"
         elif eredmeny_riport == "pótlás/cserekocsi":
             if forras == "biztor":
-                tarolas = "pótlás/cserekocsi addig, ameddig nincs a megfelelő geozónájában"
+                tarolas = "pótlás/cserekocsi"
             else:
                 tarolas = "---"
             rcls = "tarolas-potlas"
