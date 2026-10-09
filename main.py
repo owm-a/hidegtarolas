@@ -3883,6 +3883,7 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .status-pill.ok{color:#6ee7a8;background:rgba(54,181,116,.16);border-color:rgba(92,220,150,.34)}
 .status-pill.nem{color:#ff858d;background:rgba(218,75,84,.16);border-color:rgba(255,113,124,.34)}
 .status-pill.neutral{color:var(--muted);background:rgba(148,163,184,.10);border-color:rgba(148,163,184,.20)}
+.status-pill.potlas{color:#4da3ff;background:rgba(77,163,255,.16);border-color:rgba(77,163,255,.42)}
 .fix-tabla td.ellenorzes{background:var(--surface);padding:2px 3px}
 .storage-tabla th{width:max-content;min-width:0;white-space:nowrap}.storage-tabla td.tarolas{width:max-content;min-width:0;white-space:nowrap;font-weight:750;padding:0 8px;line-height:22px;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
 .storage-tabla td.tarolas-ok{color:#6ee7a8;border-top-color:var(--border);border-bottom-color:var(--border)}
@@ -4499,6 +4500,10 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
         rs_html = f'<button type="button" class="rendszam-link" data-rendszam="{escape(rs)}" title="Jármű megjelenítése a térképen">{escape(rs)}</button>' if rs else ""
         html.append(f'<td class="rendszam sticky-bal bal-6">{rs_html}</td>')
 
+        riport_map = riport_eredmenyek if forras == "biztor" else garazs_riport_eredmenyek
+        rr = riport_map.get(sor["kulcs"], {})
+        eredmeny_riport = str(rr.get("eredmény", "")).strip()
+
         for time_index, idopont in enumerate(idopontok):
             eredmeny = sor.get("ellenőrzés", {}).get(idopont, "-")
             megj = {"OK":"I","NEM":"N","NINCS ADAT":"?"}.get(eredmeny,"-")
@@ -4507,6 +4512,11 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
                 t=datetime.strptime(idopont,"%H:%M"); k=datetime.strptime(sor["kezdés"],"%H:%M"); v=datetime.strptime(sor["végzés"],"%H:%M")
                 if k <= t <= v:
                     osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
+                    # Végállomási forda pótlás/cserekocsi állapotánál a kezdés
+                    # utáni N jelzés kék, nem a szokásos piros.
+                    if (forras == "biztor" and eredmeny_riport == "pótlás/cserekocsi"
+                            and t >= k and eredmeny == "NEM"):
+                        osztaly = "potlas"
                 elif k - timedelta(minutes=15) <= t < k or v < t <= v + timedelta(minutes=15):
                     osztaly = "neutral"; megj = "-" if eredmeny not in ("OK","NEM") else megj
                 else:
@@ -4515,15 +4525,15 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
                 osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
             html.append(f'<td class="idopont-cella" data-time-index="{time_index}"><span class="status-pill {osztaly}">{escape(megj)}</span></td>')
 
-        riport_map = riport_eredmenyek if forras == "biztor" else garazs_riport_eredmenyek
-        rr = riport_map.get(sor["kulcs"], {})
-        eredmeny_riport = str(rr.get("eredmény", "")).strip()
         tarolas = str(rr.get("tárolás helye", "")).strip()
         if not rr or not eredmeny_riport:
             tarolas = "n.a"
             rcls = "tarolas-na"
         elif eredmeny_riport == "pótlás/cserekocsi":
-            tarolas = "---"
+            if forras == "biztor":
+                tarolas = "pótlás/cserekocsi addig, ameddig nincs a megfelelő geozónájában"
+            else:
+                tarolas = "---"
             rcls = "tarolas-potlas"
         elif tarolas in ("Nincs adat", "-"):
             # Az ELTÉRÉS lehet valódi ellenőrzési eredmény, de ha
