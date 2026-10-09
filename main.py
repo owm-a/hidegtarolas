@@ -626,12 +626,18 @@ def forda_aktiv_e(kezdés, végzés, időpont):
     if veg < kezdet:
         veg += 24 * 3600
     idotartam = veg - kezdet
-    ablak_perc = 10 if 0 < idotartam < 15 * 60 else 15
+    rovid_forda = 0 < idotartam < 15 * 60
+    kezdes_elotti_perc = 5 if rovid_forda else 15
+    vegzes_utani_perc = 15
     # A kezdés előtti, közeli időpontot ne tekintsük automatikusan másnapnak.
-    # Csak akkor léptetjük át éjfélen az aktuális időt, ha nem a pre-start ablakban van.
-    if most < kezdet and kezdet - most > ablak_perc * 60:
+    # Rövid fordáknál -5/+15 perc a figyelési ablak; más fordáknál a korábbi ±15 perc.
+    if most < kezdet and kezdet - most > kezdes_elotti_perc * 60:
         most += 24 * 3600
-    return kezdet - ablak_perc * 60 <= most <= veg + ablak_perc * 60
+    return (
+        kezdet - kezdes_elotti_perc * 60
+        <= most
+        <= veg + vegzes_utani_perc * 60
+    )
 
 
 def atomikus_json_mentes(fajl, adat):
@@ -2634,8 +2640,8 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
 
     teljes_idotartam = (végzés_dt - kezdés_dt).total_seconds()
     rovid_forda = 0 < teljes_idotartam < 15 * 60
-    figyelési_kezdés_dt = kezdés_dt - timedelta(minutes=10) if rovid_forda else kezdés_dt
-    figyelési_végzés_dt = végzés_dt + timedelta(minutes=10) if rovid_forda else végzés_dt
+    figyelési_kezdés_dt = kezdés_dt - timedelta(minutes=5) if rovid_forda else kezdés_dt
+    figyelési_végzés_dt = végzés_dt + timedelta(minutes=15) if rovid_forda else végzés_dt
     if not (figyelési_kezdés_dt <= most <= figyelési_végzés_dt):
         return None
 
@@ -2734,7 +2740,8 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
 def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
     """
     A hosszabb fordák döntése a menetrendi idő 70%-os pontján születik.
-    A 15 percnél rövidebb fordáknál a figyelés -10/+10 perces, a döntés a végzés+10 ponton történik.
+    A 15 percnél rövidebb fordáknál a figyelés kezdés-5/végzés+15 perces,
+    a végleges értékelés pedig a menetrendi végzés+10 perces pontján történik.
 
     Fontos:
     - Nem a forda későbbi állapotát nézzük.
@@ -2770,19 +2777,19 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
         return None
 
     rovid_forda = teljes_idotartam < 15 * 60
-    figyelési_kezdés_dt = kezdés_dt - timedelta(minutes=10) if rovid_forda else kezdés_dt
-    figyelési_végzés_dt = végzés_dt + timedelta(minutes=10) if rovid_forda else végzés_dt
-    # Rövid fordáknál a teljes megfigyelési ablak -10 perctől +10 percig tart,
-    # és a végleges értékelés a tervezett végzés után 10 perccel történik.
+    figyelési_kezdés_dt = kezdés_dt - timedelta(minutes=5) if rovid_forda else kezdés_dt
+    figyelési_végzés_dt = végzés_dt + timedelta(minutes=15) if rovid_forda else végzés_dt
+    # Rövid fordáknál a megfigyelési ablak kezdés-5 és végzés+15 perc,
+    # de a végleges értékelés mindig végzés+10 perckor történik.
     # A hosszabb fordáknál változatlanul a tervezett időtartam 70%-a dönt.
     döntés_dt = (
-        figyelési_végzés_dt
+        végzés_dt + timedelta(minutes=10)
         if rovid_forda
         else kezdés_dt + timedelta(seconds=teljes_idotartam * 0.70)
     )
     potlas = None
 
-    # A forda saját kezdése után (rövid fordánál már -10 perctől) ellenőrizzük a pótlásállapotot.
+    # A forda saját kezdése után (rövid fordánál már -5 perctől) ellenőrizzük a pótlásállapotot.
     # A 70% előtt ez csak ideiglenes kijelzés; a döntési pontnál már nem
     # fagyasztjuk be, hanem normál 70%-os döntés készül belőle.
     if figyelési_kezdés_dt <= budapest_now <= figyelési_végzés_dt:
@@ -2845,8 +2852,8 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
             rekord_dt += timedelta(days=1)
 
         # Legfeljebb 10 perces tényleges GPS-adat fogadható el a döntésnél.
-        # Rövid fordánál a keresési ablak kezdete 10 perccel a menetrendi
-        # kezdés elé kerül, a döntés pedig a végzés +10 perces pontján születik.
+        # Rövid fordánál a keresési ablak kezdése -5 perc, a döntés végzés+10,
+        # miközben a megfigyelési időszak végzés+15 percig tart.
         if (
             figyelési_kezdés_dt <= rekord_dt <= döntés_dt
             and döntés_dt - rekord_dt <= timedelta(minutes=10)
@@ -4676,7 +4683,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
         eredmeny_riport = str(rr.get("eredmény", "")).strip()
 
         # A rövid fordáknál a zöld/piros I/N idővonal a teljes, kibővített
-        # figyelési ablakot lefedi: kezdés -10 perc és végzés +10 perc.
+        # figyelési ablakot lefedi: kezdés -5 perc és végzés +15 perc.
         # A végleges döntést ettől függetlenül a Python döntési logika a
         # végzés +10 perces időpontjában rögzíti.
         try:
@@ -4710,9 +4717,9 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 
                 if rovid_idotartam and k_perc is not None:
                     # A kezdéshez viszonyított legkisebb előjeles időeltérés
-                    # kezeli a kezdés előtti -10 percet és az éjfélváltást is.
+                    # kezeli a kezdés előtti -5 percet és az éjfélváltást is.
                     eltelt_perc = ((t_perc - k_perc + 720) % (24 * 60)) - 720
-                    ablakban = -10 <= eltelt_perc <= (forda_idotartam_perc + 10)
+                    ablakban = -5 <= eltelt_perc <= (forda_idotartam_perc + 15)
                     if ablakban:
                         if potlas_kek_n:
                             megj = "N"
