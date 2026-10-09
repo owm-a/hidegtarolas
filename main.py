@@ -2963,6 +2963,42 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         )
 
         if dontes is not None:
+            # A pótlás miatti kék N történeti megjelenítését rögzítjük az adott
+            # idővonal-mintán. Ez kizárólag megjelenítési jelölő: nem módosítja
+            # a végleges I/N kiértékelést, és geozónába visszatéréskor sem töröljük.
+            if str(dontes.get("eredmény", "")).strip() == "pótlás/cserekocsi":
+                # Elsőként a mostani perc mintáját keressük. Ha ebben a futásban
+                # nem érkezett új pozíciórekord, akkor a legutóbbi, legfeljebb
+                # 10 perces mintát jelöljük; régi mintát nem színezünk át.
+                jelolheto = []
+                for rekord in pozicio_tortenet:
+                    if str(rekord.get("viszonylat", "")).strip() != viszonylat:
+                        continue
+                    if str(rekord.get("forda", "")).strip() != forda:
+                        continue
+                    if str(rekord.get("forrás", "biztor")).strip() != forrás:
+                        continue
+                    rekord_frissitve = str(rekord.get("frissítve", "")).strip()
+                    if not rekord_frissitve:
+                        continue
+                    rekord_dt = None
+                    for fmt in ("%H:%M:%S", "%H:%M"):
+                        try:
+                            rekord_ido = datetime.strptime(rekord_frissitve[:8] if fmt == "%H:%M:%S" else rekord_frissitve[:5], fmt).time()
+                            rekord_dt = datetime.combine(most.date(), rekord_ido, tzinfo=ZoneInfo("Europe/Budapest"))
+                            break
+                        except (ValueError, TypeError):
+                            continue
+                    if rekord_dt is None:
+                        continue
+                    if rekord_dt - most > timedelta(minutes=1):
+                        rekord_dt -= timedelta(days=1)
+                    if timedelta(0) <= most - rekord_dt <= timedelta(minutes=10):
+                        jelolheto.append((rekord_dt, rekord))
+                if jelolheto:
+                    _, legfrissebb_minta = max(jelolheto, key=lambda item: item[0])
+                    legfrissebb_minta["pótlás_kék_N"] = True
+
             dontesek[kulcs] = {
                 "viszonylat": viszonylat,
                 "forda": forda,
@@ -3372,7 +3408,8 @@ def html_export():
             "hely": str(forda_sor.get("hely", "")),
             "rendszám": str(forda_adat.get("rendszám", "")).strip(),
             "forrás": "biztor",
-            "ellenőrzés": {}
+            "ellenőrzés": {},
+            "pótlás_idopontok": set()
         }
 
     # A történeti rekordok rákerülnek az előre létrehozott Excel-sorokra.
@@ -3400,6 +3437,8 @@ def html_export():
             sorok[kulcs]["ellenőrzés"][idopont] = (
                 rekord.get("ellenőrzés", "-")
             )
+            if rekord.get("pótlás_kék_N"):
+                sorok[kulcs]["pótlás_idopontok"].add(idopont)
 
 
     # --------------------------------------------------------
@@ -3817,7 +3856,7 @@ def html_export():
             "végzés": str(forda_sor_g.get("végzés", ""))[:5],
             "hely": str(forda_sor_g.get("hely", "")),
             "rendszám": str(forda_rendszamok.get(forda_kulcs_adat(forda_sor_g), {}).get("rendszám", "")),
-            "forrás": "garazs", "ellenőrzés": {}
+            "forrás": "garazs", "ellenőrzés": {}, "pótlás_idopontok": set()
         }
 
     for rekord in pozicio_tortenet:
@@ -3832,6 +3871,8 @@ def html_export():
         idopont_g = str(rekord.get("frissítve", "")).strip()[:5]
         if idopont_g:
             garazs_sorok[kulcs_g]["ellenőrzés"][idopont_g] = rekord.get("ellenőrzés", "-")
+            if rekord.get("pótlás_kék_N"):
+                garazs_sorok[kulcs_g]["pótlás_idopontok"].add(idopont_g)
 
     idopontok = sorted({
         str(rekord.get("frissítve", ""))[:5]
@@ -4653,8 +4694,9 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 
         for time_index, idopont in enumerate(idopontok):
             eredmeny = sor.get("ellenőrzés", {}).get(idopont, "-")
-            megj = {"OK":"I","NEM":"N","NINCS ADAT":"?"}.get(eredmeny,"-")
-            osztaly = "neutral"
+            potlas_kek_n = idopont in sor.get("pótlás_idopontok", set())
+            megj = "N" if potlas_kek_n else {"OK":"I","NEM":"N","NINCS ADAT":"?"}.get(eredmeny,"-")
+            osztaly = "potlas" if potlas_kek_n else "neutral"
             try:
                 t_dt = datetime.strptime(idopont, "%H:%M")
                 t_perc = t_dt.hour * 60 + t_dt.minute
@@ -4672,17 +4714,25 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
                     eltelt_perc = ((t_perc - k_perc + 720) % (24 * 60)) - 720
                     ablakban = -10 <= eltelt_perc <= (forda_idotartam_perc + 10)
                     if ablakban:
-                        osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
-                        if eredmeny not in ("OK", "NEM", "NINCS ADAT"):
-                            megj = "-"
+                        if potlas_kek_n:
+                            megj = "N"
+                            osztaly = "potlas"
+                        else:
+                            osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
+                            if eredmeny not in ("OK", "NEM", "NINCS ADAT"):
+                                megj = "-"
                     else:
                         megj = "-"
                         osztaly = "neutral"
                 elif k <= t <= v:
-                    osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
-                    # Végállomási forda pótlás/cserekocsi állapotánál a kezdés
-                    # utáni N jelzés kék, nem a szokásos piros.
-                    if (eredmeny_riport == "pótlás/cserekocsi"
+                    if potlas_kek_n:
+                        megj = "N"
+                        osztaly = "potlas"
+                    else:
+                        osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
+                    # A pótláskor rögzített kék N történeti kijelzés marad,
+                    # akkor is, ha egy későbbi pozíció már saját geozónát jelez.
+                    if (not potlas_kek_n and eredmeny_riport == "pótlás/cserekocsi"
                             and t >= k and eredmeny == "NEM"):
                         osztaly = "potlas"
                 elif k - timedelta(minutes=15) <= t < k or v < t <= v + timedelta(minutes=15):
