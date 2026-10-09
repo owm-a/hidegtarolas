@@ -4634,13 +4634,51 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
         rr = riport_map.get(sor["kulcs"], {})
         eredmeny_riport = str(rr.get("eredmény", "")).strip()
 
+        # A rövid fordáknál a zöld/piros I/N idővonal a teljes, kibővített
+        # figyelési ablakot lefedi: kezdés -10 perc és végzés +10 perc.
+        # A végleges döntést ettől függetlenül a Python döntési logika a
+        # végzés +10 perces időpontjában rögzíti.
+        try:
+            k_dt = datetime.strptime(str(sor["kezdés"]), "%H:%M")
+            v_dt = datetime.strptime(str(sor["végzés"]), "%H:%M")
+            k_perc = k_dt.hour * 60 + k_dt.minute
+            v_perc = v_dt.hour * 60 + v_dt.minute
+            if v_perc < k_perc:
+                v_perc += 24 * 60
+            forda_idotartam_perc = v_perc - k_perc
+            rovid_idotartam = 0 < forda_idotartam_perc < 15
+        except (ValueError, TypeError, KeyError):
+            k_perc = v_perc = None
+            rovid_idotartam = False
+
         for time_index, idopont in enumerate(idopontok):
             eredmeny = sor.get("ellenőrzés", {}).get(idopont, "-")
             megj = {"OK":"I","NEM":"N","NINCS ADAT":"?"}.get(eredmeny,"-")
             osztaly = "neutral"
             try:
-                t=datetime.strptime(idopont,"%H:%M"); k=datetime.strptime(sor["kezdés"],"%H:%M"); v=datetime.strptime(sor["végzés"],"%H:%M")
-                if k <= t <= v:
+                t_dt = datetime.strptime(idopont, "%H:%M")
+                t_perc = t_dt.hour * 60 + t_dt.minute
+                k = datetime.strptime(sor["kezdés"], "%H:%M")
+                v = datetime.strptime(sor["végzés"], "%H:%M")
+                t = t_dt
+                if v < k:
+                    v += timedelta(days=1)
+                if t < k and v.date() > k.date():
+                    t += timedelta(days=1)
+
+                if rovid_idotartam and k_perc is not None:
+                    # A kezdéshez viszonyított legkisebb előjeles időeltérés
+                    # kezeli a kezdés előtti -10 percet és az éjfélváltást is.
+                    eltelt_perc = ((t_perc - k_perc + 720) % (24 * 60)) - 720
+                    ablakban = -10 <= eltelt_perc <= (forda_idotartam_perc + 10)
+                    if ablakban:
+                        osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
+                        if eredmeny not in ("OK", "NEM", "NINCS ADAT"):
+                            megj = "-"
+                    else:
+                        megj = "-"
+                        osztaly = "neutral"
+                elif k <= t <= v:
                     osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
                     # Végállomási forda pótlás/cserekocsi állapotánál a kezdés
                     # utáni N jelzés kék, nem a szokásos piros.
@@ -4648,10 +4686,11 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
                             and t >= k and eredmeny == "NEM"):
                         osztaly = "potlas"
                 elif k - timedelta(minutes=15) <= t < k or v < t <= v + timedelta(minutes=15):
-                    osztaly = "neutral"; megj = "-" if eredmeny not in ("OK","NEM") else megj
+                    osztaly = "neutral"
+                    megj = "-" if eredmeny not in ("OK", "NEM") else megj
                 else:
                     megj = "-"
-            except (ValueError,TypeError):
+            except (ValueError, TypeError, KeyError):
                 osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
             html.append(f'<td class="idopont-cella" data-time-index="{time_index}"><span class="status-pill {osztaly}">{escape(megj)}</span></td>')
 
