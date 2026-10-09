@@ -4671,7 +4671,15 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   const tbody=table?.querySelector('tbody');
   const buttons=document.querySelectorAll('.nezet-gomb');
   if(!fo||!slider||!table||!tbody)return;
-  let currentView='biztor',sortState={col:null,dir:1};
+  const NEZET_STORAGE_KEY='hidegtarolas-aktiv-nezet';
+  const ERVENYES_NEZETEK=['mindketto','biztor','garazs'];
+  function betoltottNezet(){
+    try{
+      const mentett=localStorage.getItem(NEZET_STORAGE_KEY);
+      return ERVENYES_NEZETEK.includes(mentett) ? mentett : 'mindketto';
+    }catch(e){return 'mindketto';}
+  }
+  let currentView=betoltottNezet(),sortState={col:null,dir:1};
 
 
   function mobilTablaSorrend(){
@@ -4775,8 +4783,12 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
       fo.scrollLeft=max;
     }
   }
-  function view(v){
+  function view(v,mentes=true){
+    if(!ERVENYES_NEZETEK.includes(v)) v='mindketto';
     currentView=v;
+    if(mentes){
+      try{localStorage.setItem(NEZET_STORAGE_KEY,v);}catch(e){}
+    }
     buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===v));
     fo.classList.remove('view-biztor','view-garazs','view-mindketto');
     fo.classList.add('view-'+v);fo.classList.toggle('all-view',v==='mindketto');
@@ -4840,12 +4852,15 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
       scrollFrame=0;
     });
   },{passive:true});
-  buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet)));
+  buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet,true)));
   sortButtons.forEach(b=>b.addEventListener('click',()=>sort(b)));
   filterInputs.forEach(i=>i.addEventListener('input',filters));
   window.addEventListener('resize',()=>requestAnimationFrame(()=>{mobilTablaSorrend();layout();}));
   rowList.forEach(r=>r.dataset.filterMatch='1');
-  view('biztor');layout();
+  // Első megnyitáskor nincs korábbi választás: az Összes nézet az alapértelmezés.
+  // Frissítéskor az ezen a böngészőn legutóbb kiválasztott nézet áll vissza.
+  view(currentView,false);
+  layout();
 })();
 (function(){
   const btn=document.getElementById('theme-toggle');
@@ -5107,9 +5122,24 @@ function frissitTerkepNezet(view) {
     }
 }
 
+const NEZET_STORAGE_KEY = 'hidegtarolas-aktiv-nezet';
+const ERVENYES_NEZETEK = ['mindketto', 'biztor', 'garazs'];
+function betoltottTerkepNezet(){
+    try {
+        const mentett = localStorage.getItem(NEZET_STORAGE_KEY);
+        return ERVENYES_NEZETEK.includes(mentett) ? mentett : 'mindketto';
+    } catch (e) {
+        return 'mindketto';
+    }
+}
+
 document.querySelectorAll(".nezet-gomb").forEach(function(btn){
     btn.addEventListener("click", function(){
-        frissitTerkepNezet(this.dataset.nezet);
+        const nezet = ERVENYES_NEZETEK.includes(this.dataset.nezet)
+            ? this.dataset.nezet
+            : 'mindketto';
+        try { localStorage.setItem(NEZET_STORAGE_KEY, nezet); } catch (e) {}
+        frissitTerkepNezet(nezet);
     });
 });
 
@@ -5142,7 +5172,8 @@ document.querySelectorAll(".rendszam-link").forEach(function(btn){
 // TÉRKÉP NÉZET BEÁLLÍTÁSA
 // ---------------------------------------------------------
 
-frissitTerkepNezet("biztor");
+// A térkép ugyanazt a nézetet állítja vissza, mint a táblázat.
+frissitTerkepNezet(betoltottTerkepNezet());
 
 const garazsAblak = document.getElementById("garazs-idopont-ablak");
 const garazsBelso = document.getElementById("garazs-idopont-belső");
