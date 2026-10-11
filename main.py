@@ -3910,7 +3910,7 @@ def html_export():
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ArrivaBus hidegtárolás</title>
+<title>ArrivaBus hidegtárolás (tesztüzem)</title>
 <style>
 :root{
     --bg:#11151b;--surface:#181e26;--surface2:#202733;--surface3:#252d39;
@@ -4602,7 +4602,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 <span class="rejtett-poen">de ki az a Korporéjsön?</span>
 <div class="fejlec">
   <div class="fejlec-top">
-    <div class="cim" id="oldal-cim" role="button" tabindex="0" title="Oldal frissítése"><b>ArrivaBus hidegtárolás</b></div>
+    <div class="cim" id="oldal-cim" role="button" tabindex="0" title="Oldal frissítése"><b>ArrivaBus hidegtárolás (tesztüzem)</b></div>
     <button id="theme-toggle" class="theme-toggle" type="button" title="Sötét / világos mód">☀ Sötét mód</button>
   </div>
   <div class="fejlec-adatok riport-fejlec-adatok">
