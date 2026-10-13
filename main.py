@@ -2574,9 +2574,9 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
     """
     GTFS-RT alapján felismeri a fordán kívüli tripet.
 
-    Mindkét forrásnál ideiglenes a pótlásjelzés:
-    ha a jármű visszaér a saját, Excelben megadott geozónájába,
-    a normál I/N állapotnak kell visszaállnia.
+    A függvény az aktuális pótlást azonosítja mindkét forrásban.
+    Ha a riport egyszer már rögzítette a pótlást, a státuszt a hívó kód
+    történeti jelölő alapján tartósan megőrzi.
     """
     rendszam = str(rendszam or "").strip().upper()
     if not rendszam or not isinstance(jarmuvek, pd.DataFrame) or jarmuvek.empty:
@@ -2618,7 +2618,7 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
                 continue
             if str(rekord.get("forda", "")).strip() != str(forda_sor.get("forda", "")).strip():
                 continue
-            if str(rekord.get("forrás", "biztor")).strip() != "biztor":
+            if str(rekord.get("forrás", "biztor")).strip() != str(forda_sor.get("forrás", "biztor")).strip():
                 continue
             # A frissítve a lekérdezés ideje; a pótlás megszűnését csak
             # a tényleges GPS-frissítés alapján állapítjuk meg.
@@ -2775,17 +2775,9 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
             sorozat_kezdete = None
             utolso_ok_rekord = None
 
-    # Siker esetén azonnal véglegesítünk, nem várjuk meg a forda végét.
-    if elert_kuszob_idopont is not None and utolso_ok_rekord is not None:
-        return {
-            "eredmény": "RENDBEN TÁROLT",
-            "tárolás helye": gps_geozona_vagy_koordinata(utolso_ok_rekord.get("pozíció", "")),
-            "döntés időpontja": elert_kuszob_idopont.strftime("%H:%M:%S"),
-            "pozíció időpontja": str(utolso_ok_rekord.get("pozicio_frissitve", "")).strip()
-        }
-
-    # A küszöb elérése előtt a pótlás/cserekocsi továbbra is ideiglenes
-    # kijelzés; nem végleges tárolási döntés.
+    # A pótlás elsőbbséget élvez a 70%-os I/N döntéssel szemben.
+    # Ha a jármű jelenleg másik tripet teljesít, a státusz P legyen akkor is,
+    # ha az OK-sorozat már elérte a 70%-ot.
     if budapest_now < végzés_dt:
         forda_kulcs = forda_kulcs_adat(forda_sor)
         forda_adat = forda_rendszamok.get(forda_kulcs, {})
@@ -2804,6 +2796,18 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
                 "pótlás_route_id": potlas["route_id"],
                 "pótlás_direction_id": potlas["direction_id"],
             }
+
+    # Siker esetén azonnal véglegesítünk, nem várjuk meg a forda végét.
+    if elert_kuszob_idopont is not None and utolso_ok_rekord is not None:
+        return {
+            "eredmény": "RENDBEN TÁROLT",
+            "tárolás helye": gps_geozona_vagy_koordinata(utolso_ok_rekord.get("pozíció", "")),
+            "döntés időpontja": elert_kuszob_idopont.strftime("%H:%M:%S"),
+            "pozíció időpontja": str(utolso_ok_rekord.get("pozicio_frissitve", "")).strip()
+        }
+
+    # Ha még nincs végleges döntés és nincs pótlás, a forda végzéséig várunk.
+    if budapest_now < végzés_dt:
         return None
 
     # A végzés elérkezett, de nem volt meg a szükséges hosszúságú
@@ -2894,12 +2898,82 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         korabbi_potlas = korabbi_eredmeny == "pótlás/cserekocsi"
         korabbi_vegleges = korabbi_eredmeny in ("RENDBEN TÁROLT", "ELTÉRÉS TÖRTÉNT")
 
+        # A pótlás státusz tapadó: ha a Valós tárolás akár egyszer is
+        # pótlás/cserekocsi volt, a későbbi 70%-os I/N döntés nem írhatja felül.
+        # A régi döntés mellett a történeti idővonal-jelölőket is ellenőrizzük,
+        # mert egy korábbi futás már tévesen I/N-re cserélhette a riportstátuszt.
+        torteneti_potlas = any(
+            str(rekord.get("viszonylat", "")).strip() == viszonylat
+            and str(rekord.get("forda", "")).strip() == forda
+            and str(rekord.get("forrás", "biztor")).strip() == forrás
+            and (
+                bool(rekord.get("pótlás_kék_N"))
+                or str(rekord.get("döntés", "")).strip() == "pótlás/cserekocsi"
+            )
+            for rekord in pozicio_tortenet
+        )
+
+        if korabbi_potlas or torteneti_potlas:
+            if korabbi_potlas and isinstance(korabbi_dontes, dict):
+                # A pótlás helye soha nem GPS-koordináta: az exportban ---.
+                korabbi_dontes["eredmény"] = "pótlás/cserekocsi"
+                korabbi_dontes["tárolás helye"] = "---"
+            if not korabbi_potlas:
+                potlas_rekordok = [
+                    rekord for rekord in pozicio_tortenet
+                    if str(rekord.get("viszonylat", "")).strip() == viszonylat
+                    and str(rekord.get("forda", "")).strip() == forda
+                    and str(rekord.get("forrás", "biztor")).strip() == forrás
+                    and (bool(rekord.get("pótlás_kék_N"))
+                         or str(rekord.get("döntés", "")).strip() == "pótlás/cserekocsi")
+                ]
+                potlas_ido = str(potlas_rekordok[-1].get("frissítve", "")) if potlas_rekordok else most.strftime("%H:%M:%S")
+                dontesek[kulcs] = {
+                    "viszonylat": viszonylat,
+                    "forda": forda,
+                    "eredmény": "pótlás/cserekocsi",
+                    "tárolás helye": "---",
+                    "döntés időpontja": potlas_ido or most.strftime("%H:%M:%S"),
+                    "pozíció időpontja": "",
+                    "pótlás_viszonylata": "",
+                    "pótlás_fordája": "",
+                    "pótlás_trip_id": "",
+                    "pótlás_jármű_id": "",
+                    "pótlás_route_id": "",
+                    "pótlás_direction_id": ""
+                }
+            # Már rögzített pótlásos státusz esetén nincs új 70%-os döntés.
+            continue
+
+        # Ha a forda korábban már I/N döntést kapott, akkor is ellenőrizzük,
+        # hogy most pótlásban van-e. A pótlás minden más státusznál erősebb.
+        if korabbi_vegleges:
+            aktualis_potlas = _gtfs_rt_potlasban_van(
+                forda_sor,
+                str(forda_rendszamok.get(kulcs, {}).get("rendszám", "")).strip(),
+                most,
+                pozicio_tortenet=pozicio_tortenet
+            )
+            if aktualis_potlas is not None:
+                dontesek[kulcs] = {
+                    "viszonylat": viszonylat,
+                    "forda": forda,
+                    "eredmény": "pótlás/cserekocsi",
+                    "tárolás helye": "---",
+                    "döntés időpontja": most.strftime("%H:%M:%S"),
+                    "pozíció időpontja": "",
+                    "pótlás_viszonylata": "",
+                    "pótlás_fordája": "",
+                    "pótlás_trip_id": aktualis_potlas.get("trip_id", ""),
+                    "pótlás_jármű_id": aktualis_potlas.get("jármű_id", ""),
+                    "pótlás_route_id": aktualis_potlas.get("route_id", ""),
+                    "pótlás_direction_id": aktualis_potlas.get("direction_id", "")
+                }
+            continue
+
         # Kizárólag valódi, végleges döntést őrzünk meg. A korábbi verzióból
         # bent maradt n.a./NINCS ADAT/üres vagy más ideiglenes rekord nem
         # akadályozhatja a történeti minták visszamenőleges újraértékelését.
-        if korabbi_vegleges:
-            continue
-
         dontes = hidegtarolas_70_dontes(
             forda_sor,
             pozicio_tortenet,
@@ -2981,6 +3055,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             "forda": forda,
             "rendszám": rendszam,
             "eredmény": dontes.get("eredmény", ""),
+            "terv tárolás": str(forda_sor.get("hely", "") or "").strip(),
             "tárolás helye": dontes.get("tárolás helye", ""),
             "döntés időpontja": dontes.get("döntés időpontja", ""),
             "pótlás_viszonylata": dontes.get("pótlás_viszonylata", ""),
@@ -2989,7 +3064,8 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
 
     # Csak a jelenlegi forrás figyelt fordái számítanak a készültségbe;
     # régi, már nem létező kulcsok nem tehetik tévesen teljessé a riportot.
-    vegleges_eredmenyek = {"RENDBEN TÁROLT", "ELTÉRÉS TÖRTÉNT"}
+    # A pótlás külön, elfogadott státusz: értékeltnek számít, de nem I/N döntés.
+    vegleges_eredmenyek = {"RENDBEN TÁROLT", "ELTÉRÉS TÖRTÉNT", "pótlás/cserekocsi"}
     aktualis_kulcsok = {
         forda_kulcs_adat(forda_sor)
         for _, forda_sor in figyelt_forras.iterrows()
@@ -3033,7 +3109,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
                 )
                 export_fajl_adatokkal = (
                     ellenorzo_ws.max_row > 1
-                    and ellenorzo_ws.max_column >= 6
+                    and ellenorzo_ws.max_column >= 7
                     and van_mai_adat
                 )
             ellenorzo_wb.close()
@@ -3087,7 +3163,8 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         export_ws.cell(1, 3).value = "Forda"
         export_ws.cell(1, 4).value = "Rendszám"
         export_ws.cell(1, 5).value = "Eredmény"
-        export_ws.cell(1, 6).value = "Tárolás helye"
+        export_ws.cell(1, 6).value = "Terv tárolás"
+        export_ws.cell(1, 7).value = "Tény tárolás"
 
         zold_toltes = openpyxl.styles.PatternFill(fill_type="solid", fgColor="00B050")
         piros_toltes = openpyxl.styles.PatternFill(fill_type="solid", fgColor="FF0000")
@@ -3118,17 +3195,19 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             elif not export_tarolas_helye or export_tarolas_helye in ("Nincs adat", "-"):
                 export_tarolas_helye = "n.a"
 
+            terv_tarolas = str(sor.get("terv tárolás", "")).strip() or "n.a"
             export_ws.append([
                 sor["dátum"],
                 sor["viszonylat"],
                 sor["forda"],
                 sor["rendszám"],
                 export_eredmeny,
+                terv_tarolas,
                 export_tarolas_helye
             ])
 
             eredmeny_cella = export_ws.cell(export_ws.max_row, 5)
-            tarolas_cella = export_ws.cell(export_ws.max_row, 6)
+            tarolas_cella = export_ws.cell(export_ws.max_row, 7)
 
             if sor["eredmény"] == "pótlás/cserekocsi":
                 eredmeny_cella.fill = openpyxl.styles.PatternFill(fill_type="solid", fgColor="5B9BD5")
@@ -3163,7 +3242,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
                     tarolas_cella.fill = piros_toltes
                     tarolas_cella.font = feher_betu
 
-        for oszlop in range(1, 7):
+        for oszlop in range(1, 8):
             max_hossz = 0
             for cella_oszlop in export_ws.iter_cols(min_col=oszlop, max_col=oszlop):
                 for cell in cella_oszlop:
@@ -4725,7 +4804,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
                     ablakban = -5 <= eltelt_perc <= (forda_idotartam_perc + 15)
                     if ablakban:
                         if potlas_kek_n:
-                            megj = "N"
+                            megj = "P"
                             osztaly = "potlas"
                         else:
                             osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
@@ -4736,11 +4815,11 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
                         osztaly = "neutral"
                 elif k <= t <= v:
                     if potlas_kek_n:
-                        megj = "N"
+                        megj = "P"
                         osztaly = "potlas"
                     else:
                         osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
-                    # A pótláskor rögzített kék N történeti kijelzés marad,
+                    # A pótláskor rögzített kék P történeti kijelzés marad,
                     # akkor is, ha egy későbbi pozíció már saját geozónát jelez.
                     if (not potlas_kek_n and eredmeny_riport == "pótlás/cserekocsi"
                             and t >= k and eredmeny == "NEM"):
