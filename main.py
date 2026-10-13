@@ -2835,6 +2835,8 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
     A 70%-os döntéseket minden futáskor ellenőrzi és véglegesen elmenti.
 
     Az Excel-riport naponta egyszer, 16:30 után készül el az aktuális állapotról.
+    A Riport munkalap gyűjtő: a korábbi napok sorait megőrzi, és csak az adott
+    nap esetlegesen már exportált sorait cseréli le újrafuttatáskor.
     Nem várjuk meg hozzá, hogy minden forda 70%-os döntése megszülessen;
     a még nem eldöntött sorok is bekerülnek az exportba.
     """
@@ -3023,10 +3025,16 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             ellenorzo_wb = openpyxl.load_workbook(export_fajl, read_only=True, data_only=True)
             if "Riport" in ellenorzo_wb.sheetnames:
                 ellenorzo_ws = ellenorzo_wb["Riport"]
+                # Gyűjtőfájlnál a mai nap sora nem feltétlenül a 2. sorban van:
+                # korábbi napok adatai is maradnak a fejléc alatt.
+                van_mai_adat = any(
+                    str(ellenorzo_ws.cell(sor_index, 1).value).strip()[:10] == MAI_NAP
+                    for sor_index in range(2, ellenorzo_ws.max_row + 1)
+                )
                 export_fajl_adatokkal = (
                     ellenorzo_ws.max_row > 1
                     and ellenorzo_ws.max_column >= 6
-                    and str(ellenorzo_ws.cell(2, 1).value).strip() == MAI_NAP
+                    and van_mai_adat
                 )
             ellenorzo_wb.close()
         except Exception as e:
@@ -3065,12 +3073,15 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         else:
             export_ws = export_wb.create_sheet("Riport")
 
-        # Mindig az aktuális napi Valós tárolás-állapotból építjük újra a riportot.
-        # Így egy korábbi futás sorai nem maradnak benne és nem duplázódnak.
-        if export_ws.max_row > 0:
-            export_ws.delete_rows(1, export_ws.max_row)
+        # Gyűjtőfájl: a korábbi napok sorait megtartjuk. Csak az aktuális nap
+        # esetleg már bent lévő sorait cseréljük, így az újrafuttatás nem duplikál.
+        # Dátumként mentett Excel-cellát és szöveges dátumot is kezelünk.
+        for sor_index in range(export_ws.max_row, 1, -1):
+            cella_datum = str(export_ws.cell(sor_index, 1).value).strip()[:10]
+            if cella_datum == MAI_NAP:
+                export_ws.delete_rows(sor_index, 1)
 
-        # A riport fejlécét a 6. oszloppal bővítjük.
+        # A riport fejlécét megtartjuk/egységesítjük, a korábbi napi adatokat nem töröljük.
         export_ws.cell(1, 1).value = "Dátum"
         export_ws.cell(1, 2).value = "Viszonylat"
         export_ws.cell(1, 3).value = "Forda"
