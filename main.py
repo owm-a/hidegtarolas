@@ -5032,7 +5032,7 @@ L.tileLayer(
 
 const terkepElemek = [];
 const jarmuMarkerek = {};
-const TERKEP_MAX_ZOOM = 14;
+const TERKEP_MAX_ZOOM = 17;
 
 
 function escapeHtml(value) {
