@@ -4,7 +4,7 @@
 
 # =========================================================
 # BKK FORDA → RENDSZÁM → POZÍCIÓ
-# VehiclePositions forrás: TXT (GTFS-RT text formátum)
+# VehiclePositions forrás: PB (bináris GTFS-RT Protobuf formátum)
 # GitHub Actions verzió
 # =========================================================
 
@@ -30,7 +30,7 @@ print("API-kulcs betöltve.")
 
 # =========================================================
 # BKK FORDA → RENDSZÁM → POZÍCIÓ
-# VehiclePositions forrás: TXT (GTFS-RT text formátum)
+# VehiclePositions forrás: PB (bináris GTFS-RT Protobuf formátum)
 # GitHub Actions verzió
 # =========================================================
 
@@ -65,7 +65,6 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from google.transit import gtfs_realtime_pb2
-from google.protobuf import text_format
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
@@ -87,54 +86,6 @@ _http_session.mount("http://", HTTPAdapter(max_retries=_http_retry))
 def http_get(*args, **kwargs):
     return _http_session.get(*args, **kwargs)
 
-
-def torol_nem_regisztralt_bkk_extensionok(szoveg):
-    """
-    A BKK VehiclePositions.txt tartalmazhat olyan egyedi protobuf
-    extension mezőket (pl. [realcity.vehicle]), amelyeket a standard
-    gtfs_realtime_pb2 modul nem regisztrál. Ezeket a downstream
-    feldolgozás nem használja, ezért csak a text-format parse előtt
-    eltávolítjuk őket.
-    """
-
-    extension = "[realcity.vehicle]"
-
-    while True:
-
-        kezdet = szoveg.find(extension)
-
-        if kezdet == -1:
-            break
-
-        kapocs = szoveg.find("{", kezdet)
-
-        if kapocs == -1:
-            szoveg = szoveg[:kezdet] + szoveg[kezdet + len(extension):]
-            continue
-
-        melyseg = 0
-        vege = None
-
-        for i in range(kapocs, len(szoveg)):
-
-            if szoveg[i] == "{":
-                melyseg += 1
-
-            elif szoveg[i] == "}":
-                melyseg -= 1
-
-                if melyseg == 0:
-                    vege = i + 1
-                    break
-
-        if vege is None:
-            # Hibás/csonka extension esetén a maradékot is eldobjuk.
-            szoveg = szoveg[:kezdet]
-            break
-
-        szoveg = szoveg[:kezdet] + szoveg[vege:]
-
-    return szoveg
 
 # =========================================================
 # TESZTIDŐ
@@ -1301,7 +1252,7 @@ if gtfs_rt_trip_figyeles_idoszak:
 
     url = (
         "https://go.bkk.hu/api/query/v1/ws/"
-        "gtfs-rt/full/VehiclePositions.txt"
+        "gtfs-rt/full/VehiclePositions.pb"
     )
 
     response = http_get(
@@ -1327,11 +1278,7 @@ if gtfs_rt_trip_figyeles_idoszak:
     )
 
     feed = gtfs_realtime_pb2.FeedMessage()
-
-    text_format.Parse(
-        torol_nem_regisztralt_bkk_extensionok(response.text),
-        feed
-    )
+    feed.ParseFromString(response.content)
 
     print(
         "GTFS-RT entitások száma:",
