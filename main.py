@@ -14,6 +14,7 @@
 # =========================================================
 
 import os
+from copy import copy
 
 API_KEY = os.environ.get("BKK_API_KEY")
 
@@ -3124,6 +3125,17 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         and export_fajl_adatokkal
     )
 
+    # Ha a két Excel-pár aznap már sikeresen elkészült, az exportot akkor sem
+    # írjuk újra, ha a workflow napközben további alkalommal lefut.
+    paros_export_allapot = napi_adatok.get("napi_excel_export", {})
+    paros_export_mar_kesz = (
+        isinstance(paros_export_allapot, dict)
+        and paros_export_allapot.get("datum") == MAI_NAP
+        and paros_export_allapot.get("kesz") is True
+    )
+    if paros_export_mar_kesz:
+        excel_mar_mentve = True
+
     riport_idopont = korabbi_riport.get("keszult", "-")
 
     if riport_indithato and not excel_mar_mentve:
@@ -3157,13 +3169,31 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             if cella_datum == MAI_NAP:
                 export_ws.delete_rows(sor_index, 1)
 
-        # A riport fejlécét megtartjuk/egységesítjük, a korábbi napi adatokat nem töröljük.
+        # Ha a gyűjtőfájl korábbi verziójában E=Eredmény és F=Terv tárolás
+        # volt, egyszer megcseréljük a teljes két oszlopot (érték + formázás),
+        # hogy a korábbi napok sorai is az új fejléc alatt maradjanak helyesen.
+        regi_e = str(export_ws.cell(1, 5).value or "").strip()
+        regi_f = str(export_ws.cell(1, 6).value or "").strip()
+        if regi_e == "Eredmény" and regi_f == "Terv tárolás":
+            for sor_index in range(1, export_ws.max_row + 1):
+                cell_e = export_ws.cell(sor_index, 5)
+                cell_f = export_ws.cell(sor_index, 6)
+                ertek_e, ertek_f = cell_e.value, cell_f.value
+                stilus_e, stilus_f = copy(cell_e._style), copy(cell_f._style)
+                hyperlink_e, hyperlink_f = cell_e.hyperlink, cell_f.hyperlink
+                comment_e, comment_f = cell_e.comment, cell_f.comment
+                cell_e.value, cell_f.value = ertek_f, ertek_e
+                cell_e._style, cell_f._style = stilus_f, stilus_e
+                cell_e.hyperlink, cell_f.hyperlink = hyperlink_f, hyperlink_e
+                cell_e.comment, cell_f.comment = comment_f, comment_e
+
+        # Új oszlopsorrend: E=Terv tárolás, F=Eredmény.
         export_ws.cell(1, 1).value = "Dátum"
         export_ws.cell(1, 2).value = "Viszonylat"
         export_ws.cell(1, 3).value = "Forda"
         export_ws.cell(1, 4).value = "Rendszám"
-        export_ws.cell(1, 5).value = "Eredmény"
-        export_ws.cell(1, 6).value = "Terv tárolás"
+        export_ws.cell(1, 5).value = "Terv tárolás"
+        export_ws.cell(1, 6).value = "Eredmény"
         export_ws.cell(1, 7).value = "Tény tárolás"
 
         zold_toltes = openpyxl.styles.PatternFill(fill_type="solid", fgColor="00B050")
@@ -3201,12 +3231,12 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
                 sor["viszonylat"],
                 sor["forda"],
                 sor["rendszám"],
-                export_eredmeny,
                 terv_tarolas,
+                export_eredmeny,
                 export_tarolas_helye
             ])
 
-            eredmeny_cella = export_ws.cell(export_ws.max_row, 5)
+            eredmeny_cella = export_ws.cell(export_ws.max_row, 6)
             tarolas_cella = export_ws.cell(export_ws.max_row, 7)
 
             if sor["eredmény"] == "pótlás/cserekocsi":
@@ -3287,6 +3317,65 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
 hidegtarolas_riport = keszit_hidegtarolas_riport("biztor", RIport_XLSX, "hidegtarolas_riport")
 GARAZS_RIPORT_XLSX = "data/garazstarolas_export.xlsx"
 garazstarolas_riport = keszit_hidegtarolas_riport("garazs", GARAZS_RIPORT_XLSX, "garazstarolas_riport")
+
+
+def _mai_excel_export_ervenyes(fajl):
+    """True, ha az Excel olvasható és tartalmaz legalább egy mai adatsort."""
+    if not os.path.isfile(fajl) or os.path.getsize(fajl) == 0:
+        return False
+    try:
+        wb = openpyxl.load_workbook(fajl, read_only=True, data_only=True)
+        try:
+            if "Riport" not in wb.sheetnames:
+                return False
+            ws = wb["Riport"]
+            if ws.max_row < 2 or ws.max_column < 7:
+                return False
+            return any(
+                str(ws.cell(r, 1).value or "").strip()[:10] == MAI_NAP
+                and any(ws.cell(r, c).value is not None for c in range(1, 8))
+                for r in range(2, ws.max_row + 1)
+            )
+        finally:
+            wb.close()
+    except Exception as e:
+        print(f"FIGYELEM: az Excel-export ellenőrzése sikertelen ({fajl}): {e}")
+        return False
+
+
+# Közös kész jelölő csak akkor kerül mentésre, ha MINDKÉT Excel sikeresen
+# elmentődött és mindkettőben található mai adatsor. A JSON és az Excel-fájlok
+# ugyanabban a Git-commitban kerülnek vissza a repóba.
+if (
+    budapesti_most().time() >= time(16, 30)
+    and hidegtarolas_riport.get("datum") == MAI_NAP
+    and hidegtarolas_riport.get("excel_kesz") is True
+    and garazstarolas_riport.get("datum") == MAI_NAP
+    and garazstarolas_riport.get("excel_kesz") is True
+    and _mai_excel_export_ervenyes(RIport_XLSX)
+    and _mai_excel_export_ervenyes(GARAZS_RIPORT_XLSX)
+):
+    elozo_paros_allapot = napi_adatok.get("napi_excel_export", {})
+    if not (
+        isinstance(elozo_paros_allapot, dict)
+        and elozo_paros_allapot.get("datum") == MAI_NAP
+        and elozo_paros_allapot.get("kesz") is True
+    ):
+        napi_adatok["napi_excel_export"] = {
+            "datum": MAI_NAP,
+            "kesz": True,
+            "keszult": budapesti_most().strftime("%H:%M:%S"),
+            "fajlok": [RIport_XLSX, GARAZS_RIPORT_XLSX]
+        }
+        atomikus_json_mentes(NAPI_ADATOK_FAJL, napi_adatok)
+        print("A napi páros Excel-export sikeresen elkészült; erre a napra lezárva.")
+    else:
+        print("A napi páros Excel-export már korábban elkészült; nincs újragenerálás.")
+else:
+    if budapesti_most().time() < time(16, 30):
+        print("A napi Excel-export 16:30 után készülhet el.")
+    else:
+        print("A napi páros Excel-export még nem zárható le: legalább az egyik Excel hiányzik vagy érvénytelen.")
 
 
 # ============================================================
