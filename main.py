@@ -2936,15 +2936,17 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         kulcs = forda_kulcs_adat(forda_sor)
 
         korabbi_dontes = dontesek.get(kulcs, {})
-        korabbi_potlas = (
-            isinstance(korabbi_dontes, dict)
-            and str(korabbi_dontes.get("eredmény", "")).strip() == "pótlás/cserekocsi"
+        korabbi_eredmeny = (
+            str(korabbi_dontes.get("eredmény", "")).strip()
+            if isinstance(korabbi_dontes, dict) else ""
         )
+        korabbi_potlas = korabbi_eredmeny == "pótlás/cserekocsi"
+        korabbi_vegleges = korabbi_eredmeny in ("RENDBEN TÁROLT", "ELTÉRÉS TÖRTÉNT")
 
-        # A végleges döntés változatlan marad. A pótlásjelzés mindkét
-        # táblázatban ideiglenes: minden futáskor újraértékeljük, és töröljük,
-        # ha a busz visszaért a saját geozónájába a 70%-os pont előtt.
-        if kulcs in dontesek and not korabbi_potlas:
+        # Kizárólag valódi, végleges döntést őrzünk meg. A korábbi verzióból
+        # bent maradt n.a./NINCS ADAT/üres vagy más ideiglenes rekord nem
+        # akadályozhatja a történeti minták visszamenőleges újraértékelését.
+        if korabbi_vegleges:
             continue
 
         dontes = hidegtarolas_70_dontes(
@@ -3005,9 +3007,10 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
                 "pótlás_direction_id": dontes.get("pótlás_direction_id", "")
             }
             uj_dontes += 1
-        elif korabbi_potlas:
-            # Bármelyik táblázatban megszűnt a pótlás a 70%-os döntés előtt:
-            # töröljük az ideiglenes állapotot; a Valós tárolás n.a lesz.
+        elif kulcs in dontesek and not korabbi_vegleges:
+            # A pótlás és minden más nem végleges/korábbi n.a. állapot törlődik,
+            # ha a teljes történeti újraértékelés még nem adott döntést.
+            # Így az ilyen bejegyzés nem marad bent és a következő futást sem blokkolja.
             dontesek.pop(kulcs, None)
 
     eredmenyek = []
