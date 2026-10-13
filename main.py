@@ -1290,6 +1290,13 @@ print(
 # és elmentjük a rendszám + jármű ID párost.
 # =========================================================
 
+# A 07:00–07:30 közötti azonosítási fázisban még nincs GTFS-RT
+# trip-feed lekérés, de a későbbi függvényeknek ekkor is léteznie kell
+# egy üres járműtáblának. Ez megelőzi a NameError hibát.
+jarmuvek = pd.DataFrame(
+    columns=["rendszám", "jármű_id", "trip_id", "route_id", "direction_id"]
+)
+
 if gtfs_rt_trip_figyeles_idoszak:
 
     url = (
@@ -1887,7 +1894,7 @@ def futar_idopont(last_update):
         return datetime.fromtimestamp(
             ertek,
             tz=ZoneInfo("Europe/Budapest")
-        ).strftime("%H:%M")
+        ).strftime("%H:%M:%S")
 
     except (
         ValueError,
@@ -2655,6 +2662,7 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
     # jármű visszaért-e a saját (Excelben megadott) geozónájába.
     # Csak a forda kezdése utáni legfrissebb pozíciót vesszük figyelembe.
     if isinstance(pozicio_tortenet, list):
+
         sajat_rekordok = []
         for rekord in pozicio_tortenet:
             if str(rekord.get("viszonylat", "")).strip() != str(forda_sor.get("viszonylat", "")).strip():
@@ -2739,72 +2747,105 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
 
 def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
     """
-    A hosszabb fordák döntése a menetrendi idő 70%-os pontján születik.
-    A 15 percnél rövidebb fordáknál a figyelés kezdés-5/végzés+15 perces,
-    a végleges értékelés pedig a menetrendi végzés+10 perces pontján történik.
+    A forda kezdése és végzése közötti időtartam legalább 70%-ában
+    egymást követő OK (I / rendben tárolt) állapot szükséges.
 
-    Fontos:
-    - Nem a forda későbbi állapotát nézzük.
-    - A 70%-os időponthoz tartozó, utolsó ismert GPS-rekordot használjuk.
-    - Ettől a pillanattól az eredmény végleges az adott napra.
-    - A döntéshez használt GPS-koordinátát is elmentjük.
+    - Amint egy megszakítás nélküli OK-sorozat eléri a teljes menetrendi
+      időtartam 70%-át, a döntés azonnal véglegesül.
+    - Ha ez a végzésig nem teljesül, a végzéskor ELTÉRÉS TÖRTÉNT lesz.
+    - Nincs külön 10 perces GPS-frissességi feltétel a döntéshez.
+    - A minták sorrendjét a program lekérdezési ideje (frissítve) adja;
+      a NEM vagy ismeretlen állapot megszakítja az OK-sorozatot.
     """
-
     kezdés = _ido_objektum(forda_sor.get("kezdés"))
     végzés = _ido_objektum(forda_sor.get("végzés"))
-
-    if kezdés is None or végzés is None:
-        if budapesti_most().time() >= time(17, 30):
-            return {
-                "eredmény": "NINCS ADAT",
-                "tárolás helye": "Nincs adat",
-                "döntés időpontja": budapesti_most().strftime("%H:%M:%S")
-            }
-        return None
-
     budapest_tz = ZoneInfo("Europe/Budapest")
     budapest_now = most or budapesti_most()
-    mai_datum = budapest_now.date()
 
+    if kezdés is None or végzés is None:
+        return None
+
+    mai_datum = budapest_now.date()
     kezdés_dt = datetime.combine(mai_datum, kezdés, tzinfo=budapest_tz)
     végzés_dt = datetime.combine(mai_datum, végzés, tzinfo=budapest_tz)
-
     if végzés_dt < kezdés_dt:
         végzés_dt += timedelta(days=1)
 
     teljes_idotartam = (végzés_dt - kezdés_dt).total_seconds()
     if teljes_idotartam <= 0:
         return None
+    szukseges_ok_mp = teljes_idotartam * 0.70
 
-    rovid_forda = teljes_idotartam < 15 * 60
-    figyelési_kezdés_dt = kezdés_dt - timedelta(minutes=5) if rovid_forda else kezdés_dt
-    figyelési_végzés_dt = végzés_dt + timedelta(minutes=15) if rovid_forda else végzés_dt
-    # Rövid fordáknál a megfigyelési ablak kezdés-5 és végzés+15 perc,
-    # de a végleges értékelés mindig végzés+10 perckor történik.
-    # A hosszabb fordáknál változatlanul a tervezett időtartam 70%-a dönt.
-    döntés_dt = (
-        végzés_dt + timedelta(minutes=10)
-        if rovid_forda
-        else kezdés_dt + timedelta(seconds=teljes_idotartam * 0.70)
-    )
-    potlas = None
+    # A forda saját rekordjait gyűjtjük össze a menetrendi intervallumban.
+    mintak = []
+    for rekord in pozicio_tortenet if isinstance(pozicio_tortenet, list) else []:
+        if str(rekord.get("viszonylat", "")).strip() != str(forda_sor.get("viszonylat", "")).strip():
+            continue
+        if str(rekord.get("forda", "")).strip() != str(forda_sor.get("forda", "")).strip():
+            continue
+        if str(rekord.get("forrás", "biztor")).strip() != str(forda_sor.get("forrás", "biztor")).strip():
+            continue
 
-    # A forda saját kezdése után (rövid fordánál már -5 perctől) ellenőrizzük a pótlásállapotot.
-    # A 70% előtt ez csak ideiglenes kijelzés; a döntési pontnál már nem
-    # fagyasztjuk be, hanem normál 70%-os döntés készül belőle.
-    if figyelési_kezdés_dt <= budapest_now <= figyelési_végzés_dt:
+        # A státusz a lekérdezéskor született, ezért a minta időpontja
+        # a frissítve mező, nem a jármű esetleg korábbi GPS-timestampje.
+        idopont = str(rekord.get("frissítve", "")).strip()
+        ido = None
+        for fmt in ("%H:%M:%S", "%H:%M"):
+            try:
+                ido = datetime.strptime(idopont[:8] if fmt == "%H:%M:%S" else idopont[:5], fmt).time()
+                break
+            except (ValueError, TypeError):
+                continue
+        if ido is None:
+            continue
+
+        minta_dt = datetime.combine(mai_datum, ido, tzinfo=budapest_tz)
+        if minta_dt < kezdés_dt and végzés_dt.date() > kezdés_dt.date():
+            minta_dt += timedelta(days=1)
+        if kezdés_dt <= minta_dt <= végzés_dt:
+            mintak.append((minta_dt, rekord))
+
+    mintak.sort(key=lambda item: item[0])
+
+    # A megszakítás nélküli OK-sorozat hosszát mérjük. Egy NEM vagy '-'
+    # státusz új sorozatot indít; a sorozat időtartama az első OK-mintától
+    # az aktuális OK-mintáig tart.
+    sorozat_kezdete = None
+    utolso_ok_rekord = None
+    elert_kuszob_idopont = None
+    for minta_dt, rekord in mintak:
+        allapot = str(rekord.get("ellenőrzés", "-")).strip().upper()
+        if allapot == "OK":
+            if sorozat_kezdete is None:
+                sorozat_kezdete = minta_dt
+            utolso_ok_rekord = rekord
+            if (minta_dt - sorozat_kezdete).total_seconds() >= szukseges_ok_mp:
+                elert_kuszob_idopont = minta_dt
+                break
+        else:
+            sorozat_kezdete = None
+            utolso_ok_rekord = None
+
+    # Siker esetén azonnal véglegesítünk, nem várjuk meg a forda végét.
+    if elert_kuszob_idopont is not None and utolso_ok_rekord is not None:
+        return {
+            "eredmény": "RENDBEN TÁROLT",
+            "tárolás helye": gps_geozona_vagy_koordinata(utolso_ok_rekord.get("pozíció", "")),
+            "döntés időpontja": elert_kuszob_idopont.strftime("%H:%M:%S"),
+            "pozíció időpontja": str(utolso_ok_rekord.get("pozicio_frissitve", "")).strip()
+        }
+
+    # A küszöb elérése előtt a pótlás/cserekocsi továbbra is ideiglenes
+    # kijelzés; nem végleges tárolási döntés.
+    if budapest_now < végzés_dt:
         forda_kulcs = forda_kulcs_adat(forda_sor)
         forda_adat = forda_rendszamok.get(forda_kulcs, {})
         rendszam = str(forda_adat.get("rendszám", "")).strip()
-
         potlas = _gtfs_rt_potlasban_van(
-            forda_sor,
-            rendszam,
-            budapest_now,
+            forda_sor, rendszam, budapest_now,
             pozicio_tortenet=pozicio_tortenet
         )
-
-        if potlas is not None and budapest_now < döntés_dt:
+        if potlas is not None:
             return {
                 "eredmény": "pótlás/cserekocsi",
                 "tárolás helye": "---",
@@ -2814,89 +2855,21 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
                 "pótlás_route_id": potlas["route_id"],
                 "pótlás_direction_id": potlas["direction_id"],
             }
-
-    # A 70%-os pont előtt még nincs végleges döntés.
-    if budapest_now < döntés_dt:
         return None
 
-    rekordok = []
-
-    for rekord in pozicio_tortenet:
-        if str(rekord.get("viszonylat", "")).strip() != str(forda_sor.get("viszonylat", "")).strip():
-            continue
-        if str(rekord.get("forda", "")).strip() != str(forda_sor.get("forda", "")).strip():
-            continue
-        if str(rekord.get("forrás", "biztor")).strip() != str(forda_sor.get("forrás", "biztor")).strip():
-            continue
-
-        # A "frissítve" a lekérdezés ideje, nem feltétlenül a GPS-adaté.
-        # A 70%-os döntéshez a tényleges pozíciófrissítés időpontját használjuk,
-        # különben egy régi, korábban OK pozíciót a későbbi lekérdezések
-        # frissnek tüntethetnének fel.
-        idopont = str(rekord.get("pozicio_frissitve", "")).strip()
-        if not idopont or idopont in ("-", "None"):
-            continue
-
-        ido = None
-        for fmt in ("%H:%M:%S", "%H:%M"):
-            try:
-                ido = datetime.strptime(idopont, fmt).time()
-                break
-            except (ValueError, TypeError):
-                continue
-        if ido is None:
-            continue
-
-        rekord_dt = datetime.combine(mai_datum, ido, tzinfo=budapest_tz)
-        if rekord_dt < figyelési_kezdés_dt:
-            rekord_dt += timedelta(days=1)
-
-        # Legfeljebb 10 perces tényleges GPS-adat fogadható el a döntésnél.
-        # Rövid fordánál a keresési ablak kezdése -5 perc, a döntés végzés+10,
-        # miközben a megfigyelési időszak végzés+15 percig tart.
-        if (
-            figyelési_kezdés_dt <= rekord_dt <= döntés_dt
-            and döntés_dt - rekord_dt <= timedelta(minutes=10)
-        ):
-            rekordok.append((rekord_dt, rekord))
-
-    rekordok.sort(key=lambda x: x[0])
-
-    if rekordok:
-        _, rekord = rekordok[-1]
-        állapot = str(rekord.get("ellenőrzés", "-")).strip().upper()
-        if potlas is not None:
-            # Ha a jármű a döntési pillanatban pótlásban van, ez I-nek számít.
-            állapot = "OK"
-        if állapot == "OK":
-            eredmény = "RENDBEN TÁROLT"
-        elif állapot == "NEM":
-            eredmény = "ELTÉRÉS TÖRTÉNT"
-        else:
-            eredmény = "NINCS ADAT"
-        tárolás_helye = gps_geozona_vagy_koordinata(
-            rekord.get("pozíció", "")
-        )
-        pozíció_időpontja = str(rekord.get("pozicio_frissitve", "")).strip()
-    else:
-        # Ha a jármű a 70%-os pillanatban még pótlásban van,
-        # az értékelés I legyen akkor is, ha nincs külön GPS-rekord.
-        if potlas is not None:
-            eredmény = "RENDBEN TÁROLT"
-            tárolás_helye = "---"
-            pozíció_időpontja = ""
-        else:
-            # A döntési ponthoz nincs legfeljebb 10 perces, tényleges GPS-adat.
-            # Ez nem automatikusan NEM vagy I: az eredmény NINCS ADAT.
-            eredmény = "NINCS ADAT"
-            tárolás_helye = "Nincs adat"
-            pozíció_időpontja = ""
-
+    # A végzés elérkezett, de nem volt meg a szükséges hosszúságú
+    # megszakítás nélküli OK-sorozat: végleges eltérés.
+    utolso_rekord = mintak[-1][1] if mintak else None
+    hely = (
+        gps_geozona_vagy_koordinata(utolso_rekord.get("pozíció", ""))
+        if utolso_rekord is not None and str(utolso_rekord.get("pozíció", "")).strip()
+        else "Nincs adat"
+    )
     return {
-        "eredmény": eredmény,
-        "tárolás helye": tárolás_helye,
-        "döntés időpontja": döntés_dt.strftime("%H:%M:%S"),
-        "pozíció időpontja": pozíció_időpontja
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": hely,
+        "döntés időpontja": végzés_dt.strftime("%H:%M:%S"),
+        "pozíció időpontja": str(utolso_rekord.get("pozicio_frissitve", "")).strip() if utolso_rekord else ""
     }
 
 
@@ -2945,6 +2918,17 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
     figyelt_forras = figyelt_fordak_garazs if forrás == "garazs" else figyelt_fordak_biztor
 
     uj_dontes = 0
+    gps_rekordok_forras_szerint = sum(
+        1 for rekord in pozicio_tortenet
+        if str(rekord.get("forrás", "biztor")).strip() == forrás
+        and str(rekord.get("pozicio_frissitve", "")).strip() not in ("", "-", "None")
+        and str(rekord.get("pozíció", "")).strip() not in ("", "None")
+    )
+    print(
+        f"70%-os ellenőrzés ({forrás}): {len(figyelt_forras)} forda, "
+        f"{gps_rekordok_forras_szerint} GPS-rekord időbélyeggel és koordinátával, "
+        f"{len(dontesek)} korábban mentett döntés."
+    )
 
     for _, forda_sor in figyelt_forras.iterrows():
         viszonylat = str(forda_sor["viszonylat"]).strip()
