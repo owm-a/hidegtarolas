@@ -1,9 +1,8 @@
 name: ArrivaBus hidegtárolás_2
 
+# Az automatikus indítást a cron-job.org végzi workflow_dispatch hívással.
+# A GitHub Actions saját schedule-je szándékosan nincs bekapcsolva.
 on:
-  schedule:
-    - cron: "32 16 * * *"
-      timezone: "Europe/Budapest"
   workflow_dispatch:
 
 permissions:
@@ -45,44 +44,64 @@ jobs:
           BKK_API_KEY: ${{ secrets.BKK_API_KEY }}
         run: python main.py
 
-      - name: Excel exportok ellenőrzése
+      - name: Napi Excel-export ellenőrzése
         run: |
           python - <<'PY'
+          import json
           import os
+          import sys
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
           import openpyxl
+
+          ma = datetime.now(ZoneInfo("Europe/Budapest")).strftime("%Y-%m-%d")
+          adatfajl = "napi_adatok.json"
+          if not os.path.isfile(adatfajl):
+              raise SystemExit("HIBA: a napi_adatok.json nem jött létre.")
+
+          with open(adatfajl, "r", encoding="utf-8") as f:
+              adatok = json.load(f)
+
+          allapot = adatok.get("napi_excel_export", {})
+          if not (isinstance(allapot, dict) and allapot.get("datum") == ma and allapot.get("kesz") is True):
+              print("A napi Excel-export még nem készült el mindkét fájllal; ez a futás normálisan folytatódik.")
+              sys.exit(0)
 
           fajlok = [
               "data/hidegtarolas_export.xlsx",
               "data/garazstarolas_export.xlsx",
           ]
-
           for fajl in fajlok:
               if not os.path.isfile(fajl) or os.path.getsize(fajl) == 0:
-                  raise SystemExit(f"HIBA: az Excel export hiányzik vagy üres fájl: {fajl}")
+                  raise SystemExit(f"HIBA: hiányzó vagy üres Excel-fájl: {fajl}")
 
               wb = openpyxl.load_workbook(fajl, read_only=True, data_only=True)
-              if "Riport" not in wb.sheetnames:
-                  raise SystemExit(f"HIBA: nincs Riport munkalap: {fajl}")
-
-              ws = wb["Riport"]
-              adatsorok = sum(
-                  1 for row in ws.iter_rows(min_row=2, values_only=True)
-                  if any(value is not None for value in row)
-              )
-              print(f"Ellenőrzés: {fajl}; adatsorok: {adatsorok}")
-
-              if adatsorok == 0:
-                  raise SystemExit(f"HIBA: a Riport munkalap nem tartalmaz adatsorokat: {fajl}")
-
-              wb.close()
+              try:
+                  if "Riport" not in wb.sheetnames:
+                      raise SystemExit(f"HIBA: nincs Riport munkalap: {fajl}")
+                  ws = wb["Riport"]
+                  if ws.cell(1, 5).value != "Terv tárolás" or ws.cell(1, 6).value != "Eredmény":
+                      raise SystemExit(f"HIBA: nem megfelelő E/F oszlopsorrend: {fajl}")
+                  mai_sorok = sum(
+                      1 for r in range(2, ws.max_row + 1)
+                      if str(ws.cell(r, 1).value or "").strip()[:10] == ma
+                  )
+                  if mai_sorok == 0:
+                      raise SystemExit(f"HIBA: nincs mai adatsor: {fajl}")
+                  print(f"OK: {fajl}; mai adatsorok: {mai_sorok}")
+              finally:
+                  wb.close()
           PY
 
-      - name: Napi adatok és mindkét Excel mentése
+      - name: Napi adatok, HTML és Excel-fájlok mentése
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add napi_adatok.json index.html data/hidegtarolas_export.xlsx data/garazstarolas_export.xlsx
+          git add napi_adatok.json index.html
+          for fajl in data/hidegtarolas_export.xlsx data/garazstarolas_export.xlsx; do
+            if [ -f "$fajl" ]; then git add "$fajl"; fi
+          done
 
           if git diff --cached --quiet; then
             echo "Nincs új mentendő adat."
