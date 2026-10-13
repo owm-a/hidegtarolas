@@ -87,6 +87,7 @@ def http_get(*args, **kwargs):
     return _http_session.get(*args, **kwargs)
 
 
+
 # =========================================================
 # TESZTIDŐ
 # =========================================================
@@ -1278,6 +1279,7 @@ if gtfs_rt_trip_figyeles_idoszak:
     )
 
     feed = gtfs_realtime_pb2.FeedMessage()
+
     feed.ParseFromString(response.content)
 
     print(
@@ -2983,30 +2985,59 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             "pótlás_fordája": dontes.get("pótlás_fordája", "")
         })
 
-    # Excel 16:30 után mindenképpen készüljön el az aktuális állapotról.
-    minden_döntött = (
-        len(figyelt_forras) == 0
-        or len(dontesek) >= len(figyelt_forras)
+    # Csak a jelenlegi forrás figyelt fordái számítanak a készültségbe;
+    # régi, már nem létező kulcsok nem tehetik tévesen teljessé a riportot.
+    vegleges_eredmenyek = {"RENDBEN TÁROLT", "ELTÉRÉS TÖRTÉNT"}
+    aktualis_kulcsok = {
+        forda_kulcs_adat(forda_sor)
+        for _, forda_sor in figyelt_forras.iterrows()
+    }
+    minden_döntött = all(
+        str(dontesek.get(kulcs, {}).get("eredmény", "")).strip() in vegleges_eredmenyek
+        for kulcs in aktualis_kulcsok
+    )
+    ertekelt_fordak = sum(
+        1 for sor in eredmenyek
+        if str(sor.get("eredmény", "")).strip() in vegleges_eredmenyek
     )
 
-    # A napi Excel-riport semmilyen körülmények között ne készüljön 16:30 előtt.
-    # Ha egy korábbi hibás futás 16:30 előtt már excel_kesz=True értéket mentett,
-    # azt is újra megnyitjuk, hogy a 16:30 utáni futás ténylegesen elkészíthesse.
+    # Az Excel-export legkorábban 16:30-kor indulhat.
     riport_indithato = most.time() >= time(16, 30)
 
+    # A korábbi verzió csak HH:MM:SS formában mentette a "keszult" mezőt,
+    # ezért ezt és a korábbi dátum + idő formátumot is kezeljük.
     korabbi_keszult = str(korabbi_riport.get("keszult", "")).strip()
     korabbi_keszult_ido = None
-    try:
-        if " " in korabbi_keszult:
-            korabbi_keszult_ido = datetime.strptime(korabbi_keszult, "%Y-%m-%d %H:%M:%S").time()
-    except (ValueError, TypeError):
-        korabbi_keszult_ido = None
+    for fmt in ("%H:%M:%S", "%H:%M", "%Y-%m-%d %H:%M:%S"):
+        try:
+            korabbi_keszult_ido = datetime.strptime(korabbi_keszult, fmt).time()
+            break
+        except (ValueError, TypeError):
+            continue
+
+    # A JSON-ban jelzett kész állapot önmagában nem elég: ellenőrizzük, hogy
+    # a tényleges XLSX-fájl létezik-e, olvasható-e és tartalmaz-e aznapi adatsort.
+    export_fajl_adatokkal = False
+    if os.path.isfile(export_fajl):
+        try:
+            ellenorzo_wb = openpyxl.load_workbook(export_fajl, read_only=True, data_only=True)
+            if "Riport" in ellenorzo_wb.sheetnames:
+                ellenorzo_ws = ellenorzo_wb["Riport"]
+                export_fajl_adatokkal = (
+                    ellenorzo_ws.max_row > 1
+                    and ellenorzo_ws.max_column >= 6
+                    and str(ellenorzo_ws.cell(2, 1).value).strip() == MAI_NAP
+                )
+            ellenorzo_wb.close()
+        except Exception as e:
+            print(f"FIGYELEM: az exportfájl ellenőrzése nem sikerült ({export_fajl}): {e}")
 
     excel_mar_mentve = (
         korabbi_riport.get("datum") == MAI_NAP
         and korabbi_riport.get("excel_kesz") is True
         and korabbi_keszult_ido is not None
         and korabbi_keszult_ido >= time(16, 30)
+        and export_fajl_adatokkal
     )
 
     riport_idopont = korabbi_riport.get("keszult", "-")
@@ -3014,16 +3045,30 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
     if riport_indithato and not excel_mar_mentve:
         os.makedirs("data", exist_ok=True)
 
+        export_wb = None
         if os.path.exists(export_fajl):
-            export_wb = openpyxl.load_workbook(export_fajl)
-            if "Riport" in export_wb.sheetnames:
-                export_ws = export_wb["Riport"]
-            else:
-                export_ws = export_wb.create_sheet("Riport")
-        else:
+            try:
+                export_wb = openpyxl.load_workbook(export_fajl)
+            except Exception as e:
+                # Üres/sérült, például 0 bájtos XLSX esetén új fájlt építünk.
+                print(f"FIGYELEM: a korábbi export nem olvasható, újraépítjük ({export_fajl}): {e}")
+
+        if export_wb is None:
             export_wb = openpyxl.Workbook()
             export_ws = export_wb.active
             export_ws.title = "Riport"
+        elif "Riport" in export_wb.sheetnames:
+            export_ws = export_wb["Riport"]
+        elif len(export_wb.sheetnames) == 1 and export_wb.active.max_row == 1 and export_wb.active["A1"].value is None:
+            export_ws = export_wb.active
+            export_ws.title = "Riport"
+        else:
+            export_ws = export_wb.create_sheet("Riport")
+
+        # Mindig az aktuális napi Valós tárolás-állapotból építjük újra a riportot.
+        # Így egy korábbi futás sorai nem maradnak benne és nem duplázódnak.
+        if export_ws.max_row > 0:
+            export_ws.delete_rows(1, export_ws.max_row)
 
         # A riport fejlécét a 6. oszloppal bővítjük.
         export_ws.cell(1, 1).value = "Dátum"
@@ -3039,21 +3084,28 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         feher_betu = openpyxl.styles.Font(color="FFFFFF", bold=True)
 
         for sor in eredmenyek:
-            if sor["eredmény"] == "pótlás/cserekocsi":
+            eredmeny = str(sor.get("eredmény", "")).strip()
+            if eredmeny == "pótlás/cserekocsi":
                 export_eredmeny = "P"
-            elif sor["eredmény"] == "NINCS ADAT" or (not sor["rendszám"] and sor["forda"]):
-                export_eredmeny = "?"
-            elif sor["eredmény"] == "RENDBEN TÁROLT":
+            elif eredmeny == "RENDBEN TÁROLT":
                 export_eredmeny = "I"
-            else:
+            elif eredmeny == "ELTÉRÉS TÖRTÉNT":
                 export_eredmeny = "N"
+            else:
+                # Amíg a Valós tárolás n.a., nincs végleges I/N döntés.
+                # Ezt nem szabad automatikusan eltérésnek (N) exportálni.
+                export_eredmeny = "?"
 
             export_tarolas_helye = str(
                 sor.get("tárolás helye", "")
             ).strip()
-
-            if not export_tarolas_helye:
-                export_tarolas_helye = "Nincs adat"
+            if not eredmeny:
+                export_tarolas_helye = "n.a"
+            elif eredmeny == "pótlás/cserekocsi":
+                # A pótlás nem valódi tárolási hely; a napi Excelben --- jelöli.
+                export_tarolas_helye = "---"
+            elif not export_tarolas_helye or export_tarolas_helye in ("Nincs adat", "-"):
+                export_tarolas_helye = "n.a"
 
             export_ws.append([
                 sor["dátum"],
@@ -3070,7 +3122,8 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             if sor["eredmény"] == "pótlás/cserekocsi":
                 eredmeny_cella.fill = openpyxl.styles.PatternFill(fill_type="solid", fgColor="5B9BD5")
                 eredmeny_cella.font = feher_betu
-            elif sor["eredmény"] == "NINCS ADAT" or (not sor["rendszám"] and sor["forda"]):
+            elif str(sor.get("eredmény", "")).strip() not in ("RENDBEN TÁROLT", "ELTÉRÉS TÖRTÉNT") or (not sor["rendszám"] and sor["forda"]):
+                # A még nem értékelt (Valós tárolás = n.a) sor nem lehet piros N.
                 eredmeny_cella.fill = fekete_toltes
                 eredmeny_cella.font = feher_betu
             elif sor["eredmény"] == "RENDBEN TÁROLT":
@@ -3112,6 +3165,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         export_wb.save(export_fajl)
         riport_idopont = most.strftime("%H:%M:%S")
         excel_mar_mentve = True
+        print(f"Excel export elkészült: {export_fajl}; adatsorok: {len(eredmenyek)}; véglegesen értékelt fordák: {ertekelt_fordak}")
 
     riportok = {
         "datum": MAI_NAP,
@@ -3120,6 +3174,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         "keszult": riport_idopont,
         "utolso_futas": most.strftime("%H:%M:%S"),
         "vizsgalt_fordak": len(eredmenyek),
+        "ertekelt_fordak": ertekelt_fordak,
         "forrás": forrás,
         "dontesek": dontesek,
         "eredmenyek": eredmenyek
@@ -3132,7 +3187,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
     print()
     print("=== HIDEGTÁROLÁSI RIPORT ===")
     print("Új 70%-os döntések:", uj_dontes)
-    print("Meghozott döntések:", len(dontesek), "/", len(figyelt_forras))
+    print("Meghozott döntések:", ertekelt_fordak, "/", len(figyelt_forras), "végleges értékelés")
     print("Excel:", "mentve" if excel_mar_mentve else "16:30-ra vár")
 
     return riportok
@@ -4554,7 +4609,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     </div>
     <div class="fejlec-jobb">
       <div class="adat"><b>Riport készült:</b> """ + escape(re.search(r"(\d{1,2}:\d{2})", str(hidegtarolas_riport.get("keszult", "-"))).group(1) if re.search(r"(\d{1,2}:\d{2})", str(hidegtarolas_riport.get("keszult", "-"))) else "-") + """</div>
-      <div class="adat"><b>Exportált fordák:</b> """ + str(hidegtarolas_riport.get("vizsgalt_fordak", 0) if hidegtarolas_riport.get("kesz", False) else 0) + " + " + str(garazstarolas_riport.get("vizsgalt_fordak", 0) if garazstarolas_riport.get("kesz", False) else 0) + " → " + str((hidegtarolas_riport.get("vizsgalt_fordak", 0) if hidegtarolas_riport.get("kesz", False) else 0) + (garazstarolas_riport.get("vizsgalt_fordak", 0) if garazstarolas_riport.get("kesz", False) else 0)) + """</div>
+      <div class="adat"><b>Értékelt fordák:</b> """ + str(hidegtarolas_riport.get("ertekelt_fordak", 0)) + " + " + str(garazstarolas_riport.get("ertekelt_fordak", 0)) + " → " + str(hidegtarolas_riport.get("ertekelt_fordak", 0) + garazstarolas_riport.get("ertekelt_fordak", 0)) + """</div>
     </div>
   </div>
 </div>
