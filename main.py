@@ -5032,7 +5032,7 @@ L.tileLayer(
 
 const terkepElemek = [];
 const jarmuMarkerek = {};
-const TERKEP_MAX_ZOOM = 17;
+const TERKEP_MAX_ZOOM = 19;
 
 
 function escapeHtml(value) {
@@ -5110,12 +5110,7 @@ terkepZonak.forEach(function(zona) {
     ).addTo(map);
 
 
-    rectangle.bindPopup(
-        "<b>Geozóna</b><br>"
-        + escapeHtml(zona.nev)
-    );
-
-
+    // A geozóna téglalapjára kattintva nem nyitunk külön információs ablakot.
     terkepElemek.push(rectangle);
 
 });
@@ -5183,14 +5178,20 @@ terkepJarmuvek.forEach(function(jarmu) {
         + "<b>GPS:</b> "
         + escapeHtml(jarmu.latitude.toFixed(6) + ", " + jarmu.longitude.toFixed(6));
 
-    marker.bindPopup(jarmuAdatHtml);
-    // Az adatok már rámutatáskor megjelennek, kattintásra a popup is megnyitható.
-    marker.bindTooltip(jarmuAdatHtml, {
-        direction: "top",
-        sticky: true,
-        opacity: 0.97,
-        className: "jarmu-hover-adatok"
-    });
+    // Asztali gépen az adatok csak rámutatáskor jelennek meg,
+    // hogy kattintáskor ne legyen egyszerre tooltip és popup.
+    // Érintőképernyőn a PIN-re koppintva jelenik meg a popup.
+    const egeresEszkoz = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (egeresEszkoz) {
+        marker.bindTooltip(jarmuAdatHtml, {
+            direction: "top",
+            sticky: true,
+            opacity: 0.97,
+            className: "jarmu-hover-adatok"
+        });
+    } else {
+        marker.bindPopup(jarmuAdatHtml);
+    }
 
 
     const rendszamKulcs = String(jarmu.rendszam || "").trim().toUpperCase();
@@ -5254,7 +5255,7 @@ document.querySelectorAll("#fix-tbody-common tr[data-forras]").forEach(function(
             tarolasMarkerek.push(marker);
         }
         if (!map.hasLayer(marker)) marker.addTo(map);
-        map.flyTo(koordinata, Math.min(TERKEP_MAX_ZOOM - 2, 12), {duration: 0.7});
+        map.flyTo(koordinata, TERKEP_MAX_ZOOM, {duration: 0.7});
         setTimeout(function() { marker.openPopup(); }, 720);
     }
 
@@ -5309,10 +5310,14 @@ function fokuszJarmure(rendszam) {
     const marker = jarmuMarkerek[kulcs];
     if (!marker) return;
     const pos = marker.getLatLng();
-    // Táblázatból kattintva a maximális zoomnál kettővel távolabbi szintre (14 helyett 12) fókuszálunk.
-    map.flyTo(pos, Math.min(TERKEP_MAX_ZOOM - 2, 12), {duration: 0.7});
+    // A táblázatból kattintva a térkép a globális maximális zoomig nagyíthat.
+    map.flyTo(pos, TERKEP_MAX_ZOOM, {duration: 0.7});
     setTimeout(function(){
-        marker.openPopup();
+        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+            marker.openTooltip();
+        } else {
+            marker.openPopup();
+        }
         const el = marker.getElement();
         if (el) {
             el.classList.remove("map-focus");
