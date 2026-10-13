@@ -4062,6 +4062,8 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .map-focus{animation:mapPulse .9s ease-out}.vehicle-pin{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 1px 5px rgba(0,0,0,.45);box-sizing:border-box}.vehicle-pin::after{content:"";display:block;width:7px;height:7px;margin:5px auto 0;border-radius:50%;background:white}.vehicle-pin.green{background:#00b050}.vehicle-pin.red{background:#ff0000}.vehicle-pin.yellow{background:#ffd966}.vehicle-pin.blue{background:#4da3ff}.vehicle-pin.gray{background:#687384}
 @keyframes mapPulse{0%{filter:brightness(1.8)}100%{filter:brightness(1)}}
 .leaflet-popup-content{line-height:1.45}
+.jarmu-hover-adatok{white-space:normal;max-width:300px;line-height:1.45;font-size:12px}
+.jarmu-hover-adatok .leaflet-tooltip-content{white-space:normal}
 body.light-mode{--bg:#eef2f6;--surface:#fff;--surface2:#f4f6f8;--surface3:#e7ebf0;--border:#cbd3dc;--text:#1f2937;--muted:#667085;--accent:#2f6fed;--accent2:#4f7ff5;--ok:#16a765;--bad:#df4f4f;--dark:#4b5563;--shadow:0 8px 24px rgba(15,23,42,.10);background:var(--bg);color:var(--text)}
 body.light-mode .fejlec,body.light-mode .tabla-szekcio{background:var(--surface);border-color:var(--border)}
 body.light-mode .cim,body.light-mode .adat b{color:var(--text)}
@@ -4393,6 +4395,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   box-sizing:border-box;
 }
 /* A rendszám gombja nem növelheti meg a sor magasságát. */
+.storage-coordinate-clickable{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px}.storage-coordinate-clickable:hover{filter:brightness(1.15)}
 .fo-kozos-tabla .rendszam-link{
   display:inline-flex;
   align-items:center;
@@ -5158,43 +5161,36 @@ terkepJarmuvek.forEach(function(jarmu) {
     }
 
 
-    marker.bindPopup(
-
-        "<b>"
+    const jarmuAdatHtml =
+        "<b><u>"
         + escapeHtml(jarmu.rendszam)
-        + "</b><br><br>"
-
+        + "</u></b><br>"
         + "<b>Viszonylat:</b> "
         + escapeHtml(jarmu.viszonylat)
         + "<br>"
-
         + "<b>Forda:</b> "
         + escapeHtml(jarmu.forda)
         + "<br>"
-
         + "<b>Geozóna:</b> "
         + escapeHtml(jarmu.helyszin)
         + "<br>"
-
         + "<b>Állapot:</b> "
         + statuszSzoveg
         + "<br>"
-
         + "<b>Utolsó friss GPS-pozíció:</b> "
-        + escapeHtml(
-            jarmu.pozicio_frissitve
-            || jarmu.frissitve
-        )
+        + escapeHtml(jarmu.pozicio_frissitve || jarmu.frissitve)
         + "<br>"
-
         + "<b>GPS:</b> "
-        + escapeHtml(
-            jarmu.latitude.toFixed(6)
-            + ", "
-            + jarmu.longitude.toFixed(6)
-        )
+        + escapeHtml(jarmu.latitude.toFixed(6) + ", " + jarmu.longitude.toFixed(6));
 
-    );
+    marker.bindPopup(jarmuAdatHtml);
+    // Az adatok már rámutatáskor megjelennek, kattintásra a popup is megnyitható.
+    marker.bindTooltip(jarmuAdatHtml, {
+        direction: "top",
+        sticky: true,
+        opacity: 0.97,
+        className: "jarmu-hover-adatok"
+    });
 
 
     const rendszamKulcs = String(jarmu.rendszam || "").trim().toUpperCase();
@@ -5207,12 +5203,77 @@ terkepJarmuvek.forEach(function(jarmu) {
 
 });
 
+// A Valós tárolás koordinátáihoz csak kattintáskor jelenik meg külön pin.
+// Geozónanév nem kattintható; kizárólag a geozónán kívüli GPS-koordináta.
+const tarolasMarkerek = [];
+function tarolasiKoordinata(hely) {
+    const szoveg = String(hely || "").trim();
+    if (!szoveg || /^(n\.a|nincs adat|pótlás\/cserekocsi|-)$/i.test(szoveg)) return null;
+    const zona = terkepZonak.find(function(z) {
+        return String(z.nev || "").trim().toLocaleLowerCase("hu") === szoveg.toLocaleLowerCase("hu");
+    });
+    // A geozónák neveihez soha nem készítünk tárolási pint.
+    if (zona) return null;
+    const m = szoveg.match(/(-?\d{1,2}(?:\.\d+)?)\s*[,;]\s*(-?\d{1,3}(?:\.\d+)?)/);
+    if (m) {
+        const lat = Number(m[1]), lon = Number(m[2]);
+        if (Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) return [lat, lon];
+    }
+    return null;
+}
+
+document.querySelectorAll("#fix-tbody-common tr[data-forras]").forEach(function(tr) {
+    const storageCell = tr.querySelector("td.storage");
+    if (!storageCell) return;
+    const hely = storageCell.textContent.trim();
+    const koordinata = tarolasiKoordinata(hely);
+    if (!koordinata) return;
+
+    storageCell.classList.add("storage-coordinate-clickable");
+    storageCell.title = "Kattints a koordináta térképen való megjelenítéséhez";
+    storageCell.setAttribute("role", "button");
+    storageCell.setAttribute("tabindex", "0");
+
+    const rendszam = tr.querySelector(".rendszam-link")?.dataset.rendszam || "";
+    const viszonylat = tr.children[0]?.textContent.trim() || "";
+    const forda = tr.children[1]?.textContent.trim() || "";
+    const forras = String(tr.dataset.forras || "biztor").trim();
+    let marker = null;
+
+    function mutatTarolasiPint() {
+        if (!marker) {
+            marker = L.marker(koordinata);
+            marker.__forras = forras;
+            marker.bindPopup(
+                "<b>Valós tárolás</b><br>"
+                + "<b>Hely:</b> " + escapeHtml(hely) + "<br>"
+                + "<b>Rendszám:</b> <u>" + escapeHtml(rendszam) + "</u><br>"
+                + "<b>Viszonylat:</b> " + escapeHtml(viszonylat) + "<br>"
+                + "<b>Forda:</b> " + escapeHtml(forda)
+            );
+            tarolasMarkerek.push(marker);
+        }
+        if (!map.hasLayer(marker)) marker.addTo(map);
+        map.flyTo(koordinata, Math.min(TERKEP_MAX_ZOOM - 2, 12), {duration: 0.7});
+        setTimeout(function() { marker.openPopup(); }, 720);
+    }
+
+    storageCell.addEventListener("click", mutatTarolasiPint);
+    storageCell.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            mutatTarolasiPint();
+        }
+    });
+});
+
 function frissitTerkepNezet(view) {
     const lista = jarmuMarkerek["__lista__"] || [];
-    lista.forEach(function(marker){
+    const osszesMarker = lista.concat(tarolasMarkerek);
+    osszesMarker.forEach(function(marker){
         if (map.hasLayer(marker)) map.removeLayer(marker);
     });
-    const latszo = lista.filter(function(marker){
+    const latszo = osszesMarker.filter(function(marker){
         return view === "mindketto" || marker.__forras === view;
     });
     latszo.forEach(function(marker){ marker.addTo(map); });
@@ -5248,7 +5309,8 @@ function fokuszJarmure(rendszam) {
     const marker = jarmuMarkerek[kulcs];
     if (!marker) return;
     const pos = marker.getLatLng();
-    map.flyTo(pos, Math.min(TERKEP_MAX_ZOOM, Math.max(map.getZoom(), 11)), {duration: 0.7});
+    // Táblázatból kattintva a maximális zoomnál kettővel távolabbi szintre (14 helyett 12) fókuszálunk.
+    map.flyTo(pos, Math.min(TERKEP_MAX_ZOOM - 2, 12), {duration: 0.7});
     setTimeout(function(){
         marker.openPopup();
         const el = marker.getElement();
