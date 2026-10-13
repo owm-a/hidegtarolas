@@ -5024,7 +5024,7 @@ const map = L.map(
 L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
-        maxZoom: 20,
+        maxZoom: 19,
         attribution: "&copy; OpenStreetMap contributors"
     }
 ).addTo(map);
