@@ -6129,7 +6129,7 @@ window.addEventListener("load", frissitGarazsCsuszkat);
 })();
 </script>
 
-<footer class="adatforras"><span class="rejtett-poen">De ki az a Körporéjsön?</span><span>Adatok forrása: BKK Zrt., CC BY 4.0</span></footer>
+<footer class="adatforras"><span class="rejtett-poen">De ki az a Körporésön?</span><span>Adatok forrása: BKK Zrt., CC BY 4.0</span></footer>
 </body>
 
 </html>
