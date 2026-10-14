@@ -4198,7 +4198,9 @@ body{
 }
 .csuszka-info{color:var(--muted);font-size:12px;font-weight:650;white-space:nowrap;padding-left:8px}
 .csuszka-info strong{color:var(--text)}
-.idopont-csuszkasav input[type=range]{width:100%;margin:0;accent-color:var(--accent);cursor:pointer}
+.idopont-csuszkasav input[type=range]{flex:1 1 auto;width:100%;min-width:0;margin:0;accent-color:var(--accent);cursor:pointer}
+#timeline-jump-end{flex:0 0 auto;border:1px solid var(--border);background:var(--surface3);color:var(--text);border-radius:7px;padding:5px 9px;font:inherit;font-size:11px;font-weight:650;cursor:pointer;white-space:nowrap}
+#timeline-jump-end:hover{border-color:var(--accent);background:var(--surface)}
 .tabla-egesz{display:grid;grid-template-columns:var(--left-width) minmax(0,1fr) var(--storage-width);width:100%;max-width:100%;min-width:0;overflow:hidden;background:var(--surface)}
 .fix-ablak{min-width:0;overflow:hidden;background:var(--surface)}
 .ido-ablak{min-width:0;overflow:hidden;background:var(--surface);border-left:1px solid var(--border);border-right:1px solid var(--border)}
@@ -4885,7 +4887,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   <div class="idopont-csuszkasav" id="fo-csuszkasav">
     <div class="csuszka-info"><strong id="aktiv-sorok-szoveg">Idővonal&nbsp;</strong></div>
     <input type="range" id="fo-idopont-csuszka" min="0" max="0" value="0" step="1" aria-label="Időpont görgetése">
-    <div></div>
+    <button id="timeline-jump-end" type="button" title="Ugrás az idővonal legvégére">Ugrás a végére</button>
   </div>
   <div class="tabla-egesz" id="fo-tabla">
     <table class="fo-kozos-tabla">
@@ -5019,8 +5021,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
                             f' data-gps-ido="{escape(str(lokacio_adat.get("pozicio_frissitve", "") or ""), quote=True)}"'
                             f' data-rendszam="{escape(str(lokacio_adat.get("rendszám", "") or sor.get("rendszám", "")), quote=True)}"'
                             f' data-hely="{escape(str(lokacio_adat.get("hely", "") or sor.get("hely", "")), quote=True)}"'
-                            f' data-statusz="{escape(megj, quote=True)}"'
-                            f' data-idopont="{escape(idopont, quote=True)}"'
+                            f' data-helyszin="{escape(str(lokacio_adat.get("helyszín", "") or lokacio_adat.get("helyszin", "") or "n.a"), quote=True)}"'
+                            f' data-statusz="{escape(megj, quote=True)}"'                             f' data-idopont="{escape(idopont, quote=True)}"'
                             f' data-viszonylat="{escape(str(sor.get("viszonylat", "")), quote=True)}"'
                             f' data-forda="{escape(str(sor.get("forda", "")), quote=True)}"'
                         )
@@ -5241,6 +5243,14 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   slider.addEventListener('input',()=>{
     fo.scrollLeft=Math.min(fo.scrollWidth-fo.clientWidth,Math.max(0,+slider.value||0));
   });
+  const jumpEndButton=document.getElementById('timeline-jump-end');
+  if(jumpEndButton){
+    jumpEndButton.addEventListener('click',()=>{
+      const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
+      slider.value=String(max);
+      fo.scrollTo({left:max,behavior:'smooth'});
+    });
+  }
   fo.addEventListener('scroll',()=>{
     if(scrollFrame)return;
     scrollFrame=requestAnimationFrame(()=>{
@@ -5648,28 +5658,43 @@ document.querySelectorAll("#fix-tbody-common tr[data-forras]").forEach(function(
 // Az idővonal I/N/P cellái az adott percben elmentett GPS-pozícióra mutatnak.
 // Egy időoszlop fejlécére kattintva az éppen látható sorok azonos időpontú lokációi egyszerre jelennek meg.
 const tortenetiLokacioMarkerek = [];
+let tortenetiOszlopAktiv = false;
 function tortenetiMarkerLetrehozasa(cell) {
     if (cell.__tortenetiMarker) return cell.__tortenetiMarker;
     const koordinata = [Number(cell.dataset.lat), Number(cell.dataset.lon)];
     if (!Number.isFinite(koordinata[0]) || !Number.isFinite(koordinata[1])) return null;
-    const marker = L.marker(koordinata);
+
     const statusz = String(cell.dataset.statusz || "").toUpperCase();
-    const statuszHtml = statusz === "I"
-        ? '<span style="color:#00a040;font-weight:bold">I – rendben tárolt</span>'
-        : statusz === "N"
-            ? '<span style="color:#e00000;font-weight:bold">N – eltérés történt</span>'
-            : '<span style="color:#4da3ff;font-weight:bold">P – pótlás/cserekocsi</span>';
-    const gpsIdo = cell.dataset.gpsIdo || "nem ismert";
-    marker.bindPopup(
-        "<b>Idővonal – " + escapeHtml(cell.dataset.idopont || "") + "</b><br>"
-        + "<b>Állapot:</b> " + statuszHtml + "<br>"
-        + "<b>Rendszám:</b> " + escapeHtml(cell.dataset.rendszam || "n.a") + "<br>"
-        + "<b>Viszonylat / forda:</b> " + escapeHtml(cell.dataset.viszonylat || "") + " / " + escapeHtml(cell.dataset.forda || "") + "<br>"
-        + "<b>Tervezett hely:</b> " + escapeHtml(cell.dataset.hely || "n.a") + "<br>"
-        + "<b>GPS:</b> " + escapeHtml(cell.dataset.lokacio || (koordinata[0] + ", " + koordinata[1])) + "<br>"
-        + "<b>GPS-adat frissítve:</b> " + escapeHtml(gpsIdo)
-    );
+    const jarmuStatusz = statusz === "I" ? "OK" : statusz === "N" ? "NEM" : statusz === "P" ? "PÓTLÁS" : "";
+    const marker = L.marker(koordinata, {icon: jarmuIkon(jarmuStatusz)});
     marker.__forras = String(cell.closest("tr")?.dataset.forras || "biztor").trim();
+
+    let statuszSzoveg = "Nincs értékelés";
+    if (jarmuStatusz === "OK") statuszSzoveg = '<span style="color:#00a040;font-weight:bold;">OK</span>';
+    else if (jarmuStatusz === "NEM") statuszSzoveg = '<span style="color:#e00000;font-weight:bold;">ELTÉRÉS</span>';
+    else if (jarmuStatusz === "PÓTLÁS") statuszSzoveg = '<span style="color:#4da3ff;font-weight:bold;">pótlás/cserekocsi</span>';
+
+    const gpsIdo = cell.dataset.gpsIdo || "nem ismert";
+    const rendszam = cell.dataset.rendszam || "n.a";
+    const viszonylat = cell.dataset.viszonylat || "";
+    const forda = cell.dataset.forda || "";
+    const helyszin = cell.dataset.helyszin || "n.a";
+    const jarmuAdatHtml =
+        "<b><u>" + escapeHtml(rendszam) + "</u></b><br>"
+        + "<b>Viszonylat:</b> " + escapeHtml(viszonylat) + "<br>"
+        + "<b>Forda:</b> " + escapeHtml(forda) + "<br>"
+        + "<b>Geozóna:</b> " + escapeHtml(helyszin) + "<br>"
+        + "<b>Állapot:</b> " + statuszSzoveg + "<br>"
+        + "<b>Utolsó friss GPS-pozíció:</b> " + escapeHtml(gpsIdo) + "<br>"
+        + "<b>GPS:</b> " + escapeHtml(koordinata[0].toFixed(6) + ", " + koordinata[1].toFixed(6));
+
+    // Ugyanaz a jármű-pin, tooltip/popup viselkedés és információs szerkezet, mint az aktuális pozícióknál.
+    const egeresEszkoz = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (egeresEszkoz) {
+        marker.bindTooltip(jarmuAdatHtml, {direction:"top", sticky:true, opacity:0.97, className:"jarmu-hover-adatok"});
+    } else {
+        marker.bindPopup(jarmuAdatHtml);
+    }
     cell.__tortenetiMarker = marker;
     return marker;
 }
@@ -5696,14 +5721,21 @@ document.querySelectorAll(".idopont-cella.lokacio-kattinthato[data-lat][data-lon
 document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEach(function(header) {
     function mutatOszlopLokacioit() {
         const timeIndex = String(header.dataset.timeIndex);
-        // Az előző időpontból kirakott idővonal-jelölőket lecseréljük erre az oszlopra.
+        // Az időoszlop kiválasztásakor kizárólag az adott időpont lokációi maradnak a térképen.
+        tortenetiOszlopAktiv = true;
+        (jarmuMarkerek["__lista__"] || []).forEach(function(marker) {
+            if (map.hasLayer(marker)) map.removeLayer(marker);
+        });
+        tarolasMarkerek.forEach(function(marker) {
+            if (map.hasLayer(marker)) map.removeLayer(marker);
+        });
         tortenetiLokacioMarkerek.forEach(function(marker) {
             if (map.hasLayer(marker)) map.removeLayer(marker);
         });
         tortenetiLokacioMarkerek.length = 0;
 
         const sorok = Array.from(document.querySelectorAll("#fix-tbody-common tr[data-forras]"))
-            .filter(tr => tr.getClientRects().length > 0);
+            .filter(tr => tr.getClientRects().length > 0 && tr.dataset.filterMatch !== "0");
         const markerek = [];
         sorok.forEach(function(tr) {
             const cell = tr.querySelector('.idopont-cella[data-time-index="' + timeIndex + '"][data-lat][data-lon]');
@@ -5718,7 +5750,7 @@ document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEac
         if (markerek.length) {
             const bounds = L.featureGroup(markerek).getBounds();
             if (bounds.isValid()) map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_MAX_ZOOM});
-            if (markerek.length === 1) markerek[0].openPopup();
+            // Egy időpont kiválasztásakor a jelölők mind ugyanúgy nyithatók meg, mint az aktuális járművek.
         } else {
             const timeLabel = header.textContent.trim();
             const status = document.getElementById('history-load-status');
@@ -5744,6 +5776,8 @@ document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEac
         });
         tarolasMarkerek.length = 0;
         tortenetiLokacioMarkerek.length = 0;
+        tortenetiOszlopAktiv = false;
+        frissitTerkepNezet(betoltottTerkepNezet());
     });
 })();
 
@@ -5753,7 +5787,8 @@ function frissitTerkepNezet(view) {
     osszesMarker.forEach(function(marker){
         if (map.hasLayer(marker)) map.removeLayer(marker);
     });
-    const latszo = osszesMarker.filter(function(marker){
+    const forrasLista = tortenetiOszlopAktiv ? tortenetiLokacioMarkerek : osszesMarker;
+    const latszo = forrasLista.filter(function(marker){
         return view === "mindketto" || marker.__forras === view;
     });
     latszo.forEach(function(marker){ marker.addTo(map); });
