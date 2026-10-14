@@ -6012,54 +6012,163 @@ function tortenetiMarkerLetrehozasa(cell) {
     return marker;
 }
 
-// Távoli nézetben a történeti GPS-pontokat szín és közelség szerint összevonjuk.
-// Közelítéskor az eredeti, kattintható járműjelölők visszatérnek.
+// A történeti GPS-pontok közelség szerint klasztereződnek, de a klaszter
+// minden I/N-állapotot külön, a saját színével és darabszámával mutat.
+// Kattintáskor először közelítünk; az egymásra eső pontok végül szétterülnek.
 const tortenetiCsoportMarkerek = [];
+const tortenetiSpiderVonalak = [];
+let tortenetiSpiderAktiv = false;
 function tortenetiStatuszSzin(statusz) {
-    if (statusz === "OK") return "#00b050";
-    if (statusz === "NEM") return "#ff0000";
-    if (statusz === "SÁRGA") return "#ffd966";
-    if (statusz === "PÓTLÁS") return "#4da3ff";
+    if (statusz === "OK") return "#198754";
+    if (statusz === "NEM") return "#dc3545";
+    if (statusz === "SÁRGA") return "#d6a400";
+    if (statusz === "PÓTLÁS") return "#0d6efd";
     return "#687384";
 }
+function visszazarTortenetiSpiderfy() {
+    if (!tortenetiSpiderAktiv) return;
+    tortenetiSpiderVonalak.forEach(function(vonal) {
+        if (map.hasLayer(vonal)) map.removeLayer(vonal);
+    });
+    tortenetiSpiderVonalak.length = 0;
+    tortenetiLokacioMarkerek.forEach(function(marker) {
+        if (marker.__spiderEredetiLatLng) {
+            marker.setLatLng(marker.__spiderEredetiLatLng);
+            delete marker.__spiderEredetiLatLng;
+        }
+    });
+    tortenetiSpiderAktiv = false;
+}
+function szetnyitTortenetiCsoport(csoport, kozep, klaszterMarker) {
+    visszazarTortenetiSpiderfy();
+    tortenetiCsoportMarkerek.forEach(function(m) { if (map.hasLayer(m)) map.removeLayer(m); });
+    tortenetiCsoportMarkerek.length = 0;
+
+    const pontok = csoport.pontok;
+    if (!pontok.length) return;
+    tortenetiSpiderAktiv = true;
+    if (map.hasLayer(klaszterMarker)) map.removeLayer(klaszterMarker);
+
+    // A kör mérete nő a pontok számával, hogy a jelölők ne fedjék el egymást.
+    const sugar = Math.min(90, Math.max(38, 13 * pontok.length));
+    const kozepPont = map.latLngToLayerPoint(kozep);
+    pontok.forEach(function(marker, i) {
+        const szog = (2 * Math.PI * i / pontok.length) - Math.PI / 2;
+        const eltol = L.point(
+            kozepPont.x + Math.cos(szog) * sugar,
+            kozepPont.y + Math.sin(szog) * sugar
+        );
+        const eredeti = marker.getLatLng();
+        marker.__spiderEredetiLatLng = eredeti;
+        const ujLatLng = map.layerPointToLatLng(eltol);
+        const vonal = L.polyline([eredeti, ujLatLng], {
+            color: "#4b5563", weight: 1.5, opacity: 0.8, interactive: false
+        }).addTo(map);
+        tortenetiSpiderVonalak.push(vonal);
+        marker.setLatLng(ujLatLng);
+        if (!map.hasLayer(marker)) marker.addTo(map);
+        if (marker.closeTooltip) marker.closeTooltip();
+    });
+}
 function frissitTortenetiCsoportokat() {
+    visszazarTortenetiSpiderfy();
     tortenetiCsoportMarkerek.forEach(function(m) { if (map.hasLayer(m)) map.removeLayer(m); });
     tortenetiCsoportMarkerek.length = 0;
     const tortenetiak = tortenetiLokacioMarkerek.filter(function(m) { return !!m; });
-    if (map.getZoom() > 12 || tortenetiak.length < 2) {
-        tortenetiak.forEach(function(m) { if (!map.hasLayer(m)) m.addTo(map); });
+    // Frissítéskor először minden eredeti pontot visszateszünk; ezután csak azokat
+    // rejtjük el, amelyek ténylegesen bekerültek egy klaszterbe.
+    tortenetiak.forEach(function(m) { if (!map.hasLayer(m)) m.addTo(map); });
+    if (tortenetiak.length < 2) {
         return;
     }
+
+    // A csoportosítás közös rács szerint történik, nem színenként.
+    // Távolabbról nagyobb, közelről kisebb rácsot használunk; az azonos koordinátájú
+    // pontok így nagy nagyításnál is együtt maradnak, és kattintásra szétteríthetők.
+    const racsMeret = map.getZoom() > 12 ? 24 : 48;
     const csoportok = new Map();
     tortenetiak.forEach(function(m) {
         const pont = map.latLngToLayerPoint(m.getLatLng());
-        const szin = tortenetiStatuszSzin(m.__tortenetiStatusz);
-        const kulcs = Math.floor(pont.x / 48) + ":" + Math.floor(pont.y / 48) + ":" + szin;
-        if (!csoportok.has(kulcs)) csoportok.set(kulcs, {pontok: [], szin: szin});
+        const kulcs = Math.floor(pont.x / racsMeret) + ":" + Math.floor(pont.y / racsMeret);
+        if (!csoportok.has(kulcs)) csoportok.set(kulcs, {pontok: []});
         csoportok.get(kulcs).pontok.push(m);
     });
+
+    const klaszterezettPontok = new Set();
     csoportok.forEach(function(csoport) {
         if (csoport.pontok.length < 2) return;
+        csoport.pontok.forEach(function(m) { klaszterezettPontok.add(m); });
         const latlngs = csoport.pontok.map(function(m) { return m.getLatLng(); });
         const kozep = L.latLng(
             latlngs.reduce((a, ll) => a + ll.lat, 0) / latlngs.length,
             latlngs.reduce((a, ll) => a + ll.lng, 0) / latlngs.length
         );
-        const ikon = L.divIcon({className: "", iconSize: [34, 34], iconAnchor: [17, 17],
-            html: '<div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border:3px solid #fff;background:' + csoport.szin + ';color:' + (csoport.szin === "#ffd966" ? "#222" : "#fff") + ';font-weight:800;font-size:12px;box-shadow:0 1px 6px #0008">' + csoport.pontok.length + '</div>'});
-        const osszevono = L.marker(kozep, {icon: ikon, keyboard: true, title: csoport.pontok.length + " GPS-pont"});
-        osszevono.on("click", function() { map.setView(kozep, Math.min(map.getZoom() + 2, TERKEP_MAX_ZOOM)); });
+
+        const darabok = new Map();
+        csoport.pontok.forEach(function(m) {
+            const statusz = m.__tortenetiStatusz || "EGYEB";
+            darabok.set(statusz, (darabok.get(statusz) || 0) + 1);
+        });
+        const sorrend = ["OK", "NEM", "SÁRGA", "PÓTLÁS", "EGYEB"];
+        const elemek = sorrend.filter(function(statusz) { return darabok.has(statusz); });
+        const szoveg = elemek.map(function(statusz) {
+            const szin = tortenetiStatuszSzin(statusz === "EGYEB" ? "" : statusz);
+            const szam = darabok.get(statusz);
+            return '<span style="display:inline-flex;align-items:center;justify-content:center;min-width:19px;padding:2px 4px;border-radius:9px;background:' + szin + ';color:' + (statusz === "SÁRGA" ? "#222" : "#fff") + ';font-weight:800;font-size:12px;line-height:16px;">' + szam + '</span>';
+        }).join('<span style="color:#374151;font-weight:800;padding:0 2px;">/</span>');
+
+        const ikon = L.divIcon({
+            className: "",
+            iconSize: [Math.max(42, Math.min(110, csoport.pontok.length * 15 + elemek.length * 9)), 32],
+            iconAnchor: [Math.max(42, Math.min(110, csoport.pontok.length * 15 + elemek.length * 9)) / 2, 16],
+            html: '<div style="display:flex;align-items:center;justify-content:center;gap:1px;min-height:30px;padding:2px 5px;border:2px solid #fff;border-radius:17px;background:#fff;box-shadow:0 1px 7px #0008;white-space:nowrap;">' + szoveg + '</div>'
+        });
+        const osszevono = L.marker(kozep, {
+            icon: ikon,
+            keyboard: true,
+            title: elemek.map(function(statusz) {
+                const cimke = statusz === "OK" ? "zöld/I" :
+                    statusz === "NEM" ? "piros/N" :
+                    statusz === "SÁRGA" ? "sárga" :
+                    statusz === "PÓTLÁS" ? "kék/P" : "egyéb";
+                return darabok.get(statusz) + " " + cimke;
+            }).join(", ")
+        });
+
+        osszevono.on("click", function() {
+            const pontokKepernyon = csoport.pontok.map(function(m) {
+                return map.latLngToLayerPoint(m.getLatLng());
+            });
+            let legnagyobbTavolsag = 0;
+            pontokKepernyon.forEach(function(a) {
+                pontokKepernyon.forEach(function(b) {
+                    legnagyobbTavolsag = Math.max(legnagyobbTavolsag, a.distanceTo(b));
+                });
+            });
+            // Ha a pontok még külön helyen vannak, nagyítsunk tovább.
+            // Ha már egymásra esnek (vagy elértük a maximális nagyítást), terítsük szét őket.
+            if (map.getZoom() < TERKEP_MAX_ZOOM && legnagyobbTavolsag > 12) {
+                map.setView(kozep, Math.min(map.getZoom() + 2, TERKEP_MAX_ZOOM));
+            } else {
+                szetnyitTortenetiCsoport(csoport, kozep, osszevono);
+            }
+        });
         osszevono.addTo(map);
         tortenetiCsoportMarkerek.push(osszevono);
     });
-    if (tortenetiCsoportMarkerek.length) {
-        tortenetiak.forEach(function(m) { if (map.hasLayer(m)) map.removeLayer(m); });
-    }
+
+    klaszterezettPontok.forEach(function(m) {
+        if (map.hasLayer(m)) map.removeLayer(m);
+    });
 }
-map.on("zoomend", frissitTortenetiCsoportokat);
+map.on("zoomend", function() {
+    visszazarTortenetiSpiderfy();
+    frissitTortenetiCsoportokat();
+});
 
 document.querySelectorAll(".idopont-cella.lokacio-kattinthato[data-lat][data-lon]").forEach(function(cell) {
     function mutatTortenetiLokaciot() {
+        visszazarTortenetiSpiderfy();
         const marker = tortenetiMarkerLetrehozasa(cell);
         if (!marker) return;
         const marEzAzEgyetlen = tortenetiLokacioMarkerek.length === 1 && tortenetiLokacioMarkerek[0] === marker && map.hasLayer(marker);
@@ -6096,6 +6205,7 @@ document.querySelectorAll(".rendszam-napi-elozmeny[data-rendszam-elozmeny]").for
         const rendszam = String(this.dataset.rendszamElozmeny || "").trim().toUpperCase();
         if (!rendszam) return;
 
+        visszazarTortenetiSpiderfy();
         // A rendszám napi előzménye önálló nézet: az időoszlop kijelölését és a korábbi
         // marker-készleteket levesszük, majd csak ehhez a rendszámhoz tartozó GPS-pontokat tesszük fel.
         tortenetiOszlopAktiv = false;
@@ -6155,6 +6265,7 @@ function jelolLegutolsoIdopont() {
 
 document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEach(function(header) {
     function mutatOszlopLokacioit() {
+        visszazarTortenetiSpiderfy();
         jelolAktivIdopont(header);
         const timeIndex = String(header.dataset.timeIndex);
         // Az időoszlop kiválasztásakor kizárólag az adott időpont lokációi maradnak a térképen.
@@ -6208,6 +6319,7 @@ jelolLegutolsoIdopont();
     const button = document.getElementById('clear-click-locations');
     if (!button) return;
     button.addEventListener('click', function(){
+        visszazarTortenetiSpiderfy();
         const tablaAblak = document.getElementById('fo-tabla');
         const idovonalCsuszka = document.getElementById('fo-idopont-csuszka');
         if(tablaAblak && idovonalCsuszka){
