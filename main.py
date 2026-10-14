@@ -5447,6 +5447,25 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   btn.addEventListener('click',()=>applyTheme(!document.body.classList.contains('light-mode'), true));
 })();
 
+// Archívumban végzett böngésző-újratöltés (F5 / Ctrl+R) esetén térjünk vissza a mai főoldalra.
+// Az archívum normál megnyitása és a dátumválasztóval történő navigáció továbbra is működik.
+(function(){
+  const isArchivePage = window.location.pathname.includes('/data/history/');
+  if (!isArchivePage) return;
+  let isReload = false;
+  try {
+    const navigation = performance.getEntriesByType('navigation');
+    if (navigation && navigation.length) {
+      isReload = navigation[0].type === 'reload';
+    } else if (performance.navigation) {
+      isReload = performance.navigation.type === 1;
+    }
+  } catch (e) {}
+  if (isReload) {
+    window.location.replace('https://owm-a.github.io/hidegtarolas/');
+  }
+})();
+
 // A "Mai nap" gomb mindig a kanonikus, aktuális napi főoldalra visz.
 (function(){
   const button = document.getElementById('go-today-button');
