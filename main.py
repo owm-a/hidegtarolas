@@ -4997,8 +4997,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     <div class="fejlec-vezerlok">
       <button id="clear-click-locations" type="button" title="Az aktuális utolsó pozíciók megjelenítése">Utolsó pozíciók</button>
       <div class="fejlec-kapcsolok">
-        <button id="theme-toggle" class="theme-switch-toggle" type="button" aria-label="Sötét mód" aria-pressed="true" title="Sötét mód bekapcsolva"><span class="theme-icon" aria-hidden="true">☾</span><span class="theme-switch" aria-hidden="true"><span></span></span></button>
         <button id="auto-refresh-toggle" class="auto-refresh-toggle" type="button" aria-label="Automatikus frissítés" aria-pressed="true" title="Automatikus frissítés bekapcsolva"><span class="refresh-icon" aria-hidden="true">↻</span><span class="auto-switch" aria-hidden="true"><span></span></span></button>
+        <button id="theme-toggle" class="theme-switch-toggle" type="button" aria-label="Sötét mód" aria-pressed="true" title="Sötét mód bekapcsolva"><span class="theme-icon" aria-hidden="true">☾</span><span class="theme-switch" aria-hidden="true"><span></span></span></button>
       </div>
     </div>
   </div>
@@ -5460,10 +5460,10 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   // Az archív HTML-t a fájlnév dátuma azonosítja. A fejlécbe is ezt írjuk ki,
   // mert az archiváláskor a sablonban maradhatott az aznapi dátum.
   const archiveFileName = window.location.pathname.split('/').pop() || '';
-  const archivePathMatch = archiveFileName.match(/^(\\d{4}-\\d{2}-\\d{2})\\.html$/);
+  const archivePathMatch = archiveFileName.match(/^(\d{4}-\d{2}-\d{2})\.html$/);
   const archiveDate = inHistoryFolder && archivePathMatch ? archivePathMatch[1] : '';
   if (archiveDate && currentDateMatch) currentDateMatch.textContent = 'Dátum: ' + archiveDate;
-  const currentDate = archiveDate || (currentDateMatch ? (currentDateMatch.textContent.match(/\\d{4}-\\d{2}-\\d{2}/) || [])[0] : '');
+  const currentDate = archiveDate || (currentDateMatch ? (currentDateMatch.textContent.match(/\d{4}-\d{2}-\d{2}/) || [])[0] : '');
   const weekdays = ['H', 'K', 'Sze', 'Cs', 'P', 'Szo', 'V'];
   let availableDates = new Set();
   let selectedDate = '';
@@ -5571,7 +5571,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   fetch(historyBase + 'index.json',{cache:'no-store'})
     .then(r=>{if(!r.ok) throw new Error('Az archívumlista nem érhető el.');return r.json();})
     .then(data=>{
-      const archiveDates = Array.isArray(data.dates) ? [...new Set(data.dates.filter(d=>/^\\d{4}-\\d{2}-\\d{2}$/.test(d)))].sort() : [];
+      const archiveDates = Array.isArray(data.dates) ? [...new Set(data.dates.filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)))].sort() : [];
       const budapestiReszek = new Intl.DateTimeFormat('en-CA', {
         timeZone: 'Europe/Budapest', year: 'numeric', month: '2-digit', day: '2-digit'
       }).formatToParts(new Date());
@@ -6293,11 +6293,27 @@ jelolLegutolsoIdopont();
 function frissitLokacioSzam() {
     const elem = document.getElementById('map-location-count');
     if (!elem) return;
-    const jelolok = (jarmuMarkerek["__lista__"] || [])
-        .concat(tarolasMarkerek, tortenetiLokacioMarkerek);
+
+    // A klaszterezés idejére az egyedi PIN-ek lekerülnek a térképrétegről,
+    // de ettől még létező lokációk. Ezért a számláló az aktív nézethez tartozó
+    // alapjelölőket számolja, nem csak az éppen map.hasLayer() állapotúakat.
+    const nezet = aktualisTerkepNezet();
+    let jelolok;
+
+    if (tortenetiOszlopAktiv) {
+        // Időoszlop / rendszám-előzmény vizsgálatakor csak a kiválasztott
+        // történeti lokációk számítanak bele.
+        jelolok = tortenetiLokacioMarkerek;
+    } else {
+        // Alapnézetben az aktuális jármű-PIN-eket és a tárolási PIN-eket számoljuk.
+        jelolok = (jarmuMarkerek["__lista__"] || []).concat(tarolasMarkerek);
+    }
+
     const latszoDarab = new Set(jelolok.filter(function(marker) {
-        return marker && map.hasLayer(marker);
+        if (!marker) return false;
+        return nezet === "mindketto" || marker.__forras === nezet;
     })).size;
+
     elem.innerHTML = '<b>Lokációk száma:</b> ' + latszoDarab;
 }
 
