@@ -436,10 +436,11 @@ HELYSZINEK = {
 
     "andor": {
         "kulcsszo": "ArrivaBus Andor telephely",
-        "lat_min": 47.45703696628262,
-        "lat_max": 47.45974359947361,
-        "lon_min": 19.025296690497736,
-        "lon_max": 19.02988619533237
+        # A megadott bal felső és jobb alsó sarok alapján.
+        "lat_min": 47.4569097787659,
+        "lat_max": 47.45959981381292,
+        "lon_min": 19.02607662455454,
+        "lon_max": 19.030488378221204
     },
 
     "bogancs": {
@@ -3584,7 +3585,8 @@ def html_export():
             "rendszám": str(forda_adat.get("rendszám", "")).strip(),
             "forrás": "biztor",
             "ellenőrzés": {},
-            "pótlás_idopontok": set()
+            "pótlás_idopontok": set(),
+            "lokációk": {}
         }
 
     # A történeti rekordok rákerülnek az előre létrehozott Excel-sorokra.
@@ -3612,6 +3614,17 @@ def html_export():
             sorok[kulcs]["ellenőrzés"][idopont] = (
                 rekord.get("ellenőrzés", "-")
             )
+            # A perces I/N/P cellához eltároljuk a hozzá tartozó
+            # pozíciót és GPS-frissítési időt is, nem csak az állapotot.
+            sorok[kulcs]["lokációk"][idopont] = {
+                "pozíció": str(rekord.get("pozíció", "") or "").strip(),
+                "pozicio_frissitve": str(rekord.get("pozicio_frissitve", "") or "").strip(),
+                "rendszám": rendszam,
+                "ellenőrzés": str(rekord.get("ellenőrzés", "-") or "-").strip(),
+                "hely": str(rekord.get("hely", "") or "").strip(),
+                "helyszín": str(rekord.get("helyszín", "") or "").strip(),
+                "pótlás": bool(rekord.get("pótlás_kék_N"))
+            }
             if rekord.get("pótlás_kék_N"):
                 sorok[kulcs]["pótlás_idopontok"].add(idopont)
 
@@ -4031,7 +4044,7 @@ def html_export():
             "végzés": str(forda_sor_g.get("végzés", ""))[:5],
             "hely": str(forda_sor_g.get("hely", "")),
             "rendszám": str(forda_rendszamok.get(forda_kulcs_adat(forda_sor_g), {}).get("rendszám", "")),
-            "forrás": "garazs", "ellenőrzés": {}, "pótlás_idopontok": set()
+            "forrás": "garazs", "ellenőrzés": {}, "pótlás_idopontok": set(), "lokációk": {}
         }
 
     for rekord in pozicio_tortenet:
@@ -4046,6 +4059,15 @@ def html_export():
         idopont_g = str(rekord.get("frissítve", "")).strip()[:5]
         if idopont_g:
             garazs_sorok[kulcs_g]["ellenőrzés"][idopont_g] = rekord.get("ellenőrzés", "-")
+            garazs_sorok[kulcs_g]["lokációk"][idopont_g] = {
+                "pozíció": str(rekord.get("pozíció", "") or "").strip(),
+                "pozicio_frissitve": str(rekord.get("pozicio_frissitve", "") or "").strip(),
+                "rendszám": rendszam_g,
+                "ellenőrzés": str(rekord.get("ellenőrzés", "-") or "-").strip(),
+                "hely": str(rekord.get("hely", "") or "").strip(),
+                "helyszín": str(rekord.get("helyszín", "") or "").strip(),
+                "pótlás": bool(rekord.get("pótlás_kék_N"))
+            }
             if rekord.get("pótlás_kék_N"):
                 garazs_sorok[kulcs_g]["pótlás_idopontok"].add(idopont_g)
 
@@ -4230,6 +4252,7 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .status-pill.nem{color:#ff858d;background:rgba(218,75,84,.16);border-color:rgba(255,113,124,.34)}
 .status-pill.neutral{color:var(--muted);background:rgba(148,163,184,.10);border-color:rgba(148,163,184,.20)}
 .status-pill.potlas{color:#4da3ff;background:rgba(77,163,255,.16);border-color:rgba(77,163,255,.42)}
+.idopont-cella.lokacio-kattinthato{cursor:pointer;position:relative}.idopont-cella.lokacio-kattinthato:hover{outline:2px solid var(--accent);outline-offset:-2px;background:rgba(110,168,254,.13)}
 .fix-tabla td.ellenorzes{background:var(--surface);padding:2px 3px}
 .storage-tabla th{width:max-content;min-width:0;white-space:nowrap}.storage-tabla td.tarolas{width:max-content;min-width:0;white-space:nowrap;font-weight:750;padding:0 8px;line-height:22px;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
 .storage-tabla td.tarolas-ok{color:#6ee7a8;border-top-color:var(--border);border-bottom-color:var(--border)}
@@ -4920,7 +4943,38 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
                     megj = "-"
             except (ValueError, TypeError, KeyError):
                 osztaly = "ok" if eredmeny == "OK" else "nem" if eredmeny == "NEM" else "neutral"
-            html.append(f'<td class="idopont-cella" data-time-index="{time_index}"><span class="status-pill {osztaly}">{escape(megj)}</span></td>')
+            lokacio_adat = sor.get("lokációk", {}).get(idopont, {})
+            lokacio_szoveg = str(lokacio_adat.get("pozíció", "") or "").strip()
+            koordinata_match = re.search(
+                r"(-?\d{1,2}(?:\.\d+)?)\s*[,;]\s*(-?\d{1,3}(?:\.\d+)?)",
+                lokacio_szoveg
+            )
+            lokacio_attr = ""
+            if megj in ("I", "N", "P") and koordinata_match:
+                try:
+                    lat_torteneti = float(koordinata_match.group(1))
+                    lon_torteneti = float(koordinata_match.group(2))
+                    if -90 <= lat_torteneti <= 90 and -180 <= lon_torteneti <= 180:
+                        lokacio_attr = (
+                            f' data-lat="{lat_torteneti}" data-lon="{lon_torteneti}"'
+                            f' data-lokacio="{escape(lokacio_szoveg, quote=True)}"'
+                            f' data-gps-ido="{escape(str(lokacio_adat.get("pozicio_frissitve", "") or ""), quote=True)}"'
+                            f' data-rendszam="{escape(str(lokacio_adat.get("rendszám", "") or sor.get("rendszám", "")), quote=True)}"'
+                            f' data-hely="{escape(str(lokacio_adat.get("hely", "") or sor.get("hely", "")), quote=True)}"'
+                            f' data-statusz="{escape(megj, quote=True)}"'
+                            f' data-idopont="{escape(idopont, quote=True)}"'
+                            f' data-viszonylat="{escape(str(sor.get("viszonylat", "")), quote=True)}"'
+                            f' data-forda="{escape(str(sor.get("forda", "")), quote=True)}"'
+                        )
+                except (ValueError, TypeError):
+                    lokacio_attr = ""
+            lokacio_class = " lokacio-kattinthato" if lokacio_attr else ""
+            lokacio_title = ' title="Kattints a korábbi GPS-hely térképes megjelenítéséhez"' if lokacio_attr else ""
+            html.append(
+                f'<td class="idopont-cella{lokacio_class}" data-time-index="{time_index}"'
+                f'{lokacio_attr}{lokacio_title}>'
+                f'<span class="status-pill {osztaly}">{escape(megj)}</span></td>'
+            )
 
         tarolas = str(rr.get("tárolás helye", "")).strip()
         if not rr or not eredmeny_riport:
@@ -5385,6 +5439,17 @@ terkepJarmuvek.forEach(function(jarmu) {
 
 });
 
+// Kattintáskor a térképhez görgetünk, majd a megadott koordinátára fókuszálunk.
+function ugrasTerkephez(koordinata, marker, kesleltetes=220) {
+    const terkepDoboz = document.getElementById("geozona-terkep");
+    if (terkepDoboz) terkepDoboz.scrollIntoView({behavior: "smooth", block: "start"});
+    setTimeout(function() {
+        map.invalidateSize();
+        map.flyTo(koordinata, TERKEP_MAX_ZOOM, {duration: 0.7});
+        setTimeout(function() { if (marker) marker.openPopup(); }, 740);
+    }, kesleltetes);
+}
+
 // A Valós tárolás koordinátáihoz csak kattintáskor jelenik meg külön pin.
 // Geozónanév nem kattintható; kizárólag a geozónán kívüli GPS-koordináta.
 const tarolasMarkerek = [];
@@ -5436,8 +5501,7 @@ document.querySelectorAll("#fix-tbody-common tr[data-forras]").forEach(function(
             tarolasMarkerek.push(marker);
         }
         if (!map.hasLayer(marker)) marker.addTo(map);
-        map.flyTo(koordinata, TERKEP_MAX_ZOOM, {duration: 0.7});
-        setTimeout(function() { marker.openPopup(); }, 720);
+        ugrasTerkephez(koordinata, marker);
     }
 
     storageCell.addEventListener("click", mutatTarolasiPint);
@@ -5449,9 +5513,54 @@ document.querySelectorAll("#fix-tbody-common tr[data-forras]").forEach(function(
     });
 });
 
+// Az idővonal I/N/P cellái az adott percben elmentett GPS-pozícióra mutatnak.
+// Ez történeti helyadat: a popup külön feltünteti a GPS tényleges frissítési idejét.
+const tortenetiLokacioMarkerek = [];
+document.querySelectorAll(".idopont-cella.lokacio-kattinthato[data-lat][data-lon]").forEach(function(cell) {
+    const koordinata = [Number(cell.dataset.lat), Number(cell.dataset.lon)];
+    if (!Number.isFinite(koordinata[0]) || !Number.isFinite(koordinata[1])) return;
+    let marker = null;
+
+    function mutatTortenetiLokaciot() {
+        if (!marker) {
+            marker = L.marker(koordinata);
+            const statusz = String(cell.dataset.statusz || "").toUpperCase();
+            const statuszHtml = statusz === "I"
+                ? '<span style="color:#00a040;font-weight:bold">I – rendben tárolt</span>'
+                : statusz === "N"
+                    ? '<span style="color:#e00000;font-weight:bold">N – eltérés történt</span>'
+                    : '<span style="color:#4da3ff;font-weight:bold">P – pótlás/cserekocsi</span>';
+            const gpsIdo = cell.dataset.gpsIdo || "nem ismert";
+            marker.bindPopup(
+                "<b>Idővonal – " + escapeHtml(cell.dataset.idopont || "") + "</b><br>"
+                + "<b>Állapot:</b> " + statuszHtml + "<br>"
+                + "<b>Rendszám:</b> " + escapeHtml(cell.dataset.rendszam || "n.a") + "<br>"
+                + "<b>Viszonylat / forda:</b> " + escapeHtml(cell.dataset.viszonylat || "") + " / " + escapeHtml(cell.dataset.forda || "") + "<br>"
+                + "<b>Tervezett hely:</b> " + escapeHtml(cell.dataset.hely || "n.a") + "<br>"
+                + "<b>GPS:</b> " + escapeHtml(cell.dataset.lokacio || (koordinata[0] + ", " + koordinata[1])) + "<br>"
+                + "<b>GPS-adat frissítve:</b> " + escapeHtml(gpsIdo)
+            );
+            marker.__forras = String(cell.closest("tr")?.dataset.forras || "biztor").trim();
+            tortenetiLokacioMarkerek.push(marker);
+        }
+        if (!map.hasLayer(marker)) marker.addTo(map);
+        ugrasTerkephez(koordinata, marker);
+    }
+
+    cell.addEventListener("click", mutatTortenetiLokaciot);
+    cell.setAttribute("role", "button");
+    cell.setAttribute("tabindex", "0");
+    cell.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            mutatTortenetiLokaciot();
+        }
+    });
+});
+
 function frissitTerkepNezet(view) {
     const lista = jarmuMarkerek["__lista__"] || [];
-    const osszesMarker = lista.concat(tarolasMarkerek);
+    const osszesMarker = lista.concat(tarolasMarkerek, tortenetiLokacioMarkerek);
     osszesMarker.forEach(function(marker){
         if (map.hasLayer(marker)) map.removeLayer(marker);
     });
