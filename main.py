@@ -4957,16 +4957,18 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 }
 
 
-/* Mobilos fejléc finomhangolása: cím/kapcsolók felül, dátum/utolsó pozíciók alatta. */
+/* Mobilos fejléc: cím/kapcsolók felül, dátum + Mai nap + Utolsó pozíciók egy sorban alatta. */
 @media(max-width:600px){
-  .fejlec-top{display:grid!important;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;align-items:center!important;gap:10px 8px;margin-bottom:12px!important;}
+  .fejlec-top{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:auto auto;align-items:center!important;gap:8px 5px;margin-bottom:12px!important;}
   .fejlec-cim-archivum,.fejlec-archivum,.fejlec-vezerlok{display:contents!important;}
   .cim{grid-column:1;grid-row:1;min-width:0;font-size:18px!important;white-space:nowrap;}
   .cim-busz-svg{display:none!important;}
-  .fejlec-kapcsolok{grid-column:2;grid-row:1;display:flex!important;width:auto!important;gap:5px;justify-content:flex-end;align-items:center;}
-  .history-calendar{grid-column:1;grid-row:2;min-width:0;width:100%;}
-  .history-calendar-button{max-width:100%;}
-  #clear-click-locations{grid-column:2;grid-row:2;justify-self:end;white-space:nowrap;padding-left:9px;padding-right:9px;}
+  .fejlec-kapcsolok{grid-column:2 / 4;grid-row:1;display:flex!important;width:auto!important;gap:5px;justify-content:flex-end;align-items:center;}
+  .history-calendar{grid-column:1;grid-row:2;min-width:0;width:auto;justify-self:start;padding:0!important;}
+  .history-calendar-button{max-width:100%;padding:2px 0!important;gap:0!important;font-size:10px!important;}
+  .history-calendar-button .calendar-mark,.history-calendar-button > span:last-child{display:none!important;}
+  #go-today-button{grid-column:2;grid-row:2;justify-self:center;white-space:nowrap;padding:5px 7px;font-size:11px;}
+  #clear-click-locations{grid-column:3;grid-row:2;justify-self:end;white-space:nowrap;padding:5px 7px;font-size:11px;}
   .fejlec-adatok.riport-fejlec-adatok{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:10px;row-gap:10px;align-items:start;}
   .fejlec-bal,.fejlec-jobb{display:contents!important;}
   .fejlec-bal .adat:nth-child(1){grid-column:1;grid-row:1;}
