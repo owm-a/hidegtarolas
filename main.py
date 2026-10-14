@@ -4870,6 +4870,11 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   <div class="fejlec-top">
     <div class="fejlec-cim-archivum">
       <div class="cim" id="oldal-cim" role="button" tabindex="0" title="Oldal frissítése"><b>ArrivaBus hidegtárolás</b></div>
+      <div class="fejlec-archivum">
+        <label class="torteneti-vezerlo" for="history-date"><select id="history-date" aria-label="Betöltendő nap" disabled><option value="">Archívumok betöltése…</option></select></label>
+        <button id="history-load" class="theme-toggle" type="button">Betöltés</button>
+        <div id="history-load-status" role="status" aria-live="polite"></div>
+      </div>
     </div>
     <div class="fejlec-vezerlok">
       <button id="clear-click-locations" type="button" title="Az aktuális utolsó pozíciók megjelenítése">Utolsó pozíciók</button>
@@ -4879,11 +4884,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   </div>
   <div class="fejlec-adatok riport-fejlec-adatok">
     <div class="fejlec-bal">
-      <div class="fejlec-archivum">
-        <label class="torteneti-vezerlo" for="history-date"><select id="history-date" aria-label="Betöltendő nap" disabled><option value="">Archívumok betöltése…</option></select></label>
-        <button id="history-load" class="theme-toggle" type="button">Betöltés</button>
-        <div id="history-load-status" role="status" aria-live="polite"></div>
-      </div>
       <div class="adat"><b>Dátum:</b> """ + escape(futas_datum) + """</div>
       <div class="adat"><b>Naptípus:</b> """ + (
           escape(str(talalt_munkalap))
