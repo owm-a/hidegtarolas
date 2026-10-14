@@ -4985,6 +4985,52 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   #map-location-count,.fejlec-jobb .adat{justify-self:start!important;text-align:left!important;margin-left:0!important;width:100%;}
 }
 
+
+/* Végső fejléc-felülírás: a hold ikonja asztali nézetben is zöld sötét módban. */
+.theme-switch-toggle[aria-pressed="true"] .theme-icon { color: #16a765 !important; }
+@media (max-width: 600px) {
+  .fejlec-top {
+    grid-template-columns: 76px 76px minmax(0, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    column-gap: 5px !important;
+  }
+  .history-calendar {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    width: 76px !important;
+    min-width: 76px !important;
+    flex: 0 0 76px !important;
+    justify-self: start !important;
+  }
+  .history-calendar-button {
+    width: 76px !important;
+    min-width: 76px !important;
+    max-width: 76px !important;
+    height: 30px;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  #history-date-label { display: inline-block; width: 100%; text-align: center; }
+  #go-today-button {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    width: 76px !important;
+    min-width: 76px !important;
+    max-width: 76px !important;
+    justify-self: start !important;
+    box-sizing: border-box !important;
+  }
+  #clear-click-locations {
+    grid-column: 3 !important;
+    grid-row: 2 !important;
+    justify-self: end !important;
+    max-width: 100%;
+    box-sizing: border-box !important;
+  }
+}
+
 </style>
 </head>
 <body>
