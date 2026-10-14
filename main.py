@@ -4167,16 +4167,17 @@ body{
 }
 .fejlec{padding:16px 18px;margin-bottom:14px}
 .fejlec-top{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;margin-bottom:9px}
+.fejlec-cim-archivum{display:flex;align-items:center;gap:14px;min-width:0;flex-wrap:wrap}
 .cim{color:#f3f6fa;font-size:23px;letter-spacing:-.02em;margin:0}#oldal-cim{cursor:pointer}
 .fejlec-adatok{display:flex;align-items:flex-start;justify-content:space-between;width:100%;gap:20px;margin-top:10px}
 .fejlec-bal,.fejlec-jobb{display:flex;align-items:flex-start;gap:8px 20px;white-space:nowrap}
-.fejlec-bal{flex-direction:column}
+.fejlec-bal{flex-direction:row;flex-wrap:wrap}
 .fejlec-jobb{margin-left:auto;justify-content:flex-end;flex-wrap:wrap}
 .adat{font-size:12px;color:var(--muted);white-space:nowrap}.adat b{color:var(--text);font-weight:600}
 .theme-toggle{border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:7px 10px;font:inherit;font-size:12px;font-weight:650;cursor:pointer;white-space:nowrap;transition:.16s}
 .theme-toggle:hover{background:var(--surface3);border-color:var(--accent)}
 .fejlec-vezerlok{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
-.fejlec-archivum{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px}
+.fejlec-archivum{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;margin-top:0}
 .fejlec-archivum #history-load-status{margin-left:4px}
 .auto-refresh-toggle{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:58px;height:34px;padding:4px 7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:9px;cursor:pointer;transition:.16s}
 .auto-refresh-toggle:hover{border-color:var(--accent);background:var(--surface3)}
@@ -4188,7 +4189,7 @@ body{
 .auto-refresh-toggle[aria-pressed="true"] .auto-switch{background:var(--ok)}
 .auto-refresh-toggle[aria-pressed="true"] .auto-switch span{transform:translateX(11px)}
 .torteneti-vezerlo{display:flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:5px 7px;font:inherit;font-size:12px}
-.torteneti-vezerlo select{max-width:150px;min-width:130px;border:1px solid var(--border);border-radius:5px;padding:5px;background:var(--surface);color:var(--text);font:inherit}
+.torteneti-vezerlo select{max-width:150px;min-width:125px;border:1px solid var(--border);border-radius:5px;padding:5px;background:var(--surface);color:var(--text);font:inherit}
 #clear-click-locations{border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:7px 10px;font:inherit;font-size:12px;font-weight:650;cursor:pointer;white-space:nowrap}
 #clear-click-locations:hover{background:var(--surface3);border-color:var(--accent)}
 #history-load-status{font-size:11px;color:var(--muted);max-width:210px}
@@ -4343,7 +4344,7 @@ body.light-mode .storage-tabla td.tarolas-eltérés{color:#c93f49;border-top-col
 body.light-mode .storage-tabla td.tarolas-na{color:var(--text);border-top-color:var(--border);border-bottom-color:var(--border)}
 body:not(.light-mode) #geozona-terkep .leaflet-tile-pane{filter:invert(90%) hue-rotate(180deg) brightness(78%) contrast(88%) saturate(70%)}
 body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
-@media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-adatok{display:flex;flex-direction:column;gap:10px}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:0;justify-content:flex-start}.fejlec-top{margin-bottom:8px;align-items:flex-start;flex-wrap:wrap}.fejlec-vezerlok{justify-content:flex-start;width:100%}.torteneti-vezerlo{flex-wrap:wrap}#geozona-terkep{width:95%;margin-left:auto;margin-right:auto;height:42vh;min-height:280px}.nezet-valaszto{width:100%;margin-left:auto;margin-right:auto;box-sizing:border-box}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}}
+@media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-cim-archivum{gap:8px;flex-wrap:wrap}.fejlec-archivum{gap:4px}.fejlec-adatok{display:flex;flex-direction:column;gap:10px}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:0;justify-content:flex-start}.fejlec-top{margin-bottom:8px;align-items:flex-start;flex-wrap:wrap}.fejlec-vezerlok{justify-content:flex-start;width:100%}.torteneti-vezerlo{flex-wrap:wrap}#geozona-terkep{width:95%;margin-left:auto;margin-right:auto;height:42vh;min-height:280px}.nezet-valaszto{width:100%;margin-left:auto;margin-right:auto;box-sizing:border-box}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}}
 @media(max-width:600px){.cim{font-size:20px}.adat{font-size:11px}#geozona-terkep{width:90%;height:38vh;min-height:250px}.nezet-valaszto{width:100%;margin-left:auto;margin-right:auto;box-sizing:border-box}.idopont-csuszkasav{height:44px}.csuszka-info{font-size:10px;padding-left:5px}.rendszam-link{padding:4px 6px}}
 
 /* Mobil: valódi, egyszerűen görgethető táblázat.
@@ -4860,17 +4861,19 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 <span class="rejtett-poen">de ki az a Korporéjsön?</span>
 <div class="fejlec">
   <div class="fejlec-top">
-    <div class="cim" id="oldal-cim" role="button" tabindex="0" title="Oldal frissítése"><b>ArrivaBus hidegtárolás</b></div>
-    <div class="fejlec-vezerlok">
-      <button id="clear-click-locations" type="button" title="A kattintással kirakott lokációk törlése és az alapnézet visszaállítása">Alaphelyzet</button>
-      <button id="auto-refresh-toggle" class="auto-refresh-toggle" type="button" aria-label="Automatikus frissítés" aria-pressed="true" title="Automatikus frissítés bekapcsolva"><span class="refresh-icon" aria-hidden="true">↻</span><span class="auto-switch" aria-hidden="true"><span></span></span></button>
-      <button id="theme-toggle" class="theme-toggle" type="button" title="Sötét / világos mód">☀ Sötét mód</button>
+    <div class="fejlec-cim-archivum">
+      <div class="cim" id="oldal-cim" role="button" tabindex="0" title="Oldal frissítése"><b>ArrivaBus hidegtárolás</b></div>
+      <div class="fejlec-archivum">
+        <label class="torteneti-vezerlo" for="history-date"><select id="history-date" aria-label="Betöltendő nap" disabled><option value="">Archívumok betöltése…</option></select></label>
+        <button id="history-load" class="theme-toggle" type="button">Betöltés</button>
+        <div id="history-load-status" role="status" aria-live="polite"></div>
+      </div>
     </div>
-  </div>
-  <div class="fejlec-archivum">
-    <label class="torteneti-vezerlo" for="history-date"><span>Napi archívum</span><select id="history-date" aria-label="Betöltendő nap" disabled><option value="">Archívumok betöltése…</option></select></label>
-    <button id="history-load" class="theme-toggle" type="button">Betöltés</button>
-    <div id="history-load-status" role="status" aria-live="polite"></div>
+    <div class="fejlec-vezerlok">
+      <button id="clear-click-locations" type="button" title="Az aktuális utolsó pozíciók megjelenítése">Utolsó pozíciók</button>
+      <button id="theme-toggle" class="theme-toggle" type="button" title="Sötét / világos mód">☀ Sötét mód</button>
+      <button id="auto-refresh-toggle" class="auto-refresh-toggle" type="button" aria-label="Automatikus frissítés" aria-pressed="true" title="Automatikus frissítés bekapcsolva"><span class="refresh-icon" aria-hidden="true">↻</span><span class="auto-switch" aria-hidden="true"><span></span></span></button>
+    </div>
   </div>
   <div class="fejlec-adatok riport-fejlec-adatok">
     <div class="fejlec-bal">
@@ -5688,13 +5691,73 @@ document.querySelectorAll("#fix-tbody-common tr[data-forras]").forEach(function(
 // Egy időoszlop fejlécére kattintva az éppen látható sorok azonos időpontú lokációi egyszerre jelennek meg.
 const tortenetiLokacioMarkerek = [];
 let tortenetiOszlopAktiv = false;
+function tortenetiOraPerc(ertek) {
+    const match = String(ertek || "").trim().match(/(?:^|\D)(\d{1,2}):(\d{2})(?:\D|$)/);
+    if (!match) return null;
+    const ora = Number(match[1]);
+    const perc = Number(match[2]);
+    if (ora > 23 || perc > 59) return null;
+    return ora * 60 + perc;
+}
+
+// A történeti lokáció időbeli színe és láthatósága ugyanazt a szabályt követi:
+// szolgálat előtt 15 percig és utána 15 percig szürke, a szolgálat ideje alatt
+// I=zöld, N=piros, P=kék, végleges döntés nélkül pedig szürke.
+function tortenetiLokacioAllapot(cell) {
+    const sor = cell.closest("tr");
+    const kezdesSzoveg = sor?.querySelector(".kezdés")?.textContent || "";
+    const vegzesSzoveg = sor?.querySelector(".végzés")?.textContent || "";
+    const idoSzoveg = cell.dataset.idopont
+        || document.querySelector('.idopont-ertek[data-time-index="' + cell.dataset.timeIndex + '"]')?.textContent
+        || "";
+    let kezdes = tortenetiOraPerc(kezdesSzoveg);
+    let vegzes = tortenetiOraPerc(vegzesSzoveg);
+    let ido = tortenetiOraPerc(idoSzoveg);
+
+    const nyersStatusz = String(cell.dataset.statusz || "").trim().toUpperCase();
+    const statuszbolJarmu = nyersStatusz === "I" ? "OK"
+        : nyersStatusz === "N" ? "NEM"
+        : nyersStatusz === "P" ? "PÓTLÁS" : "";
+
+    // Ha a sorban nincs használható időadat, a korábbi státuszkezelés marad érvényben.
+    if (kezdes === null || vegzes === null || ido === null) {
+        return {jarmuStatusz: statuszbolJarmu, megjelenit: true, szolgIdonBelul: true};
+    }
+
+    // Éjfélen átnyúló szolgálatok kezelése.
+    if (vegzes < kezdes) {
+        vegzes += 1440;
+        if (ido < kezdes) ido += 1440;
+    }
+
+    const szolgIdonBelul = ido >= kezdes && ido <= vegzes;
+    const beleferElotte = ido >= kezdes - 15 && ido < kezdes;
+    const beleferUtana = ido > vegzes && ido <= vegzes + 15;
+
+    if (!szolgIdonBelul && !beleferElotte && !beleferUtana) {
+        return {jarmuStatusz: "", megjelenit: false, szolgIdonBelul: false};
+    }
+
+    if (!szolgIdonBelul) {
+        return {jarmuStatusz: "", megjelenit: true, szolgIdonBelul: false};
+    }
+
+    return {
+        jarmuStatusz: statuszbolJarmu,
+        megjelenit: true,
+        szolgIdonBelul: true
+    };
+}
+
 function tortenetiMarkerLetrehozasa(cell) {
+    const idoAllapot = tortenetiLokacioAllapot(cell);
+    if (!idoAllapot.megjelenit) return null;
     if (cell.__tortenetiMarker) return cell.__tortenetiMarker;
+
     const koordinata = [Number(cell.dataset.lat), Number(cell.dataset.lon)];
     if (!Number.isFinite(koordinata[0]) || !Number.isFinite(koordinata[1])) return null;
 
-    const statusz = String(cell.dataset.statusz || "").toUpperCase();
-    const jarmuStatusz = statusz === "I" ? "OK" : statusz === "N" ? "NEM" : statusz === "P" ? "PÓTLÁS" : "";
+    const jarmuStatusz = idoAllapot.jarmuStatusz;
     const marker = L.marker(koordinata, {icon: jarmuIkon(jarmuStatusz)});
     marker.__forras = String(cell.closest("tr")?.dataset.forras || "biztor").trim();
 
