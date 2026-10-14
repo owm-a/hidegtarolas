@@ -5456,14 +5456,14 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 
   const inHistoryFolder = window.location.pathname.includes('/data/history/');
   const historyBase = inHistoryFolder ? './' : 'data/history/';
+  // Archív oldalon a fájlnév a biztos dátumforrás; a fejlécben a dátum
+  // magyar formátumú (2026.10.14), ezért azt is ISO-kulccsá alakítjuk.
+  const archivePathMatch = window.location.pathname.split('/').pop().match(/(\\d{4}-\\d{2}-\\d{2})\\.html$/);
   const currentDateMatch = document.querySelector('.fejlec-bal .adat');
-  // Az archív HTML-t a fájlnév dátuma azonosítja. A fejlécbe is ezt írjuk ki,
-  // mert az archiváláskor a sablonban maradhatott az aznapi dátum.
-  const archiveFileName = window.location.pathname.split('/').pop() || '';
-  const archivePathMatch = archiveFileName.match(/^(\d{4}-\d{2}-\d{2})\.html$/);
-  const archiveDate = inHistoryFolder && archivePathMatch ? archivePathMatch[1] : '';
-  if (archiveDate && currentDateMatch) currentDateMatch.textContent = 'Dátum: ' + archiveDate;
-  const currentDate = archiveDate || (currentDateMatch ? (currentDateMatch.textContent.match(/\d{4}-\d{2}-\d{2}/) || [])[0] : '');
+  const visibleDateMatch = currentDateMatch ? currentDateMatch.textContent.match(/(\\d{4})[.-](\\d{2})[.-](\\d{2})/) : null;
+  const currentDate = archivePathMatch
+    ? archivePathMatch[1]
+    : (visibleDateMatch ? `${visibleDateMatch[1]}-${visibleDateMatch[2]}-${visibleDateMatch[3]}` : '');
   const weekdays = ['H', 'K', 'Sze', 'Cs', 'P', 'Szo', 'V'];
   let availableDates = new Set();
   let selectedDate = '';
@@ -5571,7 +5571,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   fetch(historyBase + 'index.json',{cache:'no-store'})
     .then(r=>{if(!r.ok) throw new Error('Az archívumlista nem érhető el.');return r.json();})
     .then(data=>{
-      const archiveDates = Array.isArray(data.dates) ? [...new Set(data.dates.filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)))].sort() : [];
+      const archiveDates = Array.isArray(data.dates) ? [...new Set(data.dates.filter(d=>/^\\d{4}-\\d{2}-\\d{2}$/.test(d)))].sort() : [];
       const budapestiReszek = new Intl.DateTimeFormat('en-CA', {
         timeZone: 'Europe/Budapest', year: 'numeric', month: '2-digit', day: '2-digit'
       }).formatToParts(new Date());
@@ -6294,26 +6294,16 @@ function frissitLokacioSzam() {
     const elem = document.getElementById('map-location-count');
     if (!elem) return;
 
-    // A klaszterezés idejére az egyedi PIN-ek lekerülnek a térképrétegről,
-    // de ettől még létező lokációk. Ezért a számláló az aktív nézethez tartozó
-    // alapjelölőket számolja, nem csak az éppen map.hasLayer() állapotúakat.
-    const nezet = aktualisTerkepNezet();
-    let jelolok;
-
-    if (tortenetiOszlopAktiv) {
-        // Időoszlop / rendszám-előzmény vizsgálatakor csak a kiválasztott
-        // történeti lokációk számítanak bele.
-        jelolok = tortenetiLokacioMarkerek;
-    } else {
-        // Alapnézetben az aktuális jármű-PIN-eket és a tárolási PIN-eket számoljuk.
-        jelolok = (jarmuMarkerek["__lista__"] || []).concat(tarolasMarkerek);
-    }
-
+    // A klaszterbe rendezéskor az egyedi PIN-ek nem feltétlenül vannak
+    // közvetlenül a térképrétegen. Ettől még lokációnak számítanak.
+    // Az aktív nézet szűrését megtartjuk, történeti vizsgálatkor pedig
+    // a kiválasztott történeti PIN-eket számoljuk.
+    const jelolok = tortenetiOszlopAktiv
+        ? tortenetiLokacioMarkerek
+        : (jarmuMarkerek["__lista__"] || []).concat(tarolasMarkerek);
     const latszoDarab = new Set(jelolok.filter(function(marker) {
-        if (!marker) return false;
-        return nezet === "mindketto" || marker.__forras === nezet;
+        return marker && markerAktivNezetben(marker);
     })).size;
-
     elem.innerHTML = '<b>Lokációk száma:</b> ' + latszoDarab;
 }
 
