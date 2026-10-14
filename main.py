@@ -4176,7 +4176,7 @@ body{
 .theme-toggle:hover{background:var(--surface3);border-color:var(--accent)}
 .fejlec-vezerlok{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
 .torteneti-vezerlo{display:flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:5px 7px;font:inherit;font-size:12px}
-.torteneti-vezerlo input{max-width:135px;min-width:115px;border:1px solid var(--border);border-radius:5px;padding:5px;background:var(--surface);color:var(--text);font:inherit}
+.torteneti-vezerlo select{max-width:150px;min-width:130px;border:1px solid var(--border);border-radius:5px;padding:5px;background:var(--surface);color:var(--text);font:inherit}
 #clear-click-locations{border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:7px 10px;font:inherit;font-size:12px;font-weight:650;cursor:pointer;white-space:nowrap}
 #clear-click-locations:hover{background:var(--surface3);border-color:var(--accent)}
 #history-load-status{font-size:11px;color:var(--muted);max-width:210px}
@@ -4381,7 +4381,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla .hely{text-align:left}.fo-kozos-tabla .rendszam{text-align:right;font-weight:bold}
 /* Az időoszlopok fix 42 px-es oszlopok; a rendelkezésre álló helyet ők töltik ki. */
 .fo-kozos-tabla .idopont-fejlec,.fo-kozos-tabla .idopont-ertek,.fo-kozos-tabla .idopont-cella{width:42px;min-width:42px;max-width:42px;padding:1px;text-align:center}
-.fo-kozos-tabla .idopont-fejlec{font-size:0;color:transparent}.fo-kozos-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px;text-align:center}
+.fo-kozos-tabla .idopont-fejlec{font-size:0;color:transparent}.fo-kozos-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px;text-align:center}.fo-kozos-tabla .idopont-oszlop-kattinthato{cursor:pointer;user-select:none}.fo-kozos-tabla .idopont-oszlop-kattinthato:hover,.fo-kozos-tabla .idopont-oszlop-kattinthato:focus{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface3)}
 /* A jobb szélső oszlop csak a saját tartalmának szélességét kapja. */
 .fo-kozos-tabla .sticky-jobb.storage{width:1px;min-width:0;max-width:max-content;white-space:nowrap}
 .fo-kozos-tabla .sticky-bal{position:sticky;z-index:30;background:var(--surface);background-clip:padding-box}
@@ -4850,7 +4850,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   <div class="fejlec-top">
     <div class="cim" id="oldal-cim" role="button" tabindex="0" title="Oldal frissítése"><b>ArrivaBus hidegtárolás (tesztüzem)</b></div>
     <div class="fejlec-vezerlok">
-      <label class="torteneti-vezerlo" for="history-date"><span>Napi archívum</span><input type="date" id="history-date" aria-label="Betöltendő nap"></label>
+      <label class="torteneti-vezerlo" for="history-date"><span>Napi archívum</span><select id="history-date" aria-label="Betöltendő nap" disabled><option value="">Archívumok betöltése…</option></select></label>
       <button id="history-load" class="theme-toggle" type="button">Betöltés</button>
       <button id="clear-click-locations" type="button" title="Csak a kattintással kirakott lokációkat törli">Lokációk törlése</button>
       <button id="theme-toggle" class="theme-toggle" type="button" title="Sötét / világos mód">☀ Sötét mód</button>
@@ -4909,7 +4909,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     html.append('<th class="sticky-bal bal-5"><input class="oszlop-kereso" data-col="4" placeholder="Keresés…" aria-label="Hely keresése"></th>')
     html.append('<th class="rendszam sticky-bal bal-6"><input class="oszlop-kereso" data-col="5" placeholder="Keresés…" aria-label="Rendszám keresése"></th>')
     for time_index, idopont in enumerate(idopontok):
-        html.append(f'<th class="idopont-ertek" data-time-index="{time_index}">{escape(idopont)}</th>')
+        html.append(f'<th class="idopont-ertek idopont-oszlop-kattinthato" data-time-index="{time_index}" title="Kattints az időpont lokációinak térképes megjelenítéséhez" role="button" tabindex="0">{escape(idopont)}</th>')
     html.append('<th class="sticky-jobb storage"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Valós tárolás keresése"></th></tr></thead><tbody id="fix-tbody-common">')
 
     osszes_sor = []
@@ -5275,9 +5275,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   btn.addEventListener('click',()=>applyTheme(!document.body.classList.contains('light-mode'), true));
 })();
 
-// Napi archívum: a kiválasztott JSON-t ellenőrizzük, majd a hozzá tartozó
-// teljes napi HTML-pillanatképet nyitjuk meg, így a táblázat és a térkép is
-// ugyanannak a napnak az állapotát mutatja.
+// Napi archívum: a listában kizárólag olyan napok szerepelnek, amelyekhez JSON-archívum létezik.
 (function(){
   const dateInput = document.getElementById('history-date');
   const loadButton = document.getElementById('history-load');
@@ -5287,27 +5285,50 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   const historyBase = inHistoryFolder ? './' : 'data/history/';
   const currentDateMatch = document.querySelector('.fejlec-bal .adat');
   const currentDate = currentDateMatch ? (currentDateMatch.textContent.match(/\\d{4}-\\d{2}-\\d{2}/) || [])[0] : '';
-  if (currentDate) dateInput.value = currentDate;
+  status.textContent = '';
+  loadButton.disabled = true;
 
   fetch(historyBase + 'index.json', {cache:'no-store'})
     .then(r => { if (!r.ok) throw new Error('Az archívumlista nem érhető el.'); return r.json(); })
     .then(data => {
-      const dates = Array.isArray(data.dates) ? data.dates : [];
-      if (currentDate && dates.includes(currentDate)) dateInput.value = currentDate;
-      if (dates.length) {
-        dateInput.min = dates[0];
-        dateInput.max = dates[dates.length - 1];
-        status.textContent = 'Elérhető napok: ' + dates[0] + ' – ' + dates[dates.length - 1];
-      } else {
-        status.textContent = 'Még nincs elérhető napi archívum.';
+      const dates = Array.isArray(data.dates)
+        ? [...new Set(data.dates.filter(d => /^\\d{4}-\\d{2}-\\d{2}$/.test(d)))].sort()
+        : [];
+      dateInput.replaceChildren();
+      if (!dates.length) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'Nincs archívum';
+        dateInput.appendChild(option);
+        dateInput.disabled = true;
+        loadButton.disabled = true;
+        return;
       }
+      dates.forEach(date => {
+        const option = document.createElement('option');
+        option.value = date;
+        option.textContent = date;
+        dateInput.appendChild(option);
+      });
+      dateInput.disabled = false;
+      dateInput.value = dates.includes(currentDate) ? currentDate : dates[dates.length - 1];
+      loadButton.disabled = false;
     })
-    .catch(() => { status.textContent = 'Az archívumlista még nem érhető el ezen a tárhelyen.'; });
+    .catch(() => {
+      dateInput.replaceChildren();
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = 'Archívum nem érhető el';
+      dateInput.appendChild(option);
+      dateInput.disabled = true;
+      loadButton.disabled = true;
+      status.textContent = 'Az archívumlista nem érhető el.';
+    });
 
   loadButton.addEventListener('click', async function(){
     const date = dateInput.value;
     if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) {
-      status.textContent = 'Válassz ki egy érvényes dátumot.';
+      status.textContent = 'Nincs kiválasztott archív nap.';
       return;
     }
     loadButton.disabled = true;
@@ -5625,39 +5646,42 @@ document.querySelectorAll("#fix-tbody-common tr[data-forras]").forEach(function(
 });
 
 // Az idővonal I/N/P cellái az adott percben elmentett GPS-pozícióra mutatnak.
-// Ez történeti helyadat: a popup külön feltünteti a GPS tényleges frissítési idejét.
+// Egy időoszlop fejlécére kattintva az éppen látható sorok azonos időpontú lokációi egyszerre jelennek meg.
 const tortenetiLokacioMarkerek = [];
-document.querySelectorAll(".idopont-cella.lokacio-kattinthato[data-lat][data-lon]").forEach(function(cell) {
+function tortenetiMarkerLetrehozasa(cell) {
+    if (cell.__tortenetiMarker) return cell.__tortenetiMarker;
     const koordinata = [Number(cell.dataset.lat), Number(cell.dataset.lon)];
-    if (!Number.isFinite(koordinata[0]) || !Number.isFinite(koordinata[1])) return;
-    let marker = null;
+    if (!Number.isFinite(koordinata[0]) || !Number.isFinite(koordinata[1])) return null;
+    const marker = L.marker(koordinata);
+    const statusz = String(cell.dataset.statusz || "").toUpperCase();
+    const statuszHtml = statusz === "I"
+        ? '<span style="color:#00a040;font-weight:bold">I – rendben tárolt</span>'
+        : statusz === "N"
+            ? '<span style="color:#e00000;font-weight:bold">N – eltérés történt</span>'
+            : '<span style="color:#4da3ff;font-weight:bold">P – pótlás/cserekocsi</span>';
+    const gpsIdo = cell.dataset.gpsIdo || "nem ismert";
+    marker.bindPopup(
+        "<b>Idővonal – " + escapeHtml(cell.dataset.idopont || "") + "</b><br>"
+        + "<b>Állapot:</b> " + statuszHtml + "<br>"
+        + "<b>Rendszám:</b> " + escapeHtml(cell.dataset.rendszam || "n.a") + "<br>"
+        + "<b>Viszonylat / forda:</b> " + escapeHtml(cell.dataset.viszonylat || "") + " / " + escapeHtml(cell.dataset.forda || "") + "<br>"
+        + "<b>Tervezett hely:</b> " + escapeHtml(cell.dataset.hely || "n.a") + "<br>"
+        + "<b>GPS:</b> " + escapeHtml(cell.dataset.lokacio || (koordinata[0] + ", " + koordinata[1])) + "<br>"
+        + "<b>GPS-adat frissítve:</b> " + escapeHtml(gpsIdo)
+    );
+    marker.__forras = String(cell.closest("tr")?.dataset.forras || "biztor").trim();
+    cell.__tortenetiMarker = marker;
+    return marker;
+}
 
+document.querySelectorAll(".idopont-cella.lokacio-kattinthato[data-lat][data-lon]").forEach(function(cell) {
     function mutatTortenetiLokaciot() {
-        if (!marker) {
-            marker = L.marker(koordinata);
-            const statusz = String(cell.dataset.statusz || "").toUpperCase();
-            const statuszHtml = statusz === "I"
-                ? '<span style="color:#00a040;font-weight:bold">I – rendben tárolt</span>'
-                : statusz === "N"
-                    ? '<span style="color:#e00000;font-weight:bold">N – eltérés történt</span>'
-                    : '<span style="color:#4da3ff;font-weight:bold">P – pótlás/cserekocsi</span>';
-            const gpsIdo = cell.dataset.gpsIdo || "nem ismert";
-            marker.bindPopup(
-                "<b>Idővonal – " + escapeHtml(cell.dataset.idopont || "") + "</b><br>"
-                + "<b>Állapot:</b> " + statuszHtml + "<br>"
-                + "<b>Rendszám:</b> " + escapeHtml(cell.dataset.rendszam || "n.a") + "<br>"
-                + "<b>Viszonylat / forda:</b> " + escapeHtml(cell.dataset.viszonylat || "") + " / " + escapeHtml(cell.dataset.forda || "") + "<br>"
-                + "<b>Tervezett hely:</b> " + escapeHtml(cell.dataset.hely || "n.a") + "<br>"
-                + "<b>GPS:</b> " + escapeHtml(cell.dataset.lokacio || (koordinata[0] + ", " + koordinata[1])) + "<br>"
-                + "<b>GPS-adat frissítve:</b> " + escapeHtml(gpsIdo)
-            );
-            marker.__forras = String(cell.closest("tr")?.dataset.forras || "biztor").trim();
-        }
+        const marker = tortenetiMarkerLetrehozasa(cell);
+        if (!marker) return;
         if (!tortenetiLokacioMarkerek.includes(marker)) tortenetiLokacioMarkerek.push(marker);
         if (!map.hasLayer(marker)) marker.addTo(map);
-        ugrasTerkephez(koordinata, marker);
+        ugrasTerkephez([Number(cell.dataset.lat), Number(cell.dataset.lon)], marker);
     }
-
     cell.addEventListener("click", mutatTortenetiLokaciot);
     cell.setAttribute("role", "button");
     cell.setAttribute("tabindex", "0");
@@ -5665,6 +5689,47 @@ document.querySelectorAll(".idopont-cella.lokacio-kattinthato[data-lat][data-lon
         if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             mutatTortenetiLokaciot();
+        }
+    });
+});
+
+document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEach(function(header) {
+    function mutatOszlopLokacioit() {
+        const timeIndex = String(header.dataset.timeIndex);
+        // Az előző időpontból kirakott idővonal-jelölőket lecseréljük erre az oszlopra.
+        tortenetiLokacioMarkerek.forEach(function(marker) {
+            if (map.hasLayer(marker)) map.removeLayer(marker);
+        });
+        tortenetiLokacioMarkerek.length = 0;
+
+        const sorok = Array.from(document.querySelectorAll("#fix-tbody-common tr[data-forras]"))
+            .filter(tr => tr.getClientRects().length > 0);
+        const markerek = [];
+        sorok.forEach(function(tr) {
+            const cell = tr.querySelector('.idopont-cella[data-time-index="' + timeIndex + '"][data-lat][data-lon]');
+            if (!cell) return;
+            const marker = tortenetiMarkerLetrehozasa(cell);
+            if (!marker) return;
+            if (!tortenetiLokacioMarkerek.includes(marker)) tortenetiLokacioMarkerek.push(marker);
+            if (!map.hasLayer(marker)) marker.addTo(map);
+            markerek.push(marker);
+        });
+
+        if (markerek.length) {
+            const bounds = L.featureGroup(markerek).getBounds();
+            if (bounds.isValid()) map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_MAX_ZOOM});
+            if (markerek.length === 1) markerek[0].openPopup();
+        } else {
+            const timeLabel = header.textContent.trim();
+            const status = document.getElementById('history-load-status');
+            if (status) status.textContent = 'A(z) ' + timeLabel + ' időponthoz nincs megjeleníthető GPS-lokáció a látható sorokban.';
+        }
+    }
+    header.addEventListener("click", mutatOszlopLokacioit);
+    header.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            mutatOszlopLokacioit();
         }
     });
 });
