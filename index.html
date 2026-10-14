@@ -1142,7 +1142,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   const currentDateMatch = document.querySelector('.fejlec-bal .adat');
   // Az archív HTML-t a fájlnév dátuma azonosítja. A fejlécbe is ezt írjuk ki,
   // mert az archiváláskor a sablonban maradhatott az aznapi dátum.
-  const archivePathMatch = window.location.pathname.match(/\/data\/history\/(\d{4}-\d{2}-\d{2})\.html$/);
+  const archiveFileName = window.location.pathname.split('/').pop() || '';
+  const archivePathMatch = archiveFileName.match(/^(\d{4}-\d{2}-\d{2})\.html$/);
   const archiveDate = inHistoryFolder && archivePathMatch ? archivePathMatch[1] : '';
   if (archiveDate && currentDateMatch) currentDateMatch.textContent = 'Dátum: ' + archiveDate;
   const currentDate = archiveDate || (currentDateMatch ? (currentDateMatch.textContent.match(/\d{4}-\d{2}-\d{2}/) || [])[0] : '');
