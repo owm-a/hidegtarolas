@@ -453,9 +453,11 @@ HELYSZINEK = {
 
     "csepel": {
         "kulcsszo": "ArrivaBus Szállító telephely",
+        # Bal felső sarok: 47.443590686509864, 19.079985583592567
+        # Jobb alsó sarok változatlan.
         "lat_min": 47.441927955392465,
-        "lat_max": 47.4437481894374,
-        "lon_min": 19.081122238879782,
+        "lat_max": 47.443590686509864,
+        "lon_min": 19.079985583592567,
         "lon_max": 19.084841859297306
     },
 
@@ -6129,7 +6131,7 @@ window.addEventListener("load", frissitGarazsCsuszkat);
 })();
 </script>
 
-<footer class="adatforras"><span class="rejtett-poen">De ki az a Körporésön?</span><span>Adatok forrása: BKK Zrt., CC BY 4.0</span></footer>
+<footer class="adatforras"><span class="rejtett-poen">De ki az a Körporéjsön?</span><span>Adatok forrása: BKK Zrt., CC BY 4.0</span></footer>
 </body>
 
 </html>
