@@ -4641,17 +4641,19 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 
 </style>
 <style>
-/* Easter egg – normál állapotban láthatatlan, kijelölve előjön. */
+/* Easter egg – a lap alján balra, háttérszínnel rejtve, kijelölve látható. */
+.adatforras{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
 .rejtett-poen{
-  position:fixed;
-  top:2px;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:9999;
-  color:transparent;
+  color:var(--bg);
   background:transparent;
   font-size:10px;
   line-height:12px;
+  font-style:normal;
   white-space:nowrap;
   user-select:text;
   -webkit-user-select:text;
@@ -4882,7 +4884,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 </style>
 </head>
 <body>
-<span class="rejtett-poen">de ki az a Korporéjsön?</span>
 <div class="fejlec">
   <div class="fejlec-top">
     <div class="fejlec-cim-archivum">
@@ -6128,7 +6129,7 @@ window.addEventListener("load", frissitGarazsCsuszkat);
 })();
 </script>
 
-<footer class="adatforras">Adatok forrása: BKK Zrt., CC BY 4.0</footer>
+<footer class="adatforras"><span class="rejtett-poen">De ki az a Körporéjsön?</span><span>Adatok forrása: BKK Zrt., CC BY 4.0</span></footer>
 </body>
 
 </html>
