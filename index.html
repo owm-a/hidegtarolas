@@ -206,7 +206,7 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .storage-tabla td.tarolas-eltérés{color:#ff858d;border-top-color:var(--border);border-bottom-color:var(--border)}
 .storage-tabla td.tarolas-na{color:var(--text);border-top-color:var(--border);border-bottom-color:var(--border)}
 .rendszam-link{border:0;background:transparent;color:var(--accent);font:inherit;font-weight:750;cursor:pointer;padding:2px 5px;border-radius:6px;text-decoration:underline;text-decoration-color:rgba(110,168,254,.35);text-underline-offset:2px}.rendszam-link:hover{background:rgba(110,168,254,.13);color:#fff;text-decoration-color:var(--accent)}
-.rendszam-vezerlo{display:flex;align-items:center;justify-content:flex-start;gap:3px;width:100%;max-width:100%;white-space:nowrap}
+.rendszam-vezerlo{display:flex;align-items:center;justify-content:space-between;gap:3px;width:100%;max-width:100%;white-space:nowrap}.rendszam-vezerlo .rendszam-link{margin-left:auto;text-align:right}
 .rendszam-napi-elozmeny{display:inline-flex;align-items:center;justify-content:center;flex:0 0 16px;width:16px;height:18px;min-width:16px;padding:0;border:0;border-radius:3px;background:transparent;color:#4da3ff;cursor:pointer;vertical-align:middle}
 .rendszam-napi-elozmeny svg{display:block;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .rendszam-napi-elozmeny:hover{background:rgba(77,163,255,.14);color:#78bbff}
@@ -1720,7 +1720,8 @@ function frissitTortenetiCsoportokat() {
         if (!markerAktivNezetben(m)) { if (map.hasLayer(m)) map.removeLayer(m); }
         else if (!map.hasLayer(m)) m.addTo(map);
     });
-    if (tortenetiak.length < 2) return;
+    // 15-ös zoom fölött minden pozíció külön jelölőként látszik, nincs klaszterezés.
+    if (map.getZoom() > 15 || tortenetiak.length < 2) return;
 
     // Közös képernyőrács: egy klaszterbe kerülhet több állapot, de mindegyik
     // saját színű számlálót kap. A rács zoommal kisebbedik, az azonos koordináták
