@@ -93,12 +93,14 @@ jobs:
                   wb.close()
           PY
 
-      - name: Napi adatok, HTML és Excel-fájlok mentése
+      - name: Napi adatok, HTML, archívum és Excel-fájlok mentése
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add napi_adatok.json index.html
+          # Az -A a rotáció során törölt, 60 napnál régebbi fájlokat is commitolja.
+          git add -A data/history/
           for fajl in data/hidegtarolas_export.xlsx data/garazstarolas_export.xlsx; do
             if [ -f "$fajl" ]; then git add "$fajl"; fi
           done
@@ -106,6 +108,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "Nincs új mentendő adat."
           else
-            git commit -m "Napi adatok, HTML és hidegtárolási Excel-exportok frissítése"
+            git commit -m "Napi adatok, HTML, archívum és hidegtárolási Excel-exportok frissítése"
             git push
           fi
