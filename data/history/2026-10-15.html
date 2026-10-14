@@ -41,9 +41,14 @@ body{
 .theme-switch{width:25px;height:14px;border-radius:99px;background:#687384;display:inline-flex;align-items:center;padding:2px;box-sizing:border-box;transition:background .16s}
 .theme-switch span{height:10px;width:10px;border-radius:50%;background:#fff;transition:transform .16s}
 .theme-switch-toggle[aria-pressed="true"] .theme-switch{background:var(--ok)}
+.theme-switch-toggle[aria-pressed="true"] .theme-icon{color:var(--ok)}
 .theme-switch-toggle[aria-pressed="true"] .theme-switch span{transform:translateX(11px)}
 .fejlec-vezerlok{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
 .fejlec-archivum{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;margin-top:0}
+/* A dátumválasztó és a Mai nap gomb azonos szélességű asztali és mobil nézetben is. */
+.history-calendar{width:76px;flex:0 0 76px;box-sizing:border-box}
+.history-calendar-button{width:100%;box-sizing:border-box;justify-content:center}
+#go-today-button{width:76px;min-width:76px;box-sizing:border-box;text-align:center;padding-left:4px;padding-right:4px}
 .fejlec-archivum #history-load-status{margin-left:4px}
 .auto-refresh-toggle{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:58px;height:34px;padding:4px 7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:9px;cursor:pointer;transition:.16s}
 .auto-refresh-toggle:hover{border-color:var(--accent);background:var(--surface3)}
@@ -820,10 +825,10 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   .cim{grid-column:1;grid-row:1;min-width:0;font-size:18px!important;white-space:nowrap;}
   .cim-busz-svg{display:none!important;}
   .fejlec-kapcsolok{grid-column:2 / 4;grid-row:1;display:flex!important;width:auto!important;gap:5px;justify-content:flex-end;align-items:center;}
-  .history-calendar{grid-column:1;grid-row:2;min-width:0;width:auto;justify-self:start;padding:0!important;}
+  .history-calendar{grid-column:1;grid-row:2;min-width:0;width:76px;flex:0 0 76px;justify-self:start;padding:0!important;}
   .history-calendar-button{max-width:100%;padding:2px 0!important;gap:0!important;font-size:10px!important;}
   .history-calendar-button .calendar-mark,.history-calendar-button > span:last-child{display:none!important;}
-  #go-today-button{grid-column:2;grid-row:2;justify-self:center;white-space:nowrap;padding:5px 7px;font-size:11px;}
+  #go-today-button{grid-column:2;grid-row:2;justify-self:center;width:76px;min-width:76px;white-space:nowrap;padding:5px 4px;font-size:11px;}
   #clear-click-locations{grid-column:3;grid-row:2;justify-self:end;white-space:nowrap;padding:5px 7px;font-size:11px;}
   .fejlec-adatok.riport-fejlec-adatok{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:10px;row-gap:10px;align-items:start;}
   .fejlec-bal,.fejlec-jobb{display:contents!important;}
