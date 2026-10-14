@@ -206,7 +206,7 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .storage-tabla td.tarolas-eltérés{color:#ff858d;border-top-color:var(--border);border-bottom-color:var(--border)}
 .storage-tabla td.tarolas-na{color:var(--text);border-top-color:var(--border);border-bottom-color:var(--border)}
 .rendszam-link{border:0;background:transparent;color:var(--accent);font:inherit;font-weight:750;cursor:pointer;padding:2px 5px;border-radius:6px;text-decoration:underline;text-decoration-color:rgba(110,168,254,.35);text-underline-offset:2px}.rendszam-link:hover{background:rgba(110,168,254,.13);color:#fff;text-decoration-color:var(--accent)}
-.rendszam-vezerlo{display:inline-flex;align-items:center;justify-content:flex-end;gap:3px;max-width:100%;white-space:nowrap}
+.rendszam-vezerlo{display:flex;align-items:center;justify-content:flex-start;gap:3px;width:100%;max-width:100%;white-space:nowrap}
 .rendszam-napi-elozmeny{display:inline-flex;align-items:center;justify-content:center;flex:0 0 16px;width:16px;height:18px;min-width:16px;padding:0;border:0;border-radius:3px;background:transparent;color:#4da3ff;cursor:pointer;vertical-align:middle}
 .rendszam-napi-elozmeny svg{display:block;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .rendszam-napi-elozmeny:hover{background:rgba(77,163,255,.14);color:#78bbff}
@@ -1662,6 +1662,7 @@ function tortenetiMarkerLetrehozasa(cell) {
     const jarmuStatusz = idoAllapot.jarmuStatusz;
     const marker = L.marker(koordinata, {icon: jarmuIkon(jarmuStatusz)});
     marker.__forras = String(cell.closest("tr")?.dataset.forras || "biztor").trim();
+    marker.__tortenetiStatusz = jarmuStatusz;
 
     let statuszSzoveg = "";
     if (jarmuStatusz === "OK") statuszSzoveg = '<span style="color:#00a040;font-weight:bold;">OK</span>';
@@ -1693,13 +1694,70 @@ function tortenetiMarkerLetrehozasa(cell) {
     return marker;
 }
 
+// Távoli nézetben a történeti GPS-pontokat szín és közelség szerint összevonjuk.
+// Közelítéskor az eredeti, kattintható járműjelölők visszatérnek.
+const tortenetiCsoportMarkerek = [];
+function tortenetiStatuszSzin(statusz) {
+    if (statusz === "OK") return "#00b050";
+    if (statusz === "NEM") return "#ff0000";
+    if (statusz === "SÁRGA") return "#ffd966";
+    if (statusz === "PÓTLÁS") return "#4da3ff";
+    return "#687384";
+}
+function frissitTortenetiCsoportokat() {
+    tortenetiCsoportMarkerek.forEach(function(m) { if (map.hasLayer(m)) map.removeLayer(m); });
+    tortenetiCsoportMarkerek.length = 0;
+    const tortenetiak = tortenetiLokacioMarkerek.filter(function(m) { return !!m; });
+    if (map.getZoom() > 12 || tortenetiak.length < 2) {
+        tortenetiak.forEach(function(m) { if (!map.hasLayer(m)) m.addTo(map); });
+        return;
+    }
+    const csoportok = new Map();
+    tortenetiak.forEach(function(m) {
+        const pont = map.latLngToLayerPoint(m.getLatLng());
+        const szin = tortenetiStatuszSzin(m.__tortenetiStatusz);
+        const kulcs = Math.floor(pont.x / 48) + ":" + Math.floor(pont.y / 48) + ":" + szin;
+        if (!csoportok.has(kulcs)) csoportok.set(kulcs, {pontok: [], szin: szin});
+        csoportok.get(kulcs).pontok.push(m);
+    });
+    csoportok.forEach(function(csoport) {
+        if (csoport.pontok.length < 2) return;
+        const latlngs = csoport.pontok.map(function(m) { return m.getLatLng(); });
+        const kozep = L.latLng(
+            latlngs.reduce((a, ll) => a + ll.lat, 0) / latlngs.length,
+            latlngs.reduce((a, ll) => a + ll.lng, 0) / latlngs.length
+        );
+        const ikon = L.divIcon({className: "", iconSize: [34, 34], iconAnchor: [17, 17],
+            html: '<div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border:3px solid #fff;background:' + csoport.szin + ';color:' + (csoport.szin === "#ffd966" ? "#222" : "#fff") + ';font-weight:800;font-size:12px;box-shadow:0 1px 6px #0008">' + csoport.pontok.length + '</div>'});
+        const osszevono = L.marker(kozep, {icon: ikon, keyboard: true, title: csoport.pontok.length + " GPS-pont"});
+        osszevono.on("click", function() { map.setView(kozep, Math.min(map.getZoom() + 2, TERKEP_MAX_ZOOM)); });
+        osszevono.addTo(map);
+        tortenetiCsoportMarkerek.push(osszevono);
+    });
+    if (tortenetiCsoportMarkerek.length) {
+        tortenetiak.forEach(function(m) { if (map.hasLayer(m)) map.removeLayer(m); });
+    }
+}
+map.on("zoomend", frissitTortenetiCsoportokat);
+
 document.querySelectorAll(".idopont-cella.lokacio-kattinthato[data-lat][data-lon]").forEach(function(cell) {
     function mutatTortenetiLokaciot() {
         const marker = tortenetiMarkerLetrehozasa(cell);
         if (!marker) return;
-        if (!tortenetiLokacioMarkerek.includes(marker)) tortenetiLokacioMarkerek.push(marker);
-        if (!map.hasLayer(marker)) marker.addTo(map);
+        const marEzAzEgyetlen = tortenetiLokacioMarkerek.length === 1 && tortenetiLokacioMarkerek[0] === marker && map.hasLayer(marker);
+        (jarmuMarkerek["__lista__"] || []).forEach(function(m) { if (map.hasLayer(m)) map.removeLayer(m); });
+        tarolasMarkerek.forEach(function(m) { if (map.hasLayer(m)) map.removeLayer(m); });
+        tortenetiLokacioMarkerek.forEach(function(m) { if (map.hasLayer(m)) map.removeLayer(m); });
+        tortenetiLokacioMarkerek.length = 0;
+        tortenetiOszlopAktiv = true;
+        if (marEzAzEgyetlen) {
+            frissitLokacioSzam();
+            return;
+        }
+        tortenetiLokacioMarkerek.push(marker);
+        marker.addTo(map);
         ugrasTerkephez([Number(cell.dataset.lat), Number(cell.dataset.lon)], marker);
+        frissitTortenetiCsoportokat();
     }
     cell.addEventListener("click", mutatTortenetiLokaciot);
     cell.setAttribute("role", "button");
@@ -1812,6 +1870,7 @@ document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEac
             if (bounds.isValid()) map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_MAX_ZOOM});
             // Egy időpont kiválasztásakor a jelölők mind ugyanúgy nyithatók meg, mint az aktuális járművek.
         }
+        frissitTortenetiCsoportokat();
         frissitLokacioSzam();
     }
     header.addEventListener("click", mutatOszlopLokacioit);
@@ -1840,9 +1899,10 @@ jelolLegutolsoIdopont();
             idovonalCsuszka.value = String(jobbSzel);
         }
         jelolLegutolsoIdopont();
-        tarolasMarkerek.concat(tortenetiLokacioMarkerek).forEach(function(marker){
+        tarolasMarkerek.concat(tortenetiLokacioMarkerek, tortenetiCsoportMarkerek).forEach(function(marker){
             if (map.hasLayer(marker)) map.removeLayer(marker);
         });
+        tortenetiCsoportMarkerek.length = 0;
         tarolasMarkerek.length = 0;
         tortenetiLokacioMarkerek.length = 0;
         tortenetiOszlopAktiv = false;
