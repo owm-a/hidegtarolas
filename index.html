@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ArrivaBus hidegtárolás</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='8' y='8' width='48' height='43' rx='8' fill='royalblue'/%3E%3Crect x='14' y='14' width='16' height='13' rx='2' fill='lightblue'/%3E%3Crect x='34' y='14' width='16' height='13' rx='2' fill='lightblue'/%3E%3Crect x='14' y='32' width='36' height='7' rx='2' fill='white'/%3E%3Ccircle cx='19' cy='49' r='6' fill='midnightblue'/%3E%3Ccircle cx='45' cy='49' r='6' fill='midnightblue'/%3E%3C/svg%3E">
 <style>
 :root{
     --bg:#11151b;--surface:#181e26;--surface2:#202733;--surface3:#252d39;
@@ -26,7 +27,7 @@ body{
 .fejlec{padding:16px 18px;margin-bottom:14px}
 .fejlec-top{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;margin-bottom:9px}
 .fejlec-cim-archivum{display:flex;align-items:center;gap:14px;min-width:0;flex-wrap:wrap}
-.cim{color:#f3f6fa;font-size:23px;letter-spacing:-.02em;margin:0}#oldal-cim{cursor:pointer}
+.cim{color:#f3f6fa;font-size:23px;letter-spacing:-.02em;margin:0}.cim-busz{display:inline-block;margin-right:7px;vertical-align:baseline;font-size:.92em}#oldal-cim{cursor:pointer}
 .fejlec-adatok{display:flex;align-items:flex-start;justify-content:space-between;width:100%;gap:20px;margin-top:10px}
 .fejlec-bal,.fejlec-jobb{display:flex;align-items:flex-start;gap:8px 20px;white-space:nowrap}
 .fejlec-bal{flex-direction:row;flex-wrap:wrap}
@@ -259,7 +260,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla .hely{text-align:left}.fo-kozos-tabla .rendszam{text-align:right;font-weight:bold}
 /* Az időoszlopok fix 42 px-es oszlopok; a rendelkezésre álló helyet ők töltik ki. */
 .fo-kozos-tabla .idopont-fejlec,.fo-kozos-tabla .idopont-ertek,.fo-kozos-tabla .idopont-cella{width:42px;min-width:42px;max-width:42px;padding:1px;text-align:center}
-.fo-kozos-tabla .idopont-fejlec{font-size:0;color:transparent}.fo-kozos-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px;text-align:center}.fo-kozos-tabla .idopont-oszlop-kattinthato{cursor:pointer;user-select:none}.fo-kozos-tabla .idopont-oszlop-kattinthato:hover,.fo-kozos-tabla .idopont-oszlop-kattinthato:focus{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface3)}
+.fo-kozos-tabla .idopont-fejlec{font-size:0;color:transparent}.fo-kozos-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px;text-align:center}.fo-kozos-tabla .idopont-oszlop-kattinthato{cursor:pointer;user-select:none}.fo-kozos-tabla .idopont-oszlop-kattinthato:hover,.fo-kozos-tabla .idopont-oszlop-kattinthato:focus{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface3)}.fo-kozos-tabla .idopont-oszlop-kattinthato.aktiv-idopont{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface3)}
 /* A jobb szélső oszlop csak a saját tartalmának szélességét kapja. */
 .fo-kozos-tabla .sticky-jobb.storage{width:1px;min-width:0;max-width:max-content;white-space:nowrap}
 .fo-kozos-tabla .sticky-bal{position:sticky;z-index:30;background:var(--surface);background-clip:padding-box}
@@ -727,7 +728,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 <div class="fejlec">
   <div class="fejlec-top">
     <div class="fejlec-cim-archivum">
-      <div class="cim" id="oldal-cim" role="button" tabindex="0" title="Oldal frissítése"><b>ArrivaBus hidegtárolás</b></div>
+      <div class="cim" id="oldal-cim" role="button" tabindex="0" title="Oldal frissítése"><span class="cim-busz" aria-hidden="true">🚌</span><b>ArrivaBus hidegtárolás</b></div>
       <div class="fejlec-archivum">
         <label class="torteneti-vezerlo" for="history-date"><select id="history-date" aria-label="Betöltendő nap" disabled><option value="">Archívumok betöltése…</option></select></label>
         <button id="history-load" class="theme-toggle" type="button">Betöltés</button>
@@ -987,7 +988,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     btn.setAttribute('aria-pressed',String(darkEnabled));
     btn.setAttribute('aria-label',darkEnabled?'Sötét mód bekapcsolva':'Sötét mód kikapcsolva');
     btn.title=darkEnabled?'Sötét mód bekapcsolva':'Sötét mód kikapcsolva';
-    if(icon) icon.textContent=darkEnabled?'☾':'☀';
+    if(icon) icon.textContent='☾';
     if(save){
       try{localStorage.setItem('futar-theme', light ? 'light' : 'dark');}catch(e){}
     }
@@ -1062,6 +1063,21 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
       if (!response.ok) throw new Error('Ehhez a naphoz nincs elérhető JSON-archívum.');
       const archived = await response.json();
       if (archived.datum !== date) throw new Error('A JSON dátuma nem egyezik a kiválasztott nappal.');
+      const budapestiReszek = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Europe/Budapest', year: 'numeric', month: '2-digit', day: '2-digit'
+      }).formatToParts(new Date());
+      const budapestiDatum = Object.fromEntries(budapestiReszek.map(p => [p.type, p.value]));
+      const maiDatum = `${budapestiDatum.year}-${budapestiDatum.month}-${budapestiDatum.day}`;
+      const aktualisUtvonal = window.location.pathname;
+      const foKonyvtar = inHistoryFolder
+        ? aktualisUtvonal.split('/data/history/')[0] + '/'
+        : (aktualisUtvonal.endsWith('/')
+            ? aktualisUtvonal
+            : aktualisUtvonal.slice(0, aktualisUtvonal.lastIndexOf('/') + 1));
+      if (date === maiDatum) {
+        window.location.href = foKonyvtar + 'index.html';
+        return;
+      }
       const htmlResponse = await fetch(historyBase + date + '.html', {method:'HEAD', cache:'no-store'});
       if (!htmlResponse.ok) throw new Error('Ehhez a naphoz még nincs teljes HTML-pillanatkép.');
       window.location.href = historyBase + date + '.html';
@@ -1514,8 +1530,20 @@ document.querySelectorAll(".idopont-cella.lokacio-kattinthato[data-lat][data-lon
     });
 });
 
+function jelolAktivIdopont(header) {
+    document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEach(function(elem) {
+        elem.classList.toggle("aktiv-idopont", elem === header);
+    });
+}
+
+function jelolLegutolsoIdopont() {
+    const idopontFejlecek = document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]");
+    if (idopontFejlecek.length) jelolAktivIdopont(idopontFejlecek[idopontFejlecek.length - 1]);
+}
+
 document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEach(function(header) {
     function mutatOszlopLokacioit() {
+        jelolAktivIdopont(header);
         const timeIndex = String(header.dataset.timeIndex);
         // Az időoszlop kiválasztásakor kizárólag az adott időpont lokációi maradnak a térképen.
         tortenetiOszlopAktiv = true;
@@ -1559,11 +1587,15 @@ document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEac
     });
 });
 
+// Betöltéskor a legutolsó időpont legyen kékkel kiemelve.
+jelolLegutolsoIdopont();
+
 // Csak a kattintásra létrehozott tárolási és történeti lokációkat távolítja el.
 (function(){
     const button = document.getElementById('clear-click-locations');
     if (!button) return;
     button.addEventListener('click', function(){
+        jelolLegutolsoIdopont();
         tarolasMarkerek.concat(tortenetiLokacioMarkerek).forEach(function(marker){
             if (map.hasLayer(marker)) map.removeLayer(marker);
         });
