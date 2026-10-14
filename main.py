@@ -4425,7 +4425,7 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla .hely{text-align:left}.fo-kozos-tabla .rendszam{text-align:right;font-weight:bold}
 /* Az időoszlopok fix 42 px-es oszlopok; a rendelkezésre álló helyet ők töltik ki. */
 .fo-kozos-tabla .idopont-fejlec,.fo-kozos-tabla .idopont-ertek,.fo-kozos-tabla .idopont-cella{width:42px;min-width:42px;max-width:42px;padding:1px;text-align:center}
-.fo-kozos-tabla .idopont-fejlec{font-size:0;color:transparent}.fo-kozos-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px;text-align:center}.fo-kozos-tabla .idopont-oszlop-kattinthato{cursor:pointer;user-select:none}.fo-kozos-tabla .idopont-oszlop-kattinthato:hover,.fo-kozos-tabla .idopont-oszlop-kattinthato:focus{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface3)}.fo-kozos-tabla .idopont-oszlop-kattinthato.aktiv-idopont{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface3)}
+.fo-kozos-tabla .idopont-fejlec{font-size:0;color:transparent}.fo-kozos-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px;text-align:center}.fo-kozos-tabla .idopont-oszlop-kattinthato{cursor:pointer;user-select:none}.fo-kozos-tabla .idopont-oszlop-kattinthato:hover,.fo-kozos-tabla .idopont-oszlop-kattinthato:focus{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface3)}.fo-kozos-tabla .idopont-oszlop-kattinthato.aktiv-idopont{outline:none;border-top:2px solid var(--accent)!important;border-bottom:2px solid var(--accent)!important;background:var(--surface3)}
 /* A jobb szélső oszlop csak a saját tartalmának szélességét kapja. */
 .fo-kozos-tabla .sticky-jobb.storage{width:1px;min-width:0;max-width:max-content;white-space:nowrap}
 .fo-kozos-tabla .sticky-bal{position:sticky;z-index:30;background:var(--surface);background-clip:padding-box}
@@ -5606,12 +5606,9 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 (function(){
   const button = document.getElementById('auto-refresh-toggle');
   if (!button) return;
+  // Új oldalbetöltéskor mindig bekapcsolt állapotból indul.
+  // A gomb az aktuális munkamenetben kikapcsolható, de ezt nem mentjük el.
   let enabled = true;
-  try {
-    const saved = localStorage.getItem('futar-auto-refresh');
-    if (saved === 'off') enabled = false;
-    else if (saved === 'on') enabled = true;
-  } catch (e) {}
 
   function render(){
     button.setAttribute('aria-pressed', enabled ? 'true' : 'false');
@@ -5620,7 +5617,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   render();
   button.addEventListener('click', function(){
     enabled = !enabled;
-    try { localStorage.setItem('futar-auto-refresh', enabled ? 'on' : 'off'); } catch (e) {}
     render();
   });
   window.setInterval(function(){
@@ -6215,6 +6211,7 @@ document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEac
     function mutatOszlopLokacioit() {
         jelolAktivIdopont(header);
         const timeIndex = String(header.dataset.timeIndex);
+        window.__hidegtarolasAktivIdopontIndex = timeIndex;
         // Az időoszlop kiválasztásakor kizárólag az adott időpont lokációi maradnak a térképen.
         tortenetiOszlopAktiv = true;
         (jarmuMarkerek["__lista__"] || []).forEach(function(marker) {
@@ -6337,6 +6334,14 @@ document.querySelectorAll(".nezet-gomb").forEach(function(btn){
             ? this.dataset.nezet
             : 'mindketto';
         try { localStorage.setItem(NEZET_STORAGE_KEY, nezet); } catch (e) {}
+
+        // Ha időoszlopot vizsgálunk, a nézetváltás után ugyanazt az időpontot
+        // újra lekérjük, immár az új nézetben látható sorokból.
+        const aktivIdo = window.__hidegtarolasAktivIdopontIndex;
+        if (tortenetiOszlopAktiv && aktivIdo !== undefined && aktivIdo !== null) {
+            const header = document.querySelector('.idopont-oszlop-kattinthato[data-time-index="' + aktivIdo + '"]');
+            if (header) header.click();
+        }
         frissitTerkepNezet(nezet);
     });
 });
