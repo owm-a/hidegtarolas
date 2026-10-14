@@ -4169,7 +4169,7 @@ body{
 .fejlec{padding:16px 18px;margin-bottom:14px}
 .fejlec-top{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;margin-bottom:9px}
 .fejlec-cim-archivum{display:flex;align-items:center;gap:14px;min-width:0;flex-wrap:wrap}
-.cim{color:#f3f6fa;font-size:23px;letter-spacing:-.02em;margin:0}.cim-busz{display:inline-block;margin-right:7px;vertical-align:baseline;font-size:.92em}#oldal-cim{cursor:pointer}
+.cim{color:#f3f6fa;font-size:23px;letter-spacing:-.02em;margin:0;display:flex;align-items:center;gap:7px}.cim-busz-svg{display:inline-block;width:25px;height:25px;flex:0 0 25px;vertical-align:middle}#oldal-cim{cursor:pointer}
 .fejlec-adatok{display:flex;align-items:flex-start;justify-content:space-between;width:100%;gap:20px;margin-top:10px}
 .fejlec-bal,.fejlec-jobb{display:flex;align-items:flex-start;gap:8px 20px;white-space:nowrap}
 .fejlec-bal{flex-direction:row;flex-wrap:wrap}
@@ -4198,7 +4198,23 @@ body{
 .auto-switch span{height:10px;width:10px;border-radius:50%;background:#fff;transition:transform .16s}
 .auto-refresh-toggle[aria-pressed="true"] .auto-switch{background:var(--ok)}
 .auto-refresh-toggle[aria-pressed="true"] .auto-switch span{transform:translateX(11px)}
-.torteneti-vezerlo{display:flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:5px 7px;font:inherit;font-size:12px}
+.torteneti-vezerlo{position:relative;display:flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:5px 7px;font:inherit;font-size:12px}
+.history-calendar-button{display:inline-flex;align-items:center;gap:7px;min-width:150px;justify-content:space-between;border:0;background:transparent;color:var(--text);font:inherit;font-size:12px;cursor:pointer;padding:2px 1px}
+.history-calendar-button .calendar-mark{font-size:15px}
+.history-calendar-popup{position:absolute;top:calc(100% + 7px);left:0;z-index:10000;width:258px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow)}
+.history-calendar-popup[hidden]{display:none!important}
+.history-calendar-month{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.history-calendar-month button{width:28px;height:27px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);cursor:pointer}
+.history-calendar-month strong{font-size:13px}
+.history-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.history-calendar-weekday,.history-calendar-day{display:flex;align-items:center;justify-content:center;min-width:0;height:29px;font-size:11px}
+.history-calendar-weekday{color:var(--muted);font-weight:700}
+.history-calendar-day{border:1px solid transparent;border-radius:6px;background:transparent;color:var(--muted)}
+.history-calendar-day.available{border-color:var(--border);background:var(--surface2);color:var(--text);cursor:pointer}
+.history-calendar-day.available:hover{border-color:var(--accent);background:var(--surface3)}
+.history-calendar-day.selected{background:var(--accent2);border-color:var(--accent2);color:white;font-weight:700}
+.history-calendar-day:disabled{opacity:.42;cursor:default}
+.adatforras{width:100%;box-sizing:border-box;margin:8px 0 0;text-align:right;font-size:10px;font-style:italic;color:var(--muted);opacity:.85}
 .torteneti-vezerlo select{max-width:150px;min-width:125px;border:1px solid var(--border);border-radius:5px;padding:5px;background:var(--surface);color:var(--text);font:inherit}
 #clear-click-locations{border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:7px 10px;font:inherit;font-size:12px;font-weight:650;cursor:pointer;white-space:nowrap}
 #clear-click-locations:hover{background:var(--surface3);border-color:var(--accent)}
@@ -4872,9 +4888,15 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 <div class="fejlec">
   <div class="fejlec-top">
     <div class="fejlec-cim-archivum">
-      <div class="cim" id="oldal-cim" role="button" tabindex="0" title="Oldal frissítése"><span class="cim-busz" aria-hidden="true">🚌</span><b>ArrivaBus hidegtárolás</b></div>
+      <div class="cim" id="oldal-cim" role="button" tabindex="0" title="Oldal frissítése"><svg class="cim-busz-svg" aria-hidden="true" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="8" width="48" height="43" rx="8" fill="royalblue"/><rect x="14" y="14" width="16" height="13" rx="2" fill="lightblue"/><rect x="34" y="14" width="16" height="13" rx="2" fill="lightblue"/><rect x="14" y="32" width="36" height="7" rx="2" fill="white"/><circle cx="19" cy="49" r="6" fill="midnightblue"/><circle cx="45" cy="49" r="6" fill="midnightblue"/></svg><b>ArrivaBus hidegtárolás</b></div>
       <div class="fejlec-archivum">
-        <label class="torteneti-vezerlo" for="history-date"><select id="history-date" aria-label="Archív nap kiválasztása" disabled><option value="">Archívumok betöltése…</option></select></label>
+        <div class="torteneti-vezerlo history-calendar" id="history-calendar">
+          <button id="history-date-button" class="history-calendar-button" type="button" aria-label="Archív dátum kiválasztása" aria-expanded="false" disabled><span class="calendar-mark" aria-hidden="true">▦</span><span id="history-date-label">Archívumok betöltése…</span><span aria-hidden="true">▾</span></button>
+          <div id="history-calendar-popup" class="history-calendar-popup" hidden>
+            <div class="history-calendar-month"><button id="history-month-prev" type="button" aria-label="Előző hónap">‹</button><strong id="history-month-label"></strong><button id="history-month-next" type="button" aria-label="Következő hónap">›</button></div>
+            <div id="history-calendar-grid" class="history-calendar-grid" role="grid" aria-label="Elérhető archív napok"></div>
+          </div>
+        </div>
         <button id="history-today" class="history-today-button" type="button" title="Vissza a mai naphoz">Ma</button>
         <div id="history-load-status" role="status" aria-live="polite"></div>
       </div>
@@ -5310,96 +5332,153 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   btn.addEventListener('click',()=>applyTheme(!document.body.classList.contains('light-mode'), true));
 })();
 
-// Napi archívum: a dátum kiválasztása automatikusan betölti a megfelelő napot.
+// Napi archívum: naptárnézet, kizárólag elérhető napok választhatók.
 (function(){
-  const dateInput = document.getElementById('history-date');
+  const dateButton = document.getElementById('history-date-button');
+  const dateLabel = document.getElementById('history-date-label');
   const todayButton = document.getElementById('history-today');
+  const popup = document.getElementById('history-calendar-popup');
+  const monthLabel = document.getElementById('history-month-label');
+  const grid = document.getElementById('history-calendar-grid');
+  const prevButton = document.getElementById('history-month-prev');
+  const nextButton = document.getElementById('history-month-next');
   const status = document.getElementById('history-load-status');
-  if (!dateInput || !todayButton || !status) return;
+  if (!dateButton || !dateLabel || !todayButton || !popup || !monthLabel || !grid || !status) return;
+
   const inHistoryFolder = window.location.pathname.includes('/data/history/');
   const historyBase = inHistoryFolder ? './' : 'data/history/';
   const currentDateMatch = document.querySelector('.fejlec-bal .adat');
-  const currentDate = currentDateMatch ? (currentDateMatch.textContent.match(/\\d{4}-\\d{2}-\\d{2}/) || [])[0] : '';
-  status.textContent = '';
+  const currentDate = currentDateMatch ? (currentDateMatch.textContent.match(/\d{4}-\d{2}-\d{2}/) || [])[0] : '';
+  const weekdays = ['H', 'K', 'Sze', 'Cs', 'P', 'Szo', 'V'];
+  let availableDates = new Set();
+  let selectedDate = '';
+  let shownMonth = new Date();
+  shownMonth = new Date(shownMonth.getFullYear(), shownMonth.getMonth(), 1);
 
   function getHomeUrl(){
     const path = window.location.pathname;
     const base = inHistoryFolder
       ? path.split('/data/history/')[0] + '/'
       : (path.endsWith('/') ? path : path.slice(0, path.lastIndexOf('/') + 1));
-    return base + 'index.html';
+    return base;
   }
-
-  async function loadSelectedDate(){
-    const date = dateInput.value;
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) {
-      status.textContent = 'Nincs kiválasztott archív nap.';
+  function formatDate(date){
+    const [y,m,d] = date.split('-').map(Number);
+    return `${y}. ${String(m).padStart(2,'0')}. ${String(d).padStart(2,'0')}.`;
+  }
+  function dateKey(year, month, day){
+    return `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  }
+  function closeCalendar(){
+    popup.hidden = true;
+    dateButton.setAttribute('aria-expanded','false');
+  }
+  function renderCalendar(){
+    const year = shownMonth.getFullYear();
+    const month = shownMonth.getMonth();
+    monthLabel.textContent = new Intl.DateTimeFormat('hu-HU',{month:'long',year:'numeric'}).format(shownMonth);
+    grid.replaceChildren();
+    weekdays.forEach(day => {
+      const el = document.createElement('div');
+      el.className = 'history-calendar-weekday';
+      el.textContent = day;
+      el.setAttribute('role','columnheader');
+      grid.appendChild(el);
+    });
+    const firstDay = new Date(year, month, 1);
+    const offset = (firstDay.getDay() + 6) % 7;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    for(let i=0;i<offset;i++){
+      const blank = document.createElement('span');
+      blank.setAttribute('aria-hidden','true');
+      grid.appendChild(blank);
+    }
+    for(let day=1; day<=daysInMonth; day++){
+      const key = dateKey(year, month, day);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'history-calendar-day';
+      button.textContent = String(day);
+      button.setAttribute('role','gridcell');
+      button.setAttribute('aria-label',formatDate(key));
+      if(availableDates.has(key)){
+        button.classList.add('available');
+        button.disabled = false;
+        if(key === selectedDate) button.classList.add('selected');
+        button.addEventListener('click', () => chooseDate(key));
+      } else {
+        button.disabled = true;
+        button.setAttribute('aria-disabled','true');
+      }
+      grid.appendChild(button);
+    }
+    if(prevButton) prevButton.disabled = availableDates.size === 0 || [...availableDates].every(d => d.slice(0,7) >= dateKey(year,month,1).slice(0,7));
+    if(nextButton) nextButton.disabled = availableDates.size === 0 || [...availableDates].every(d => d.slice(0,7) <= dateKey(year,month,1).slice(0,7));
+  }
+  async function chooseDate(date){
+    if(!availableDates.has(date)) return;
+    selectedDate = date;
+    dateLabel.textContent = formatDate(date);
+    closeCalendar();
+    status.textContent = '';
+    const budapestiReszek = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Europe/Budapest', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(new Date());
+    const budapestiDatum = Object.fromEntries(budapestiReszek.map(p => [p.type, p.value]));
+    const maiDatum = `${budapestiDatum.year}-${budapestiDatum.month}-${budapestiDatum.day}`;
+    if(date === maiDatum){
+      window.location.href = getHomeUrl();
       return;
     }
-    dateInput.disabled = true;
+    dateButton.disabled = true;
     todayButton.disabled = true;
-    status.textContent = 'Betöltés…';
-    try {
-      const response = await fetch(historyBase + date + '.json', {cache:'no-store'});
-      if (!response.ok) throw new Error('Ehhez a naphoz nincs elérhető archív adat.');
-      const archived = await response.json();
-      if (archived.datum !== date) throw new Error('Az archív dátum nem egyezik a kiválasztott nappal.');
-      const budapestiReszek = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Europe/Budapest', year: 'numeric', month: '2-digit', day: '2-digit'
-      }).formatToParts(new Date());
-      const budapestiDatum = Object.fromEntries(budapestiReszek.map(p => [p.type, p.value]));
-      const maiDatum = `${budapestiDatum.year}-${budapestiDatum.month}-${budapestiDatum.day}`;
-      if (date === maiDatum) {
-        window.location.href = getHomeUrl();
-        return;
-      }
-      const htmlResponse = await fetch(historyBase + date + '.html', {method:'HEAD', cache:'no-store'});
-      if (!htmlResponse.ok) throw new Error('Ehhez a naphoz még nincs HTML-archívum.');
+    status.textContent = 'Archívum megnyitása…';
+    try{
+      const response = await fetch(historyBase + date + '.html', {method:'HEAD',cache:'no-store'});
+      if(!response.ok) throw new Error('Ehhez a naphoz még nincs HTML-archívum.');
       window.location.href = historyBase + date + '.html';
-    } catch (err) {
+    }catch(err){
       status.textContent = err.message || 'Az archívum nem tölthető be.';
-    } finally {
-      dateInput.disabled = false;
+      dateButton.disabled = false;
       todayButton.disabled = false;
     }
   }
 
-  fetch(historyBase + 'index.json', {cache:'no-store'})
-    .then(r => { if (!r.ok) throw new Error('Az archívumlista nem érhető el.'); return r.json(); })
-    .then(data => {
-      const dates = Array.isArray(data.dates)
-        ? [...new Set(data.dates.filter(d => /^\\d{4}-\\d{2}-\\d{2}$/.test(d)))].sort()
-        : [];
-      dateInput.replaceChildren();
-      if (!dates.length) {
-        const option = document.createElement('option');
-        option.value = '';
-        option.textContent = 'Nincs archívum';
-        dateInput.appendChild(option);
-        dateInput.disabled = true;
+  dateButton.addEventListener('click', () => {
+    const opening = popup.hidden;
+    popup.hidden = !opening;
+    dateButton.setAttribute('aria-expanded',String(opening));
+    if(opening) renderCalendar();
+  });
+  if(prevButton) prevButton.addEventListener('click',()=>{shownMonth=new Date(shownMonth.getFullYear(),shownMonth.getMonth()-1,1);renderCalendar();});
+  if(nextButton) nextButton.addEventListener('click',()=>{shownMonth=new Date(shownMonth.getFullYear(),shownMonth.getMonth()+1,1);renderCalendar();});
+  document.addEventListener('click',e=>{if(!e.target.closest('#history-calendar')) closeCalendar();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape') closeCalendar();});
+  todayButton.addEventListener('click',()=>{window.location.href=getHomeUrl();});
+
+  fetch(historyBase + 'index.json',{cache:'no-store'})
+    .then(r=>{if(!r.ok) throw new Error('Az archívumlista nem érhető el.');return r.json();})
+    .then(data=>{
+      const dates = Array.isArray(data.dates) ? [...new Set(data.dates.filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)))].sort() : [];
+      availableDates = new Set(dates);
+      if(!dates.length){
+        dateLabel.textContent = 'Nincs archívum';
+        dateButton.disabled = true;
+        status.textContent = 'Nincs elérhető archív nap.';
         return;
       }
-      dates.forEach(date => {
-        const option = document.createElement('option');
-        option.value = date;
-        option.textContent = date;
-        dateInput.appendChild(option);
-      });
-      dateInput.disabled = false;
-      dateInput.value = dates.includes(currentDate) ? currentDate : dates[dates.length - 1];
+      selectedDate = dates.includes(currentDate) ? currentDate : dates[dates.length-1];
+      dateLabel.textContent = formatDate(selectedDate);
+      const [year,month] = selectedDate.split('-').map(Number);
+      shownMonth = new Date(year,month-1,1);
+      dateButton.disabled = false;
+      renderCalendar();
     })
-    .catch(() => {
-      dateInput.replaceChildren();
-      const option = document.createElement('option');
-      option.value = '';
-      option.textContent = 'Archívum nem érhető el';
-      dateInput.appendChild(option);
-      dateInput.disabled = true;
+    .catch(()=>{
+      dateLabel.textContent = 'Archívum nem érhető el';
+      dateButton.disabled = true;
       status.textContent = 'Az archívumlista nem érhető el.';
     });
-
-  dateInput.addEventListener('change', loadSelectedDate);
-  todayButton.addEventListener('click', () => { window.location.href = getHomeUrl(); });
 })();
 
 // Az oldal címe kattintható: kézi frissítés gépen és mobilon is.
@@ -6047,6 +6126,7 @@ window.addEventListener("load", frissitGarazsCsuszkat);
 })();
 </script>
 
+<footer class="adatforras">Adatok forrása: BKK Zrt., CC BY 4.0</footer>
 </body>
 
 </html>
