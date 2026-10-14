@@ -4176,6 +4176,13 @@ body{
 .adat{font-size:12px;color:var(--muted);white-space:nowrap}.adat b{color:var(--text);font-weight:600}
 .theme-toggle{border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:7px 10px;font:inherit;font-size:12px;font-weight:650;cursor:pointer;white-space:nowrap;transition:.16s}
 .theme-toggle:hover{background:var(--surface3);border-color:var(--accent)}
+.theme-switch-toggle{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:34px;min-width:62px;padding:4px 8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:9px;cursor:pointer;transition:.16s}
+.theme-switch-toggle:hover{border-color:var(--accent);background:var(--surface3)}
+.theme-switch-toggle .theme-icon{font-size:17px;line-height:1;display:inline-block;min-width:18px;text-align:center}
+.theme-switch{width:25px;height:14px;border-radius:99px;background:#687384;display:inline-flex;align-items:center;padding:2px;box-sizing:border-box;transition:background .16s}
+.theme-switch span{height:10px;width:10px;border-radius:50%;background:#fff;transition:transform .16s}
+.theme-switch-toggle[aria-pressed="true"] .theme-switch{background:var(--ok)}
+.theme-switch-toggle[aria-pressed="true"] .theme-switch span{transform:translateX(11px)}
 .fejlec-vezerlok{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
 .fejlec-archivum{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;margin-top:0}
 .fejlec-archivum #history-load-status{margin-left:4px}
@@ -4188,9 +4195,6 @@ body{
 .auto-switch span{height:10px;width:10px;border-radius:50%;background:#fff;transition:transform .16s}
 .auto-refresh-toggle[aria-pressed="true"] .auto-switch{background:var(--ok)}
 .auto-refresh-toggle[aria-pressed="true"] .auto-switch span{transform:translateX(11px)}
-.theme-switch .theme-icon{font-size:17px;line-height:1;display:inline-block;min-width:18px;text-align:center}
-.theme-switch[aria-pressed="true"] .theme-icon{color:var(--ok)}
-.theme-switch[aria-pressed="false"] .theme-icon{color:var(--muted)}
 .torteneti-vezerlo{display:flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:5px 7px;font:inherit;font-size:12px}
 .torteneti-vezerlo select{max-width:150px;min-width:125px;border:1px solid var(--border);border-radius:5px;padding:5px;background:var(--surface);color:var(--text);font:inherit}
 #clear-click-locations{border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:7px 10px;font:inherit;font-size:12px;font-weight:650;cursor:pointer;white-space:nowrap}
@@ -4866,20 +4870,20 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   <div class="fejlec-top">
     <div class="fejlec-cim-archivum">
       <div class="cim" id="oldal-cim" role="button" tabindex="0" title="Oldal frissítése"><b>ArrivaBus hidegtárolás</b></div>
-      <div class="fejlec-archivum">
-        <label class="torteneti-vezerlo" for="history-date"><select id="history-date" aria-label="Betöltendő nap" disabled><option value="">Archívumok betöltése…</option></select></label>
-        <button id="history-load" class="theme-toggle" type="button">Betöltés</button>
-        <div id="history-load-status" role="status" aria-live="polite"></div>
-      </div>
     </div>
     <div class="fejlec-vezerlok">
       <button id="clear-click-locations" type="button" title="Az aktuális utolsó pozíciók megjelenítése">Utolsó pozíciók</button>
-      <button id="theme-toggle" class="auto-refresh-toggle theme-switch" type="button" aria-label="Sötét mód" aria-pressed="true" title="Sötét mód bekapcsolva"><span class="theme-icon" aria-hidden="true">☾</span><span class="auto-switch" aria-hidden="true"><span></span></span></button>
+      <button id="theme-toggle" class="theme-switch-toggle" type="button" aria-label="Sötét mód" aria-pressed="true" title="Sötét mód bekapcsolva"><span class="theme-icon" aria-hidden="true">☾</span><span class="theme-switch" aria-hidden="true"><span></span></span></button>
       <button id="auto-refresh-toggle" class="auto-refresh-toggle" type="button" aria-label="Automatikus frissítés" aria-pressed="true" title="Automatikus frissítés bekapcsolva"><span class="refresh-icon" aria-hidden="true">↻</span><span class="auto-switch" aria-hidden="true"><span></span></span></button>
     </div>
   </div>
   <div class="fejlec-adatok riport-fejlec-adatok">
     <div class="fejlec-bal">
+      <div class="fejlec-archivum">
+        <label class="torteneti-vezerlo" for="history-date"><select id="history-date" aria-label="Betöltendő nap" disabled><option value="">Archívumok betöltése…</option></select></label>
+        <button id="history-load" class="theme-toggle" type="button">Betöltés</button>
+        <div id="history-load-status" role="status" aria-live="polite"></div>
+      </div>
       <div class="adat"><b>Dátum:</b> """ + escape(futas_datum) + """</div>
       <div class="adat"><b>Naptípus:</b> """ + (
           escape(str(talalt_munkalap))
@@ -4887,6 +4891,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
           else escape(str(talalt_munkalap)) + " / " + escape(str(garazs_talalt_munkalap))
       ) + """</div>
       <div class="adat"><b>Utolsó lekérdezés:</b> """ + escape(str(idopontok[-1] if idopontok else "-")) + """</div>
+      <div class="adat" id="map-location-count"><b>Lokációk száma:</b> 0</div>
     </div>
     <div class="fejlec-jobb">
       <div class="adat"><b>Riport készült:</b> """ + escape(re.search(r"(\d{1,2}:\d{2})", str(hidegtarolas_riport.get("keszult", "-"))).group(1) if re.search(r"(\d{1,2}:\d{2})", str(hidegtarolas_riport.get("keszult", "-"))) else "-") + """</div>
@@ -5283,13 +5288,14 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 (function(){
   const btn=document.getElementById('theme-toggle');
   if(!btn) return;
+  const icon=btn.querySelector('.theme-icon');
   function applyTheme(light, save=true){
     document.body.classList.toggle('light-mode',light);
-    btn.setAttribute('aria-pressed', light ? 'false' : 'true');
-    btn.title = light ? 'Sötét mód kikapcsolva' : 'Sötét mód bekapcsolva';
-    btn.setAttribute('aria-label', btn.title);
-    const icon = btn.querySelector('.theme-icon');
-    if(icon) icon.textContent = light ? '☀' : '☾';
+    const darkEnabled=!light;
+    btn.setAttribute('aria-pressed',String(darkEnabled));
+    btn.setAttribute('aria-label',darkEnabled?'Sötét mód bekapcsolva':'Sötét mód kikapcsolva');
+    btn.title=darkEnabled?'Sötét mód bekapcsolva':'Sötét mód kikapcsolva';
+    if(icon) icon.textContent=darkEnabled?'☾':'☀';
     if(save){
       try{localStorage.setItem('futar-theme', light ? 'light' : 'dark');}catch(e){}
     }
@@ -5850,11 +5856,8 @@ document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEac
             const bounds = L.featureGroup(markerek).getBounds();
             if (bounds.isValid()) map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_MAX_ZOOM});
             // Egy időpont kiválasztásakor a jelölők mind ugyanúgy nyithatók meg, mint az aktuális járművek.
-        } else {
-            const timeLabel = header.textContent.trim();
-            const status = document.getElementById('history-load-status');
-            if (status) status.textContent = 'A(z) ' + timeLabel + ' időponthoz nincs megjeleníthető GPS-lokáció a látható sorokban.';
         }
+        frissitLokacioSzam();
     }
     header.addEventListener("click", mutatOszlopLokacioit);
     header.addEventListener("keydown", function(e) {
@@ -5880,6 +5883,21 @@ document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEac
     });
 })();
 
+function frissitLokacioSzam() {
+    const elem = document.getElementById('map-location-count');
+    if (!elem) return;
+    const jelolok = (jarmuMarkerek["__lista__"] || [])
+        .concat(tarolasMarkerek, tortenetiLokacioMarkerek);
+    const latszoDarab = new Set(jelolok.filter(function(marker) {
+        return marker && map.hasLayer(marker);
+    })).size;
+    elem.innerHTML = '<b>Lokációk száma:</b> ' + latszoDarab;
+}
+
+// A térképre kerülő vagy onnan eltávolított jelölők után automatikusan frissül a darabszám.
+map.on('layeradd layerremove', frissitLokacioSzam);
+frissitLokacioSzam();
+
 function frissitTerkepNezet(view) {
     const lista = jarmuMarkerek["__lista__"] || [];
     const osszesMarker = lista.concat(tarolasMarkerek, tortenetiLokacioMarkerek);
@@ -5895,6 +5913,7 @@ function frissitTerkepNezet(view) {
         const bounds = L.featureGroup(latszo).getBounds();
         if (bounds.isValid()) map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_MAX_ZOOM});
     }
+    frissitLokacioSzam();
 }
 
 const NEZET_STORAGE_KEY = 'hidegtarolas-aktiv-nezet';
