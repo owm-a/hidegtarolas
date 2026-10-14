@@ -739,6 +739,93 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   text-align:left !important;
 }
 
+
+
+/* Mobil fejléc: cím + kapcsolók az első sorban, utolsó pozíciók + dátum a másodikban. */
+@media (max-width: 600px) {
+  .fejlec { padding: 12px; }
+  .fejlec-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "title controls" "last date";
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 10px;
+    margin-bottom: 10px;
+  }
+  .fejlec-cim-archivum { display: contents; }
+  .fejlec-vezerlok { display: contents; width: auto; }
+  .cim {
+    grid-area: title;
+    min-width: 0;
+    white-space: nowrap;
+    font-size: 14px;
+    gap: 5px;
+  }
+  .cim-busz-svg { width: 21px; height: 21px; flex-basis: 21px; }
+  .fejlec-kapcsolok {
+    grid-area: controls;
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .theme-switch-toggle,.auto-refresh-toggle { min-width: 48px; padding-left: 5px; padding-right: 5px; gap: 5px; }
+  #clear-click-locations {
+    grid-area: last;
+    justify-self: start;
+    white-space: nowrap;
+    padding: 8px 10px;
+  }
+  .fejlec-archivum { grid-area: date; justify-self: end; min-width: 0; width: 100%; }
+  .torteneti-vezerlo { width: 100%; min-width: 0; box-sizing: border-box; padding: 5px 6px; }
+  .history-calendar-button { min-width: 0; width: 100%; gap: 4px; font-size: 11px; }
+  #history-load-status { display: none; }
+  .fejlec-adatok {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 10px;
+    row-gap: 8px;
+    align-items: start;
+    margin-top: 0;
+  }
+  .fejlec-bal,.fejlec-jobb { display: contents; }
+  .fejlec-adatok .adat {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: 10px;
+    line-height: 1.35;
+  }
+  .fejlec-bal .adat:nth-child(1) { grid-column: 1; grid-row: 1; }
+  .fejlec-bal .adat:nth-child(2) { grid-column: 1; grid-row: 2; }
+  .fejlec-bal .adat:nth-child(3) { grid-column: 1; grid-row: 3; }
+  #map-location-count { grid-column: 2; grid-row: 1; }
+  .fejlec-jobb .adat:nth-child(1) { grid-column: 2; grid-row: 2; }
+  .fejlec-jobb .adat:nth-child(2) { grid-column: 2; grid-row: 3; }
+}
+
+
+/* Mobilos fejléc finomhangolása: cím/kapcsolók felül, dátum/utolsó pozíciók alatta. */
+@media(max-width:600px){
+  .fejlec-top{display:grid!important;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;align-items:center!important;gap:10px 8px;margin-bottom:12px!important;}
+  .fejlec-cim-archivum,.fejlec-archivum,.fejlec-vezerlok{display:contents!important;}
+  .cim{grid-column:1;grid-row:1;min-width:0;font-size:18px!important;white-space:nowrap;}
+  .cim-busz-svg{display:none!important;}
+  .fejlec-kapcsolok{grid-column:2;grid-row:1;display:flex!important;width:auto!important;gap:5px;justify-content:flex-end;align-items:center;}
+  .history-calendar{grid-column:1;grid-row:2;min-width:0;width:100%;}
+  .history-calendar-button{max-width:100%;}
+  #clear-click-locations{grid-column:2;grid-row:2;justify-self:end;white-space:nowrap;padding-left:9px;padding-right:9px;}
+  .fejlec-adatok.riport-fejlec-adatok{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:10px;row-gap:10px;align-items:start;}
+  .fejlec-bal,.fejlec-jobb{display:contents!important;}
+  .fejlec-bal .adat:nth-child(1){grid-column:1;grid-row:1;}
+  .fejlec-bal .adat:nth-child(2){grid-column:1;grid-row:2;}
+  .fejlec-bal .adat:nth-child(3){grid-column:1;grid-row:3;}
+  #map-location-count{grid-column:2;grid-row:1;}
+  .fejlec-jobb .adat:nth-child(1){grid-column:2;grid-row:2;}
+  .fejlec-jobb .adat:nth-child(2){grid-column:2;grid-row:3;}
+}
+
 </style>
 </head>
 <body>
@@ -759,8 +846,10 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     </div>
     <div class="fejlec-vezerlok">
       <button id="clear-click-locations" type="button" title="Az aktuális utolsó pozíciók megjelenítése">Utolsó pozíciók</button>
-      <button id="theme-toggle" class="theme-switch-toggle" type="button" aria-label="Sötét mód" aria-pressed="true" title="Sötét mód bekapcsolva"><span class="theme-icon" aria-hidden="true">☾</span><span class="theme-switch" aria-hidden="true"><span></span></span></button>
-      <button id="auto-refresh-toggle" class="auto-refresh-toggle" type="button" aria-label="Automatikus frissítés" aria-pressed="true" title="Automatikus frissítés bekapcsolva"><span class="refresh-icon" aria-hidden="true">↻</span><span class="auto-switch" aria-hidden="true"><span></span></span></button>
+      <div class="fejlec-kapcsolok">
+        <button id="theme-toggle" class="theme-switch-toggle" type="button" aria-label="Sötét mód" aria-pressed="true" title="Sötét mód bekapcsolva"><span class="theme-icon" aria-hidden="true">☾</span><span class="theme-switch" aria-hidden="true"><span></span></span></button>
+        <button id="auto-refresh-toggle" class="auto-refresh-toggle" type="button" aria-label="Automatikus frissítés" aria-pressed="true" title="Automatikus frissítés bekapcsolva"><span class="refresh-icon" aria-hidden="true">↻</span><span class="auto-switch" aria-hidden="true"><span></span></span></button>
+      </div>
     </div>
   </div>
   <div class="fejlec-adatok riport-fejlec-adatok">
