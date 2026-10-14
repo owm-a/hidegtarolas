@@ -853,8 +853,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     <div class="fejlec-vezerlok">
       <button id="clear-click-locations" type="button" title="Az aktuális utolsó pozíciók megjelenítése">Utolsó pozíciók</button>
       <div class="fejlec-kapcsolok">
-        <button id="theme-toggle" class="theme-switch-toggle" type="button" aria-label="Sötét mód" aria-pressed="true" title="Sötét mód bekapcsolva"><span class="theme-icon" aria-hidden="true">☾</span><span class="theme-switch" aria-hidden="true"><span></span></span></button>
         <button id="auto-refresh-toggle" class="auto-refresh-toggle" type="button" aria-label="Automatikus frissítés" aria-pressed="true" title="Automatikus frissítés bekapcsolva"><span class="refresh-icon" aria-hidden="true">↻</span><span class="auto-switch" aria-hidden="true"><span></span></span></button>
+        <button id="theme-toggle" class="theme-switch-toggle" type="button" aria-label="Sötét mód" aria-pressed="true" title="Sötét mód bekapcsolva"><span class="theme-icon" aria-hidden="true">☾</span><span class="theme-switch" aria-hidden="true"><span></span></span></button>
       </div>
     </div>
   </div>
@@ -1975,11 +1975,27 @@ jelolLegutolsoIdopont();
 function frissitLokacioSzam() {
     const elem = document.getElementById('map-location-count');
     if (!elem) return;
-    const jelolok = (jarmuMarkerek["__lista__"] || [])
-        .concat(tarolasMarkerek, tortenetiLokacioMarkerek);
+
+    // A klaszterezés idejére az egyedi PIN-ek lekerülnek a térképrétegről,
+    // de ettől még létező lokációk. Ezért a számláló az aktív nézethez tartozó
+    // alapjelölőket számolja, nem csak az éppen map.hasLayer() állapotúakat.
+    const nezet = aktualisTerkepNezet();
+    let jelolok;
+
+    if (tortenetiOszlopAktiv) {
+        // Időoszlop / rendszám-előzmény vizsgálatakor csak a kiválasztott
+        // történeti lokációk számítanak bele.
+        jelolok = tortenetiLokacioMarkerek;
+    } else {
+        // Alapnézetben az aktuális jármű-PIN-eket és a tárolási PIN-eket számoljuk.
+        jelolok = (jarmuMarkerek["__lista__"] || []).concat(tarolasMarkerek);
+    }
+
     const latszoDarab = new Set(jelolok.filter(function(marker) {
-        return marker && map.hasLayer(marker);
+        if (!marker) return false;
+        return nezet === "mindketto" || marker.__forras === nezet;
     })).size;
+
     elem.innerHTML = '<b>Lokációk száma:</b> ' + latszoDarab;
 }
 
