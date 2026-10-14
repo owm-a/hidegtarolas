@@ -4227,9 +4227,9 @@ body{
 .nezet-gomb:active{transform:translateY(1px)}
 .online-szam{display:inline-block;margin-left:5px;font-size:11px;font-weight:600;color:var(--muted);opacity:.9}.nezet-gomb.active .online-szam{color:rgba(255,255,255,.82)}
 .nezet-panel{display:block}.nezet-panel.hidden{display:none!important}
-.mobil-tablazat-hint{display:none;text-align:right;color:var(--muted);font-size:10px;line-height:14px;margin:0 8px 4px 0;opacity:.7}
-@media(max-width:900px){.mobil-tablazat-hint{display:block}}
-.tabla-szekcio{width:100%;max-width:100%;margin:0;padding:12px;border-top:1px solid var(--border);overflow:hidden}
+.tabla-szekcio{width:100%;max-width:100%;margin:0;padding:12px;border-top:1px solid var(--border);overflow:hidden;position:relative}
+.mobil-scroll-nyil{display:none}
+@media(max-width:600px){.mobil-scroll-nyil{position:absolute;right:13px;top:50%;transform:translateY(-50%);z-index:80;width:30px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:linear-gradient(90deg,rgba(24,30,38,0),rgba(24,30,38,.96) 35%);color:#4da3ff;font-size:29px;font-weight:800;line-height:1;pointer-events:none;text-shadow:0 0 8px rgba(77,163,255,.35);opacity:0;transition:opacity .18s}.tabla-szekcio.van-jobbra .mobil-scroll-nyil{opacity:1}body.light-mode .mobil-scroll-nyil{background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.96) 35%)}}
 .idopont-csuszkasav{
     width:90%;height:38px;margin:0 auto;display:flex;align-items:center;justify-content:center;
     background:var(--surface2);border:1px solid var(--border);border-radius:8px;
@@ -5019,7 +5019,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   <button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás <span class="online-szam">""" + str(biz_online) + "/" + str(biz_osszes) + """</span></button>
   <button class="nezet-gomb" data-nezet="garazs" type="button">Garázs <span class="online-szam">""" + str(garazs_online) + "/" + str(garazs_osszes) + """</span></button>
 </div>
-<div class="mobil-tablazat-hint">▸ A táblázat jobbra húzva folytatódik ▸</div>
 <div id="panel-adatok" class="nezet-panel">
 <div class="tabla-szekcio">
   <div class="idopont-csuszkasav" id="fo-csuszkasav">
@@ -5196,7 +5195,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
             rcls = "tarolas-na"
         html.append(f'<td class="sticky-jobb storage tarolas {rcls}">{escape(tarolas)}</td></tr>')
 
-    html.append('</tbody></table></div></div></div>')
+    html.append('</tbody></table></div><div class="mobil-scroll-nyil" aria-hidden="true">›</div></div></div>')
 
     html.append("""
 <script>
@@ -5300,8 +5299,16 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
       left+=w;
     }
   }
+  function frissitMobilNyilat(){
+    const szekcio=fo.closest(".tabla-szekcio");
+    if(!szekcio)return;
+    const mobil=window.matchMedia("(max-width:600px)").matches;
+    const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
+    szekcio.classList.toggle("van-jobbra",mobil && max>4 && fo.scrollLeft < max-4);
+  }
   function layoutScroll(){
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
+    frissitMobilNyilat();
     slider.max=String(max);
     if (fo.scrollLeft > max) fo.scrollLeft=max;
   }
@@ -5386,6 +5393,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     if(scrollFrame)return;
     scrollFrame=requestAnimationFrame(()=>{
       slider.value=String(Math.round(fo.scrollLeft));
+      frissitMobilNyilat();
       scrollFrame=0;
     });
   },{passive:true});
