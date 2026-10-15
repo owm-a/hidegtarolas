@@ -1,0 +1,2316 @@
+
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ArrivaBus hidegtárolás</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='8' y='8' width='48' height='43' rx='8' fill='royalblue'/%3E%3Crect x='14' y='14' width='16' height='13' rx='2' fill='lightblue'/%3E%3Crect x='34' y='14' width='16' height='13' rx='2' fill='lightblue'/%3E%3Crect x='14' y='32' width='36' height='7' rx='2' fill='white'/%3E%3Ccircle cx='19' cy='49' r='6' fill='midnightblue'/%3E%3Ccircle cx='45' cy='49' r='6' fill='midnightblue'/%3E%3C/svg%3E">
+<style>
+:root{
+    --bg:#11151b;--surface:#181e26;--surface2:#202733;--surface3:#252d39;
+    --border:#313b49;--text:#e8edf3;--muted:#9ca8b7;--accent:#6ea8fe;
+    --accent2:#4f8ff7;--ok:#16a765;--bad:#e05252;--dark:#2c333d;
+    --shadow:0 10px 30px rgba(0,0,0,.20);--radius:12px;
+    --left-width:auto;--storage-width:auto;
+}
+html{background:var(--bg);width:100%;max-width:100%;overflow-x:hidden}
+body{
+    margin:0;padding:18px;width:100%;max-width:100%;box-sizing:border-box;
+    overflow-x:hidden;background:radial-gradient(circle at 10% 0%,rgba(110,168,254,.07),transparent 28%),var(--bg);
+    color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+}
+.fejlec,.tabla-szekcio{
+    background:rgba(24,30,38,.96);border:1px solid var(--border);border-radius:var(--radius);
+    box-shadow:var(--shadow);box-sizing:border-box;
+}
+.fejlec{padding:16px 18px;margin-bottom:14px}
+.fejlec-top{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;margin-bottom:9px}
+.fejlec-cim-archivum{display:flex;align-items:center;gap:14px;min-width:0;flex-wrap:wrap}
+.cim{color:#f3f6fa;font-size:23px;letter-spacing:-.02em;margin:0;display:flex;align-items:center;gap:7px}.cim-busz-svg{display:inline-block;width:25px;height:25px;flex:0 0 25px;vertical-align:middle}#oldal-cim{cursor:pointer}
+.fejlec-adatok{display:flex;align-items:flex-start;justify-content:space-between;width:100%;gap:20px;margin-top:10px}
+.fejlec-bal,.fejlec-jobb{display:flex;align-items:flex-start;gap:8px 20px;white-space:nowrap}
+.fejlec-bal{flex-direction:row;flex-wrap:wrap}
+.fejlec-jobb{margin-left:auto;justify-content:flex-end;flex-wrap:wrap}
+.adat{font-size:12px;color:var(--muted);white-space:nowrap}.adat b{color:var(--text);font-weight:600}
+.theme-toggle{border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:7px 10px;font:inherit;font-size:12px;font-weight:650;cursor:pointer;white-space:nowrap;transition:.16s}
+.theme-toggle:hover{background:var(--surface3);border-color:var(--accent)}
+.theme-switch-toggle{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:34px;min-width:62px;padding:4px 8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:9px;cursor:pointer;transition:.16s}
+.theme-switch-toggle:hover{border-color:var(--accent);background:var(--surface3)}
+.theme-switch-toggle .theme-icon{font-size:17px;line-height:1;display:inline-block;min-width:18px;text-align:center}
+.theme-switch{width:25px;height:14px;border-radius:99px;background:#687384;display:inline-flex;align-items:center;padding:2px;box-sizing:border-box;transition:background .16s}
+.theme-switch span{height:10px;width:10px;border-radius:50%;background:#fff;transition:transform .16s}
+.theme-switch-toggle[aria-pressed="true"] .theme-switch{background:var(--ok)}
+.theme-switch-toggle[aria-pressed="true"] .theme-icon{color:var(--ok)}
+.theme-switch-toggle[aria-pressed="true"] .theme-switch span{transform:translateX(11px)}
+.fejlec-vezerlok{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.fejlec-archivum{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;margin-top:0}
+/* A dátumválasztó és a Mai nap gomb azonos szélességű asztali és mobil nézetben is. */
+.history-calendar{width:76px;flex:0 0 76px;box-sizing:border-box}
+.history-calendar-button{width:100%;box-sizing:border-box;justify-content:center}
+#go-today-button{width:76px;min-width:76px;box-sizing:border-box;text-align:center;padding-left:4px;padding-right:4px}
+.fejlec-archivum #history-load-status{margin-left:4px}
+.auto-refresh-toggle{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:58px;height:34px;padding:4px 7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:9px;cursor:pointer;transition:.16s}
+.auto-refresh-toggle:hover{border-color:var(--accent);background:var(--surface3)}
+.auto-refresh-toggle .refresh-icon{font-size:19px;line-height:1;font-weight:700;display:inline-block;transition:transform .25s}
+.auto-refresh-toggle[aria-pressed="true"] .refresh-icon{color:var(--ok)}
+.auto-refresh-toggle[aria-pressed="false"] .refresh-icon{color:var(--muted)}
+.auto-switch{width:25px;height:14px;border-radius:99px;background:#687384;display:inline-flex;align-items:center;padding:2px;box-sizing:border-box;transition:background .16s}
+.auto-switch span{height:10px;width:10px;border-radius:50%;background:#fff;transition:transform .16s}
+.auto-refresh-toggle[aria-pressed="true"] .auto-switch{background:var(--ok)}
+.auto-refresh-toggle[aria-pressed="true"] .auto-switch span{transform:translateX(11px)}
+.torteneti-vezerlo{position:relative;display:flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:5px 7px;font:inherit;font-size:12px;width:max-content;max-width:100%;box-sizing:border-box}
+.history-calendar-button{display:inline-flex;align-items:center;gap:5px;min-width:0;width:auto;justify-content:flex-start;white-space:nowrap;border:0;background:transparent;color:var(--text);font:inherit;font-size:12px;cursor:pointer;padding:2px 1px}
+.history-calendar-button .calendar-mark{font-size:15px}
+#go-today-button{white-space:nowrap;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);font:inherit;font-size:12px;padding:5px 8px;cursor:pointer}
+#go-today-button:hover{border-color:var(--accent);background:var(--surface3)}
+.history-calendar-popup{position:absolute;top:calc(100% + 7px);left:0;z-index:10000;width:258px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow)}
+.history-calendar-popup[hidden]{display:none!important}
+.history-calendar-month{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.history-calendar-month button{width:28px;height:27px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);cursor:pointer}
+.history-calendar-month strong{font-size:13px}
+.history-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.history-calendar-weekday,.history-calendar-day{display:flex;align-items:center;justify-content:center;min-width:0;height:29px;font-size:11px}
+.history-calendar-weekday{color:var(--muted);font-weight:700}
+.history-calendar-day{border:1px solid transparent;border-radius:6px;background:transparent;color:var(--muted)}
+.history-calendar-day.available{border-color:var(--border);background:var(--surface2);color:var(--text);cursor:pointer}
+.history-calendar-day.available:hover{border-color:var(--accent);background:var(--surface3)}
+.history-calendar-day.selected{background:var(--accent2);border-color:var(--accent2);color:white;font-weight:700}
+.history-calendar-day:disabled{opacity:.42;cursor:default}
+.adatforras{width:100%;box-sizing:border-box;margin:8px 0 0;text-align:right;font-size:10px;font-style:italic;color:var(--muted);opacity:.85}
+.torteneti-vezerlo select{max-width:150px;min-width:125px;border:1px solid var(--border);border-radius:5px;padding:5px;background:var(--surface);color:var(--text);font:inherit}
+#clear-click-locations{border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:7px 10px;font:inherit;font-size:12px;font-weight:650;cursor:pointer;white-space:nowrap}
+#clear-click-locations:hover{background:var(--surface3);border-color:var(--accent)}
+#history-load-status{font-size:11px;color:var(--muted);max-width:210px}
+#geozona-terkep{width:100%;height:50vh;max-height:50vh;min-height:320px;margin:0 0 14px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);background:var(--surface)}
+.nezet-valaszto{display:flex;align-items:center;gap:6px;margin:0 0 14px;padding:4px;width:fit-content;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.16)}
+.nezet-fejlec-sor{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px}
+.nezet-fejlec-sor .nezet-valaszto{margin:0}
+.kijelolt-adat{min-height:20px;display:flex;align-items:center;gap:6px;color:var(--text);font-size:13px;font-weight:700}
+.kijelolt-adat:empty{display:none}
+.kijelolt-adat .kijelolt-ertek{color:#2583ff;border-top:2px solid #2583ff;border-bottom:2px solid #2583ff;padding:2px 6px;border-radius:2px}
+.fo-kozos-tabla td.rendszam.kijelolt-rendszam{border-top:2px solid #2583ff!important;border-bottom:2px solid #2583ff!important;box-shadow:inset 0 1px 0 #2583ff,inset 0 -1px 0 #2583ff}
+@media(max-width:600px){.nezet-fejlec-sor{align-items:stretch;gap:6px;margin-bottom:10px}.kijelolt-adat{padding:2px 6px;font-size:12px;min-height:22px}.nezet-fejlec-sor .nezet-valaszto{margin:0}}
+.nezet-gomb{border:0;border-radius:7px;padding:8px 13px;background:transparent;color:var(--muted);font:inherit;font-size:13px;font-weight:650;cursor:pointer;transition:.16s}
+.nezet-gomb:hover{color:var(--text);background:var(--surface3)}
+.nezet-gomb.active{color:white;background:linear-gradient(135deg,var(--accent2),#6b7ff0);box-shadow:0 4px 12px rgba(79,143,247,.24)}
+.nezet-gomb:active{transform:translateY(1px)}
+.online-szam{display:inline-block;margin-left:5px;font-size:11px;font-weight:600;color:var(--muted);opacity:.9}.nezet-gomb.active .online-szam{color:rgba(255,255,255,.82)}
+.nezet-panel{display:block}.nezet-panel.hidden{display:none!important}
+.tabla-szekcio{width:100%;max-width:100%;margin:0;padding:12px;border-top:1px solid var(--border);overflow:hidden;position:relative}
+.mobil-scroll-nyil{display:none}
+@media(max-width:600px){.mobil-scroll-nyil{position:absolute;right:8px;top:12px;bottom:12px;z-index:80;width:42px;display:flex;flex-direction:column;align-items:center;justify-content:space-around;padding:7px 0;box-sizing:border-box;border-radius:0 8px 8px 0;background:linear-gradient(90deg,rgba(59,130,246,.06),rgba(59,130,246,.22) 45%,rgba(37,99,235,.36));backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);color:#1677e8;font-size:25px;font-weight:800;line-height:1;pointer-events:none;text-shadow:0 0 7px rgba(59,130,246,.35);opacity:0;transition:opacity .18s}.mobil-scroll-nyil span{display:block;flex:0 0 auto}.tabla-szekcio.van-jobbra .mobil-scroll-nyil{opacity:1}body.light-mode .mobil-scroll-nyil{background:linear-gradient(90deg,rgba(147,197,253,.08),rgba(96,165,250,.24) 45%,rgba(59,130,246,.35))}}
+.idopont-csuszkasav{
+    width:90%;height:38px;margin:0 auto;display:flex;align-items:center;justify-content:center;
+    background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+    box-sizing:border-box;overflow:hidden;padding:0 12px;
+}
+.csuszka-info{color:var(--muted);font-size:12px;font-weight:650;white-space:nowrap;padding-left:8px}
+.csuszka-info strong{color:var(--text)}
+.idopont-csuszkasav input[type=range]{flex:1 1 auto;width:100%;min-width:0;margin:0;accent-color:var(--accent);cursor:pointer}
+.tabla-egesz{display:grid;grid-template-columns:var(--left-width) minmax(0,1fr) var(--storage-width);width:100%;max-width:100%;min-width:0;overflow:hidden;background:var(--surface)}
+.fix-ablak{min-width:0;overflow:hidden;background:var(--surface)}
+.ido-ablak{min-width:0;overflow:hidden;background:var(--surface);border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.ido-belso{width:max-content;min-width:100%;overflow:visible}
+.storage-ablak{min-width:0;overflow:hidden;background:var(--surface)}
+table{border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto}
+th,td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap}
+th{background:var(--surface3);font-weight:600;color:#cbd5e1}
+.fix-tabla,.storage-tabla{width:max-content;min-width:0}
+.fix-tabla th.hely,.fix-tabla td.hely{text-align:left;width:max-content;min-width:0;max-width:none}
+.fix-tabla th.rendszam,.fix-tabla td.rendszam{text-align:right}
+.fix-tabla td.rendszam{font-weight:bold}
+.fix-tabla th.viszonylat,.fix-tabla td.viszonylat,
+.fix-tabla th.forda,.fix-tabla td.forda,
+.fix-tabla th.rendszam,.fix-tabla td.rendszam{width:1%;white-space:nowrap}
+.fix-tabla th.viszonylat,.fix-tabla th.forda,.fix-tabla th.rendszam{padding-left:5px;padding-right:5px}
+.fix-tabla th.viszonylat .rendez-gomb,.fix-tabla th.forda .rendez-gomb,.fix-tabla th.rendszam .rendez-gomb{margin-left:4px}
+/* A kezdés/végzés oszlop szélességét is a tartalom, elsősorban a fejléc határozza meg. */
+.fix-tabla th.kezdés,.fix-tabla td.kezdés,
+.fix-tabla th.végzés,.fix-tabla td.végzés{width:1%;white-space:nowrap;min-width:0}
+.ido-tabla{width:max-content;min-width:100%}.ido-tabla th,.ido-tabla td{width:42px;min-width:42px;max-width:42px;padding:1px;text-align:left}
+.fix-tabla tbody tr,.ido-tabla tbody tr,.storage-tabla tbody tr{height:24px;min-height:24px;max-height:24px}
+.fix-tabla tbody td,.ido-tabla tbody td,.storage-tabla tbody td{height:24px;min-height:24px;max-height:24px;line-height:22px;padding-top:0;padding-bottom:0;box-sizing:border-box;overflow:hidden;vertical-align:middle}
+/* A három különálló táblázat fejléc- és adatsorai azonos magasságúak,
+   így a bal oldali 6 oszlop, az időoszlopok és a Valós tárolás mindig
+   ugyanazon vízszintes sorvonalakra essen. */
+.fix-tabla thead tr,.ido-tabla thead tr,.storage-tabla thead tr{height:31px;min-height:31px;max-height:31px}
+.fix-tabla thead th,.ido-tabla thead th,.storage-tabla thead th{height:31px;min-height:31px;max-height:31px;box-sizing:border-box}
+/* Nézetváltás: csak egy konténerosztály változik, a sorokat nem mérjük/írjuk át egyenként. */
+#fo-tabla.view-biztor .fix-tabla tbody tr[data-forras="garazs"],
+#fo-tabla.view-biztor .ido-tabla tbody tr[data-forras="garazs"],
+#fo-tabla.view-biztor .storage-tabla tbody tr[data-forras="garazs"],
+#fo-tabla.view-garazs .fix-tabla tbody tr[data-forras="biztor"],
+#fo-tabla.view-garazs .ido-tabla tbody tr[data-forras="biztor"],
+#fo-tabla.view-garazs .storage-tabla tbody tr[data-forras="biztor"]{display:none}
+#fo-tabla tbody tr[data-filter-match="0"]{display:none}
+
+/* Mobilon a teljes nagy táblázat vízszintesen görgethető legyen. */
+@media (max-width:900px){
+    /* Mobil: valódi Excel-szerű vízszintes táblázat.
+       A táblázat egyetlen scrollfelület, így ujjal közvetlenül
+       az időoszlopokon lehet jobbra-balra húzni. */
+    .tabla-szekcio{
+        overflow:visible;
+        width:100%;
+        max-width:100%;
+    }
+    .tabla-egesz{
+        display:block;
+        width:100%;
+        max-width:100%;
+        min-width:0;
+        overflow-x:auto;
+        overflow-y:hidden;
+        -webkit-overflow-scrolling:touch;
+        overscroll-behavior-x:contain;
+        touch-action:pan-x pan-y;
+    }
+    .fo-kozos-tabla{
+        width:max-content!important;
+        min-width:max-content!important;
+        max-width:none!important;
+    }
+    .idopont-csuszkasav{width:90%;min-width:0;}
+}
+
+
+@media (max-width:900px){
+    .fo-kozos-tabla th,.fo-kozos-tabla td{
+        white-space:nowrap;
+    }
+    .fo-kozos-tabla .sticky-bal{
+        position:sticky!important;
+    }
+    .fo-kozos-tabla .sticky-jobb{
+        position:sticky!important;
+        right:0;
+    }
+}
+.ido-tabla .fo-kozos-tabla{border-collapse:collapse;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto;width:max-content;min-width:100%;}
+ .fo-kozos-tabla .col-idopont{width:42px;min-width:42px;max-width:42px}
+ .fo-kozos-tabla th,.fo-kozos-tabla td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap}
+ .fo-kozos-tabla th{background:var(--surface3);font-weight:600;color:#cbd5e1}
+ .fo-kozos-tabla tbody tr{height:24px}.fo-kozos-tabla thead tr{height:31px}.fo-kozos-tabla thead th{height:31px}
+ .fo-kozos-tabla .sticky-bal,.fo-kozos-tabla .sticky-jobb{position:sticky;background:var(--surface);z-index:30}
+ .fo-kozos-tabla thead .sticky-bal,.fo-kozos-tabla thead .sticky-jobb{background:var(--surface3);z-index:50}
+ .fo-kozos-tabla .sticky-jobb{right:0;box-shadow:-2px 0 0 var(--border)}
+ .fo-kozos-tabla .sticky-bal.bal-6{box-shadow:2px 0 0 var(--border)}
+ .all-view .fo-kozos-tabla tr[data-forras="biztor"] > td{background:rgba(110,168,254,.055);color:#82b4ff;font-weight:700}.all-view .fo-kozos-tabla tr[data-forras="biztor"] > td .rendszam-link{color:#82b4ff;font-weight:800}
+ #fo-tabla.view-biztor .fo-kozos-tabla tbody tr[data-forras="garazs"],#fo-tabla.view-garazs .fo-kozos-tabla tbody tr[data-forras="biztor"],#fo-tabla .fo-kozos-tabla tbody tr[data-filter-match="0"]{display:none}
+ .status-pill{height:20px;line-height:1}
+.ido-tabla th.idopont-fejlec{font-size:0;color:transparent;padding:0}
+.ido-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px;text-align:left}
+.szuro-sor th{background:var(--surface2);height:31px;padding:3px 4px}
+.szuro-sor th:empty{background:var(--surface2)}
+.oszlop-kereso{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:5px;padding:1px 4px;font:inherit;font-size:10px;outline:none}
+.oszlop-kereso:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(110,168,254,.12)}
+.rendez-gomb{border:1px solid var(--border);background:var(--surface2);color:var(--muted);width:21px;min-width:21px;height:21px;padding:0;margin-left:5px;border-radius:5px;cursor:pointer;font-size:11px;line-height:18px;vertical-align:middle;display:inline-flex;align-items:center;justify-content:center}
+.rendez-gomb:hover{color:var(--text);border-color:var(--accent);background:var(--surface3)}.rendez-gomb.active{color:#fff;background:var(--accent2);border-color:var(--accent2)}
+.fejlec-sor th{vertical-align:middle;position:relative}.fejlec-sor th:not(.idopont-fejlec){white-space:nowrap}
+.status-pill{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:20px;padding:0 7px;border-radius:999px;border:1px solid transparent;font-weight:750;font-size:11px;line-height:1;box-sizing:border-box}
+.status-pill.ok{color:#6ee7a8;background:rgba(54,181,116,.16);border-color:rgba(92,220,150,.34)}
+.status-pill.nem{color:#ff858d;background:rgba(218,75,84,.16);border-color:rgba(255,113,124,.34)}
+.status-pill.neutral{color:var(--muted);background:rgba(148,163,184,.10);border-color:rgba(148,163,184,.20)}
+.status-pill.potlas{color:#4da3ff;background:rgba(77,163,255,.16);border-color:rgba(77,163,255,.42)}
+.idopont-cella.lokacio-kattinthato{cursor:pointer;position:relative}.idopont-cella.lokacio-kattinthato:hover{outline:2px solid var(--accent);outline-offset:-2px;background:rgba(110,168,254,.13)}
+.fix-tabla td.ellenorzes{background:var(--surface);padding:2px 3px}
+.storage-tabla th{width:max-content;min-width:0;white-space:nowrap}.storage-tabla td.tarolas{width:max-content;min-width:0;white-space:nowrap;font-weight:750;padding:0 8px;line-height:22px;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.storage-tabla td.tarolas-ok{color:#6ee7a8;border-top-color:var(--border);border-bottom-color:var(--border)}
+.storage-tabla td.tarolas-eltérés{color:#ff858d;border-top-color:var(--border);border-bottom-color:var(--border)}
+.storage-tabla td.tarolas-na{color:var(--text);border-top-color:var(--border);border-bottom-color:var(--border)}
+.rendszam-link{border:0;background:transparent;color:var(--accent);font:inherit;font-weight:750;cursor:pointer;padding:2px 5px;border-radius:6px;text-decoration:underline;text-decoration-color:rgba(110,168,254,.35);text-underline-offset:2px}.rendszam-link:hover{background:rgba(110,168,254,.13);color:#fff;text-decoration-color:var(--accent)}
+.rendszam-vezerlo{display:flex;align-items:center;justify-content:space-between;gap:3px;width:100%;max-width:100%;white-space:nowrap}.rendszam-vezerlo .rendszam-link{margin-left:auto;text-align:right}
+.rendszam-napi-elozmeny{display:inline-flex;align-items:center;justify-content:center;flex:0 0 16px;width:16px;height:18px;min-width:16px;padding:0;border:0;border-radius:3px;background:transparent;color:#4da3ff;cursor:pointer;vertical-align:middle}
+.rendszam-napi-elozmeny svg{display:block;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rendszam-napi-elozmeny:hover{background:rgba(77,163,255,.14);color:#78bbff}
+.rendszam-napi-elozmeny:focus-visible{outline:1px solid #4da3ff;outline-offset:1px}
+.biztor-sor .adat-fixed{}
+.all-view .fix-tabla tr[data-forras="biztor"] > td,.all-view .storage-tabla tr[data-forras="biztor"] > td{background:rgba(110,168,254,.055)}
+.all-view .fix-tabla tr[data-forras="biztor"] > td,.all-view .storage-tabla tr[data-forras="biztor"] > td{color:#82b4ff;font-weight:700}
+.all-view .biztor-sor > td .rendszam-link{color:#82b4ff;font-weight:800}
+.map-focus{animation:mapPulse .9s ease-out}.vehicle-pin{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 1px 5px rgba(0,0,0,.45);box-sizing:border-box}.vehicle-pin::after{content:"";display:block;width:7px;height:7px;margin:5px auto 0;border-radius:50%;background:white}.vehicle-pin.green{background:#00b050}.vehicle-pin.red{background:#ff0000}.vehicle-pin.yellow{background:#ffd966}.vehicle-pin.blue{background:#4da3ff}.vehicle-pin.gray{background:#687384}
+@keyframes mapPulse{0%{filter:brightness(1.8)}100%{filter:brightness(1)}}
+.leaflet-popup-content{line-height:1.45}
+.jarmu-hover-adatok{white-space:normal;max-width:300px;line-height:1.45;font-size:12px}
+.jarmu-hover-adatok .leaflet-tooltip-content{white-space:normal}
+body.light-mode{--bg:#eef2f6;--surface:#fff;--surface2:#f4f6f8;--surface3:#e7ebf0;--border:#cbd3dc;--text:#1f2937;--muted:#667085;--accent:#2f6fed;--accent2:#4f7ff5;--ok:#16a765;--bad:#df4f4f;--dark:#4b5563;--shadow:0 8px 24px rgba(15,23,42,.10);background:var(--bg);color:var(--text)}
+body.light-mode .fejlec,body.light-mode .tabla-szekcio{background:var(--surface);border-color:var(--border)}
+body.light-mode .cim,body.light-mode .adat b{color:var(--text)}
+body.light-mode .status-pill.ok{color:#198754;background:rgba(25,135,84,.10);border-color:rgba(25,135,84,.28)}
+body.light-mode .status-pill.nem{color:#c93f49;background:rgba(201,63,73,.09);border-color:rgba(201,63,73,.26)}
+body.light-mode .status-pill.neutral{color:#667085;background:rgba(102,112,133,.08);border-color:rgba(102,112,133,.20)}
+body.light-mode .storage-tabla td.tarolas-ok{color:#198754;border-top-color:rgba(25,135,84,.34);border-bottom-color:rgba(25,135,84,.34)}
+body.light-mode .storage-tabla td.tarolas-eltérés{color:#c93f49;border-top-color:rgba(201,63,73,.34);border-bottom-color:rgba(201,63,73,.34)}
+body.light-mode .storage-tabla td.tarolas-na{color:var(--text);border-top-color:var(--border);border-bottom-color:var(--border)}
+body:not(.light-mode) #geozona-terkep .leaflet-tile-pane{filter:invert(90%) hue-rotate(180deg) brightness(78%) contrast(88%) saturate(70%)}
+body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
+@media(max-width:900px){body{padding:10px}.fejlec{padding:13px}.fejlec-cim-archivum{gap:8px;flex-wrap:wrap}.fejlec-archivum{gap:4px}.fejlec-adatok{display:flex;flex-direction:column;gap:10px}.fejlec-bal,.fejlec-jobb{flex-wrap:wrap;gap:8px 16px;margin:0}.fejlec-jobb{margin-top:0;justify-content:flex-start}.fejlec-top{margin-bottom:8px;align-items:flex-start;flex-wrap:wrap}.fejlec-vezerlok{justify-content:flex-start;width:100%}.torteneti-vezerlo{flex-wrap:wrap}#geozona-terkep{width:95%;margin-left:auto;margin-right:auto;height:42vh;min-height:280px}.nezet-valaszto{width:100%;margin-left:auto;margin-right:auto;box-sizing:border-box}.nezet-gomb{flex:1 1 0;padding:9px 6px}.tabla-szekcio{padding:8px}}
+@media(max-width:600px){.cim{font-size:20px}.adat{font-size:11px}#geozona-terkep{width:90%;height:38vh;min-height:250px}.nezet-valaszto{width:100%;margin-left:auto;margin-right:auto;box-sizing:border-box}.idopont-csuszkasav{height:44px}.csuszka-info{font-size:10px;padding-left:5px}.rendszam-link{padding:4px 6px}}
+
+/* Mobil: valódi, egyszerűen görgethető táblázat.
+   Nincs sticky/átfedés; a Valós tárolás az időoszlopok elé kerül. */
+@media(max-width:600px){
+  .idopont-csuszkasav{display:none!important}
+  .fo-kozos-tabla .sticky-bal,
+  .fo-kozos-tabla .sticky-jobb{
+    position:static!important;
+    left:auto!important;
+    right:auto!important;
+    z-index:auto!important;
+    box-shadow:none!important;
+    background-clip:padding-box;
+  }
+  .fo-kozos-tabla .sticky-bal,
+  .fo-kozos-tabla .sticky-jobb,
+  .fo-kozos-tabla .bal-1,
+  .fo-kozos-tabla .bal-2,
+  .fo-kozos-tabla .bal-3,
+  .fo-kozos-tabla .bal-4,
+  .fo-kozos-tabla .bal-5,
+  .fo-kozos-tabla .bal-6{
+    left:auto!important;
+    right:auto!important;
+  }
+  .tabla-egesz{
+    overflow-x:auto!important;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:auto;
+  }
+  .tabla-egesz::-webkit-scrollbar{height:6px}
+  .fo-kozos-tabla{width:max-content!important}
+}
+
+/* Közvetlen, egyetlen közös tábla – a böngésző nem épít új táblát. */
+.tabla-egesz{display:block;width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;background:var(--surface);scrollbar-width:none}
+.tabla-egesz::-webkit-scrollbar{height:0}
+.fo-kozos-tabla{display:table;border-collapse:separate;border-spacing:0;background:var(--surface);color:var(--text);font-size:12px;table-layout:auto;width:max-content}
+.fo-kozos-tabla th,.fo-kozos-tabla td{border:1px solid var(--border);padding:0 5px;text-align:center;height:24px;line-height:22px;box-sizing:border-box;white-space:nowrap;background:var(--surface)}
+.fo-kozos-tabla th{background:var(--surface3);font-weight:600;color:#cbd5e1}
+.fo-kozos-tabla thead tr{height:31px}.fo-kozos-tabla thead th{height:31px}
+.fo-kozos-tabla tbody tr{height:24px;content-visibility:auto;contain-intrinsic-size:24px}.fo-kozos-tabla tbody td{height:24px;line-height:22px;padding-top:0;padding-bottom:0;overflow:hidden;vertical-align:middle}
+/* A 6 bal oldali oszlop mindig csak a saját tartalmának helyét foglalja. */
+.fo-kozos-tabla .viszonylat,.fo-kozos-tabla .forda,.fo-kozos-tabla .rendszam,.fo-kozos-tabla .kezdés,.fo-kozos-tabla .végzés,.fo-kozos-tabla .hely{width:1px;min-width:0;white-space:nowrap}
+.fo-kozos-tabla .hely{text-align:left}.fo-kozos-tabla .rendszam{text-align:right;font-weight:bold}
+/* Az időoszlopok fix 42 px-es oszlopok; a rendelkezésre álló helyet ők töltik ki. */
+.fo-kozos-tabla .idopont-fejlec,.fo-kozos-tabla .idopont-ertek,.fo-kozos-tabla .idopont-cella{width:42px;min-width:42px;max-width:42px;padding:1px;text-align:center}
+.fo-kozos-tabla .idopont-fejlec{font-size:0;color:transparent}.fo-kozos-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px;text-align:center}.fo-kozos-tabla .idopont-oszlop-kattinthato{cursor:pointer;user-select:none}.fo-kozos-tabla .idopont-oszlop-kattinthato:hover,.fo-kozos-tabla .idopont-oszlop-kattinthato:focus{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface3)}.fo-kozos-tabla .idopont-oszlop-kattinthato.aktiv-idopont{outline:none;border-top:2px solid var(--accent)!important;border-bottom:2px solid var(--accent)!important;background:var(--surface3)}
+/* A jobb szélső oszlop csak a saját tartalmának szélességét kapja. */
+.fo-kozos-tabla .sticky-jobb.storage{width:1px;min-width:0;max-width:max-content;white-space:nowrap}
+.fo-kozos-tabla .sticky-bal{position:sticky;z-index:30;background:var(--surface);background-clip:padding-box}
+.fo-kozos-tabla thead .sticky-bal{z-index:50;background:var(--surface3)}
+.fo-kozos-tabla .sticky-jobb{position:sticky;right:0;z-index:30;background:var(--surface);background-clip:padding-box;box-shadow:-2px 0 0 var(--border)}
+.fo-kozos-tabla thead .sticky-jobb{z-index:50;background:var(--surface3)}
+.fo-kozos-tabla .bal-1{left:0}.fo-kozos-tabla .bal-2{left:var(--bal-2,0px)}.fo-kozos-tabla .bal-3{left:var(--bal-3,0px)}.fo-kozos-tabla .bal-4{left:var(--bal-4,0px)}.fo-kozos-tabla .bal-5{left:var(--bal-5,0px)}.fo-kozos-tabla .bal-6{left:var(--bal-6,0px)}
+/* Ízléses, folytonos elválasztó a hat fix oszlop között. */
+/* A bal oldali cellák saját, opák háttere takarja az időcellákat.
+   Nincs külön rárajzolt fekete fedőréteg: a normál cellaszegélyek maradnak láthatók. */
+.fo-kozos-tabla .sticky-bal{isolation:auto;background:var(--surface);}
+.fo-kozos-tabla thead .sticky-bal{background:var(--surface3);}
+.fo-kozos-tabla .szuro-sor .sticky-bal{background:var(--surface2);}
+/* Valós tárolás formázása a közös táblában is. */
+.fo-kozos-tabla td.tarolas{font-weight:750;padding:0 8px;line-height:22px;background:var(--surface);white-space:nowrap}
+.fo-kozos-tabla td.tarolas-ok{color:#6ee7a8}
+.fo-kozos-tabla td.tarolas-eltérés{color:#ff858d}
+.fo-kozos-tabla td.tarolas-na{color:var(--text)}
+.fo-kozos-tabla td.tarolas-potlas{color:#4da3ff !important;font-weight:800}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td{background:rgba(110,168,254,.055);color:#82b4ff;font-weight:700}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td .rendszam-link{color:var(--accent);font-weight:800}
+/* A tárolási eredmény színe minden nézetben elsőbbséget kap. */
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-ok{color:#6ee7a8}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-eltérés{color:#ff858d}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-na{color:var(--text)}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-potlas{color:#4da3ff !important}
+#fo-tabla.view-biztor .fo-kozos-tabla tbody tr[data-forras="garazs"],#fo-tabla.view-garazs .fo-kozos-tabla tbody tr[data-forras="biztor"],#fo-tabla .fo-kozos-tabla tbody tr[data-filter-match="0"]{display:none}
+/* =========================================================
+   VÉGLEGES KÖZÖS TÁBLA MÉRETEZÉS / STICKY RÉTEG
+   ========================================================= */
+.fo-kozos-tabla{
+  width:max-content;
+  table-layout:auto;
+}
+/* A fix oszlopok szélességét nem rögzítjük. A böngésző természetes
+   táblázati méretezése dönti el: fejléc + rendezőikon + tartalom. */
+.fo-kozos-tabla .viszonylat,
+.fo-kozos-tabla .forda,
+.fo-kozos-tabla .kezdés,
+.fo-kozos-tabla .végzés,
+.fo-kozos-tabla .hely,
+.fo-kozos-tabla .rendszam,
+.fo-kozos-tabla .sticky-jobb.storage{
+  width:auto;
+  min-width:0;
+  max-width:none;
+  white-space:nowrap;
+}
+.fo-kozos-tabla .sticky-bal{
+  position:sticky;
+  z-index:100;
+  background-color:var(--surface) !important;
+  background-image:none !important;
+  background-clip:border-box;
+}
+.fo-kozos-tabla thead .sticky-bal{
+  z-index:110;
+  background-color:var(--surface3) !important;
+}
+.fo-kozos-tabla .sticky-jobb{
+  position:sticky;
+  right:0;
+  z-index:100;
+  background-color:var(--surface) !important;
+  background-image:none !important;
+  background-clip:border-box;
+  box-shadow:-2px 0 0 var(--border);
+}
+.fo-kozos-tabla thead .sticky-jobb{
+  z-index:110;
+  background-color:var(--surface3) !important;
+}
+/* Az Összes nézet kék kiemelése csak a szöveget érintse;
+   ne legyen áttetsző háttér, mert azon át az időcellák látszanának. */
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td{
+  background-color:var(--surface) !important;
+  background-image:none !important;
+  color:#82b4ff;
+  font-weight:700;
+}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.sticky-bal,
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.sticky-jobb{
+  background-color:var(--surface) !important;
+}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-ok{color:#6ee7a8}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-eltérés{color:#ff858d}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-na{color:var(--text)}
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-potlas{color:#4da3ff !important}
+.fo-kozos-tabla td.tarolas{
+  font-weight:750;
+  white-space:nowrap;
+}
+.fo-kozos-tabla td.tarolas-na{color:var(--text)}
+.fo-kozos-tabla td.tarolas-potlas{color:#4da3ff !important;font-weight:800}
+/* A sticky cellák szélei között a border-collapse miatt maradhat 1px-es
+   festési rés. Ezt egy enyhén túlnyúló, teljesen opák háttérréteg takarja,
+   így az időcellák sem a cellaközben, sem a szegélynél nem látszanak át. */
+/* =========================================================
+   V6 – természetes fix oszlopok + mobil jobb oldali tárolás
+   ========================================================= */
+/* A keresőmezők ne növeljék meg a fejlécoszlop természetes szélességét.
+   A cellán belül lebegnek, ezért a fejléc + tartalom határozza meg az oszlopot. */
+.fo-kozos-tabla .szuro-sor th{position:relative;overflow:visible}
+.fo-kozos-tabla .szuro-sor .oszlop-kereso{
+  position:absolute;
+  left:3px;
+  right:3px;
+  top:3px;
+  bottom:3px;
+  display:block;
+  width:auto;
+  min-width:0;
+  max-width:none;
+  height:auto;
+  box-sizing:border-box;
+}
+/* A hat bal oldali és a jobb oldali oszlopnak nincs mesterséges szélessége. */
+.fo-kozos-tabla .viszonylat,
+.fo-kozos-tabla .forda,
+.fo-kozos-tabla .kezdés,
+.fo-kozos-tabla .végzés,
+.fo-kozos-tabla .hely,
+.fo-kozos-tabla .rendszam,
+.fo-kozos-tabla .sticky-jobb.storage{
+  width:max-content!important;
+  min-width:max-content!important;
+  max-width:max-content!important;
+}
+/* A rendszám jobb oldalán legyen egy jól látható függőleges elválasztó. */
+.fo-kozos-tabla .rendszam.sticky-bal{
+  box-shadow:inset -1px 0 var(--border),2px 0 0 var(--border)!important;
+}
+/* A bal 6 oszlop sorai között is legyen ugyanaz a finom vízszintes szegély,
+   mint a többi táblaterületen. */
+.fo-kozos-tabla .sticky-bal{
+  border-bottom:1px solid var(--border)!important;
+}
+/* =========================================================
+   V6 – természetes fix oszlopok + mobil jobb oldali tárolás
+   ========================================================= */
+.fo-kozos-tabla .szuro-sor th{position:relative;overflow:visible}
+.fo-kozos-tabla .szuro-sor .oszlop-kereso{
+  position:absolute;
+  left:3px;
+  right:3px;
+  top:3px;
+  bottom:3px;
+  display:block;
+  width:auto;
+  min-width:0;
+  max-width:none;
+  height:auto;
+  box-sizing:border-box;
+}
+.fo-kozos-tabla .viszonylat,
+.fo-kozos-tabla .forda,
+.fo-kozos-tabla .kezdés,
+.fo-kozos-tabla .végzés,
+.fo-kozos-tabla .hely,
+.fo-kozos-tabla .rendszam,
+.fo-kozos-tabla .sticky-jobb.storage{
+  width:max-content!important;
+  min-width:max-content!important;
+  max-width:max-content!important;
+}
+.fo-kozos-tabla .rendszam.sticky-bal{
+  box-shadow:inset -1px 0 rgba(255,255,255,.16),2px 0 0 var(--border)!important;
+}
+.fo-kozos-tabla .sticky-bal{
+  border-bottom:1px solid var(--border)!important;
+}
+/* A szűrősor is ugyanúgy sticky, mint a fejléc és az adatcellák.
+   A korábbi position:relative felülírta a sticky-bal működését, ezért
+   a keresősáv a 2. idősort együtt követte. */
+.fo-kozos-tabla .szuro-sor th.sticky-bal{
+  position:sticky!important;
+  z-index:40!important;
+  background:var(--surface2)!important;
+  background-clip:padding-box;
+}
+.fo-kozos-tabla .szuro-sor th.sticky-jobb{
+  position:sticky!important;
+  right:0;
+  z-index:40!important;
+  background:var(--surface2)!important;
+  background-clip:padding-box;
+}
+/* Mobilon is a bal 6 oszlop maradjon fix; a Valós tárolás a jobb oldalon
+   továbbra is a táblával együtt görgethető. */
+
+/* Végső sticky-javítás: a collapse táblamodell néhány böngészőben
+   1–2 px-rel elmozdíthatja a sticky cellákat vízszintes scrollnál.
+   Separate + 0 spacing mellett a hat bal oszlop stabilan a helyén marad. */
+.fo-kozos-tabla{
+  border-collapse:separate!important;
+  border-spacing:0!important;
+}
+.fo-kozos-tabla .sticky-bal{
+  left:var(--sticky-left,0px);
+}
+.fo-kozos-tabla .bal-1{left:0!important}
+.fo-kozos-tabla .bal-2{left:var(--bal-2,0px)!important}
+.fo-kozos-tabla .bal-3{left:var(--bal-3,0px)!important}
+.fo-kozos-tabla .bal-4{left:var(--bal-4,0px)!important}
+.fo-kozos-tabla .bal-5{left:var(--bal-5,0px)!important}
+.fo-kozos-tabla .bal-6{left:var(--bal-6,0px)!important}
+
+/* Világos módban a tárolási színek legyenek kevésbé harsányak, de jól
+   olvashatók a világos háttéren. */
+body.light-mode .fo-kozos-tabla td.tarolas-ok{color:#167347!important}
+body.light-mode .fo-kozos-tabla td.tarolas-eltérés{color:#ad3540!important}
+body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-ok{color:#167347!important}
+body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-eltérés{color:#ad3540!important}
+
+/* Összes nézetben a sor kékre emelése ne színezze át a kattintható
+   rendszámot; annak saját link-színe maradjon. */
+.all-view .fo-kozos-tabla tr[data-forras="biztor"]>td .rendszam-link{
+  color:var(--accent)!important;
+}
+
+</style>
+<style>
+/* Easter egg – a lap alján balra, háttérszínnel rejtve, kijelölve látható. */
+.adatforras{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.rejtett-poen{
+  color:var(--bg);
+  background:transparent;
+  font-size:10px;
+  line-height:12px;
+  font-style:normal;
+  white-space:nowrap;
+  user-select:text;
+  -webkit-user-select:text;
+  cursor:text;
+}
+.rejtett-poen::selection{
+  color:#fff;
+  background:#3b82f6;
+}
+.rejtett-poen::-moz-selection{
+  color:#fff;
+  background:#3b82f6;
+}
+
+/* V10 – finomhangolás */
+/* A keresősáv pontosan kitölti a szűrőcellát, de nem lóg ki belőle. */
+.fo-kozos-tabla .szuro-sor th{
+  position:relative;
+}
+.fo-kozos-tabla .szuro-sor .oszlop-kereso{
+  position:absolute;
+  left:3px;
+  right:3px;
+  top:3px;
+  bottom:3px;
+  width:auto;
+  min-width:0;
+  max-width:none;
+  height:auto;
+  min-height:0;
+  max-height:none;
+  padding-top:0;
+  padding-bottom:0;
+  box-sizing:border-box;
+}
+/* A rendszám gombja nem növelheti meg a sor magasságát. */
+.storage-coordinate-clickable{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px}.storage-coordinate-clickable:hover{filter:brightness(1.15)}
+.fo-kozos-tabla .rendszam-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:20px;
+  min-height:20px;
+  max-height:20px;
+  line-height:18px;
+  box-sizing:border-box;
+  vertical-align:middle;
+  margin:0;
+  padding:0 5px;
+}
+/* A Viszonylat és Forda oszlop szélességét a fejléc + rendezőikon
+   határozza meg. A tényleges szélességet a JS a kész fejlécből méri,
+   így a hosszabb adatcellák nem tudják széthúzni ezeket az oszlopokat. */
+.fo-kozos-tabla th.viszonylat,
+.fo-kozos-tabla th.forda,
+.fo-kozos-tabla td.viszonylat,
+.fo-kozos-tabla td.forda{
+  white-space:nowrap;
+}
+.fo-kozos-tabla td.viszonylat,
+.fo-kozos-tabla td.forda{
+  overflow:hidden;
+  text-overflow:clip;
+}
+/* Minden bal oldali fix oszlopon legyen saját, folytonos jobb oldali
+   elválasztószegély. A box-shadow azért kell, hogy a sticky rétegben
+   se takarja el a szomszédos cella. */
+.fo-kozos-tabla .sticky-bal{
+  box-shadow:inset -1px 0 var(--border);
+}
+/* A Kezdés és Végzés között legyen határozott, de finom függőleges szegély. */
+.fo-kozos-tabla th.kezdés,
+.fo-kozos-tabla td.kezdés{
+  border-right:1px solid var(--border)!important;
+}
+.fo-kozos-tabla th.végzés,
+.fo-kozos-tabla td.végzés{
+  border-left:1px solid var(--border)!important;
+}
+/* =========================================================
+   MOBIL – keresőmezők maradjanak a saját szűrőcellájukban
+   ========================================================= */
+@media (max-width:900px){
+  /* Mobilon a szűrősor ne legyen sticky, de a cella maradjon
+     pozicionálási viszonyítási pont a saját keresőmezőjének. */
+  .fo-kozos-tabla .szuro-sor th.sticky-bal,
+  .fo-kozos-tabla .szuro-sor th.sticky-jobb{
+    position:relative!important;
+    top:auto!important;
+    right:auto!important;
+    bottom:auto!important;
+    left:auto!important;
+    z-index:auto!important;
+    overflow:hidden!important;
+  }
+
+  /* Mobilon a korábbi bal oldali sticky oszlopokat is kikapcsoljuk.
+     Egyedül a Rendszám marad sticky, és csak akkor tapad a bal szélre,
+     amikor vízszintes görgetés közben eléri azt. */
+  .fo-kozos-tabla .sticky-bal{
+    position:static!important;
+    left:auto!important;
+    right:auto!important;
+    box-shadow:none!important;
+  }
+
+  .fo-kozos-tabla th.rendszam.sticky-bal,
+  .fo-kozos-tabla td.rendszam.sticky-bal{
+    position:sticky!important;
+    left:0!important;
+    z-index:60!important;
+    background:var(--surface)!important;
+    background-clip:padding-box;
+    box-shadow:inset -1px 0 var(--border),2px 0 0 var(--border)!important;
+  }
+
+  .fo-kozos-tabla thead th.rendszam.sticky-bal{
+    z-index:70!important;
+    background:var(--surface3)!important;
+  }
+
+  /* A Rendszámhoz tartozó keresőcella is maradjon a bal szélen a
+     fejléc/adatcellával együtt, amikor jobbra görgetünk. */
+  .fo-kozos-tabla .szuro-sor th.rendszam.sticky-bal{
+    position:sticky!important;
+    left:0!important;
+    z-index:65!important;
+    background:var(--surface2)!important;
+    background-clip:padding-box;
+    box-shadow:inset -1px 0 var(--border),2px 0 0 var(--border)!important;
+  }
+
+  /* A jobb oldali "Valós tárolás" oszlop mobilon ne legyen sticky. */
+  .fo-kozos-tabla .sticky-jobb{
+    position:static!important;
+    right:auto!important;
+    box-shadow:none!important;
+  }
+
+  /* A keresőmező a saját szűrőcelláján belül maradjon, és ne
+     járuljon hozzá a cella természetes szélességéhez. */
+  .fo-kozos-tabla .szuro-sor th .oszlop-kereso,
+  .fo-kozos-tabla .szuro-sor .oszlop-kereso{
+    position:absolute!important;
+    top:3px!important;
+    right:3px!important;
+    bottom:3px!important;
+    left:3px!important;
+    display:block!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    box-sizing:border-box!important;
+  }
+}
+
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<style>
+@media (max-width:900px){
+  /* Mobilon ne legyen pinch zoom, és az input fókusza se indítson automatikus nagyítást.
+     iOS/Safari esetén a legalább 16px-es input betűméret akadályozza meg a fókusz miatti zoomot. */
+  html, body{
+    -webkit-text-size-adjust:100%;
+  }
+  .fo-kozos-tabla .szuro-sor .oszlop-kereso{
+    font-size:16px!important;
+    line-height:18px!important;
+  }
+  .fo-kozos-tabla .szuro-sor .oszlop-kereso::placeholder{
+    font-size:10px!important;
+    opacity:1;
+  }
+}
+
+@media(max-width:900px){
+  .fejlec-jobb{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    width:100%;
+  }
+  .fejlec-jobb .adat{
+    white-space:nowrap;
+  }
+  .fejlec-jobb .adat:last-child{
+    margin-left:auto;
+    text-align:right;
+  }
+}
+
+
+@media(max-width:900px){
+  input, button{
+    touch-action: manipulation;
+  }
+}
+
+
+@media(max-width:900px){
+  .nezet-valaszto .nezet-gomb{
+    flex:0 0 auto;
+  }
+  .nezet-valaszto .nezet-gomb[data-nezet="mindketto"],
+  .nezet-valaszto .nezet-gomb[data-nezet="garazs"]{
+    flex:1 1 0;
+  }
+  .nezet-valaszto .nezet-gomb[data-nezet="biztor"]{
+    flex:1.2 1 0;
+  }
+}
+
+
+/* Tárolás helye oszlop: balra igazítás desktopon és mobilon */
+.fo-kozos-tabla th.sticky-jobb.storage,
+.fo-kozos-tabla td.sticky-jobb.storage{
+  text-align:left !important;
+}
+.fo-kozos-tabla th.sticky-jobb.storage input{
+  text-align:left !important;
+}
+
+
+
+/* Mobil fejléc: cím + kapcsolók az első sorban, utolsó pozíciók + dátum a másodikban. */
+@media (max-width: 600px) {
+  .fejlec { padding: 12px; }
+  .fejlec-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "title controls" "last date";
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 10px;
+    margin-bottom: 10px;
+  }
+  .fejlec-cim-archivum { display: contents; }
+  .fejlec-vezerlok { display: contents; width: auto; }
+  .cim {
+    grid-area: title;
+    min-width: 0;
+    white-space: nowrap;
+    font-size: 14px;
+    gap: 5px;
+  }
+  .cim-busz-svg { width: 21px; height: 21px; flex-basis: 21px; }
+  .fejlec-kapcsolok {
+    grid-area: controls;
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .theme-switch-toggle,.auto-refresh-toggle { min-width: 48px; padding-left: 5px; padding-right: 5px; gap: 5px; }
+  #clear-click-locations {
+    grid-area: last;
+    justify-self: start;
+    white-space: nowrap;
+    padding: 8px 10px;
+  }
+  .fejlec-archivum { grid-area: date; justify-self: start; min-width: 0; width: max-content; max-width: 100%; display: flex; align-items: center; gap: 6px; }
+  .torteneti-vezerlo { width: max-content; min-width: 0; max-width: 100%; box-sizing: border-box; padding: 5px 6px; }
+  .history-calendar-button { min-width: 0; width: auto; gap: 4px; font-size: 11px; }
+  #history-load-status { display: none; }
+  .fejlec-adatok {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 10px;
+    row-gap: 8px;
+    align-items: start;
+    margin-top: 0;
+  }
+  .fejlec-bal,.fejlec-jobb { display: contents; }
+  .fejlec-adatok .adat {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: 10px;
+    line-height: 1.35;
+  }
+  .fejlec-bal .adat:nth-child(1) { grid-column: 1; grid-row: 1; }
+  .fejlec-bal .adat:nth-child(2) { grid-column: 1; grid-row: 2; }
+  .fejlec-bal .adat:nth-child(3) { grid-column: 1; grid-row: 3; }
+  #map-location-count { grid-column: 2; grid-row: 1; }
+  .fejlec-jobb .adat:nth-child(1) { grid-column: 2; grid-row: 2; }
+  .fejlec-jobb .adat:nth-child(2) { grid-column: 2; grid-row: 3; }
+}
+
+
+/* Mobilos fejléc: cím/kapcsolók felül, dátum + Mai nap + Utolsó pozíciók egy sorban alatta. */
+@media(max-width:600px){
+  .fejlec-top{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:auto auto;align-items:center!important;gap:8px 5px;margin-bottom:12px!important;}
+  .fejlec-cim-archivum,.fejlec-archivum,.fejlec-vezerlok{display:contents!important;}
+  .cim{grid-column:1;grid-row:1;min-width:0;font-size:18px!important;white-space:nowrap;}
+  .cim-busz-svg{display:none!important;}
+  .fejlec-kapcsolok{grid-column:2 / 4;grid-row:1;display:flex!important;width:auto!important;gap:5px;justify-content:flex-end;align-items:center;}
+  .history-calendar{grid-column:1;grid-row:2;min-width:0;width:76px;flex:0 0 76px;justify-self:start;padding:0!important;}
+  .history-calendar-button{max-width:100%;padding:2px 0!important;gap:0!important;font-size:10px!important;}
+  .history-calendar-button .calendar-mark,.history-calendar-button > span:last-child{display:none!important;}
+  #go-today-button{grid-column:2;grid-row:2;justify-self:center;width:76px;min-width:76px;white-space:nowrap;padding:5px 4px;font-size:11px;}
+  #clear-click-locations{grid-column:3;grid-row:2;justify-self:end;white-space:nowrap;padding:5px 7px;font-size:11px;}
+  .fejlec-adatok.riport-fejlec-adatok{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:10px;row-gap:10px;align-items:start;}
+  .fejlec-bal,.fejlec-jobb{display:contents!important;}
+  .fejlec-bal .adat:nth-child(1){grid-column:1;grid-row:1;}
+  .fejlec-bal .adat:nth-child(2){grid-column:1;grid-row:2;}
+  .fejlec-bal .adat:nth-child(3){grid-column:1;grid-row:3;}
+  #map-location-count{grid-column:2;grid-row:1;}
+  .fejlec-jobb .adat:nth-child(1){grid-column:2;grid-row:2;}
+  .fejlec-jobb .adat:nth-child(2){grid-column:2;grid-row:3;}
+  #map-location-count,.fejlec-jobb .adat{justify-self:start!important;text-align:left!important;margin-left:0!important;width:100%;}
+}
+
+
+/* Végső fejléc-felülírás: a hold ikonja asztali nézetben is zöld sötét módban. */
+.theme-switch-toggle[aria-pressed="true"] .theme-icon { color: #16a765 !important; }
+@media (max-width: 600px) {
+  .fejlec-top {
+    grid-template-columns: 76px 76px minmax(0, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    column-gap: 5px !important;
+  }
+  .history-calendar {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    width: 76px !important;
+    min-width: 76px !important;
+    flex: 0 0 76px !important;
+    justify-self: start !important;
+  }
+  .history-calendar-button {
+    width: 76px !important;
+    min-width: 76px !important;
+    max-width: 76px !important;
+    height: 30px;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  #history-date-label { display: inline-block; width: 100%; text-align: center; }
+  #go-today-button {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    width: 76px !important;
+    min-width: 76px !important;
+    max-width: 76px !important;
+    justify-self: start !important;
+    box-sizing: border-box !important;
+  }
+  #clear-click-locations {
+    grid-column: 3 !important;
+    grid-row: 2 !important;
+    justify-self: end !important;
+    max-width: 100%;
+    box-sizing: border-box !important;
+  }
+}
+
+</style>
+</head>
+<body>
+<div class="fejlec">
+  <div class="fejlec-top">
+    <div class="fejlec-cim-archivum">
+      <div class="cim" id="oldal-cim" role="button" tabindex="0" title="A mai napi adatok megnyitása"><svg class="cim-busz-svg" aria-hidden="true" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="8" width="48" height="43" rx="8" fill="royalblue"/><rect x="14" y="14" width="16" height="13" rx="2" fill="lightblue"/><rect x="34" y="14" width="16" height="13" rx="2" fill="lightblue"/><rect x="14" y="32" width="36" height="7" rx="2" fill="white"/><circle cx="19" cy="49" r="6" fill="midnightblue"/><circle cx="45" cy="49" r="6" fill="midnightblue"/></svg><b>ArrivaBus hidegtárolás</b></div>
+      <div class="fejlec-archivum">
+        <div class="torteneti-vezerlo history-calendar" id="history-calendar">
+          <button id="history-date-button" class="history-calendar-button" type="button" aria-label="Archív dátum kiválasztása" aria-expanded="false" disabled><span class="calendar-mark" aria-hidden="true">▦</span><span id="history-date-label">ÉÉÉ.HH.NN.</span><span aria-hidden="true">▾</span></button>
+          <div id="history-calendar-popup" class="history-calendar-popup" hidden>
+            <div class="history-calendar-month"><button id="history-month-prev" type="button" aria-label="Előző hónap">‹</button><strong id="history-month-label"></strong><button id="history-month-next" type="button" aria-label="Következő hónap">›</button></div>
+            <div id="history-calendar-grid" class="history-calendar-grid" role="grid" aria-label="Elérhető archív napok"></div>
+          </div>
+        </div>
+        <button id="go-today-button" type="button" title="A mai napi adatok megnyitása">Mai nap</button>
+        <div id="history-load-status" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="fejlec-vezerlok">
+      <button id="clear-click-locations" type="button" title="Az aktuális utolsó pozíciók megjelenítése">Utolsó pozíciók</button>
+      <div class="fejlec-kapcsolok">
+        <button id="auto-refresh-toggle" class="auto-refresh-toggle" type="button" aria-label="Automatikus frissítés" aria-pressed="true" title="Automatikus frissítés bekapcsolva"><span class="refresh-icon" aria-hidden="true">↻</span><span class="auto-switch" aria-hidden="true"><span></span></span></button>
+        <button id="theme-toggle" class="theme-switch-toggle" type="button" aria-label="Sötét mód" aria-pressed="true" title="Sötét mód bekapcsolva"><span class="theme-icon" aria-hidden="true">☾</span><span class="theme-switch" aria-hidden="true"><span></span></span></button>
+      </div>
+    </div>
+  </div>
+  <div class="fejlec-adatok riport-fejlec-adatok">
+    <div class="fejlec-bal">
+      <div class="adat"><b>Dátum:</b> 2026.10.16.</div>
+      <div class="adat"><b>Naptípus:</b> ALAP PP</div>
+      <div class="adat"><b>Utolsó lekérdezés:</b> -</div>
+      <div class="adat" id="map-location-count"><b>Lokációk száma:</b> 0</div>
+    </div>
+    <div class="fejlec-jobb">
+      <div class="adat"><b>Riport készült:</b> -</div>
+      <div class="adat"><b>Értékelt fordák:</b> 0 + 0 → 0</div>
+    </div>
+  </div>
+</div>
+<div id="geozona-terkep"></div>
+<div class="nezet-fejlec-sor">
+<div class="nezet-valaszto" role="tablist" aria-label="Megjelenítés">
+  <button class="nezet-gomb" data-nezet="mindketto" type="button">Összes <span class="online-szam">0/126</span></button>
+  <button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás <span class="online-szam">0/21</span></button>
+  <button class="nezet-gomb" data-nezet="garazs" type="button">Garázs <span class="online-szam">0/105</span></button>
+</div>
+<div id="kijelolt-adat" class="kijelolt-adat" aria-live="polite"></div>
+</div>
+<div id="panel-adatok" class="nezet-panel">
+<div class="tabla-szekcio">
+  <div class="idopont-csuszkasav" id="fo-csuszkasav">
+    <div class="csuszka-info"><strong id="aktiv-sorok-szoveg">Idővonal&nbsp;</strong></div>
+    <input type="range" id="fo-idopont-csuszka" min="0" max="0" value="0" step="1" aria-label="Időpont görgetése">
+  </div>
+  <div class="tabla-egesz" id="fo-tabla">
+    <table class="fo-kozos-tabla">
+      <thead>
+        <tr class="fejlec-sor">
+          <th class="viszonylat sticky-bal bal-1">Viszonylat <button class="rendez-gomb" type="button" data-sort-col="0">↕</button></th>
+          <th class="forda sticky-bal bal-2">Forda <button class="rendez-gomb" type="button" data-sort-col="1">↕</button></th>
+          <th class="kezdés sticky-bal bal-3">Kezdés <button class="rendez-gomb" type="button" data-sort-col="2" data-sort-type="time">↕</button></th>
+          <th class="végzés sticky-bal bal-4">Végzés <button class="rendez-gomb" type="button" data-sort-col="3" data-sort-type="time">↕</button></th>
+          <th class="hely sticky-bal bal-5">Hely <button class="rendez-gomb" type="button" data-sort-col="4">↕</button></th>
+          <th class="rendszam sticky-bal bal-6">Rendszám <button class="rendez-gomb" type="button" data-sort-col="5">↕</button></th>
+<th class="sticky-jobb storage">Valós tárolás <button class="rendez-gomb" type="button" data-sort-col="storage">↕</button></th></tr><tr class="szuro-sor"><th class="sticky-bal bal-1"><input class="oszlop-kereso" data-col="0" placeholder="Keresés…" aria-label="Viszonylat keresése"></th><th class="sticky-bal bal-2"><input class="oszlop-kereso" data-col="1" placeholder="Keresés…" aria-label="Forda keresése"></th><th class="sticky-bal bal-3"></th><th class="sticky-bal bal-4"></th><th class="sticky-bal bal-5"><input class="oszlop-kereso" data-col="4" placeholder="Keresés…" aria-label="Hely keresése"></th><th class="rendszam sticky-bal bal-6"><input class="oszlop-kereso" data-col="5" placeholder="Keresés…" aria-label="Rendszám keresése"></th><th class="sticky-jobb storage"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Valós tárolás keresése"></th></tr></thead><tbody id="fix-tbody-common"><tr class="garazs-sor" data-row-id="0" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1335</td><td class="forda sticky-bal bal-2">41</td><td class="kezdés sticky-bal bal-3">08:03</td><td class="végzés sticky-bal bal-4">13:51</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="1" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1012</td><td class="forda sticky-bal bal-2">38</td><td class="kezdés sticky-bal bal-3">08:05</td><td class="végzés sticky-bal bal-4">12:46</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="2" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1335</td><td class="forda sticky-bal bal-2">42</td><td class="kezdés sticky-bal bal-3">08:15</td><td class="végzés sticky-bal bal-4">13:59</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="3" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1960</td><td class="forda sticky-bal bal-2">63</td><td class="kezdés sticky-bal bal-3">08:17</td><td class="végzés sticky-bal bal-4">09:17</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="4" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1335</td><td class="forda sticky-bal bal-2">43</td><td class="kezdés sticky-bal bal-3">08:19</td><td class="végzés sticky-bal bal-4">08:20</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="5" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1840</td><td class="forda sticky-bal bal-2">42</td><td class="kezdés sticky-bal bal-3">08:20</td><td class="végzés sticky-bal bal-4">13:18</td><td class="hely sticky-bal bal-5">ArrivaBus Szállító telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="6" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1012</td><td class="forda sticky-bal bal-2">39</td><td class="kezdés sticky-bal bal-3">08:28</td><td class="végzés sticky-bal bal-4">13:58</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="7" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1960</td><td class="forda sticky-bal bal-2">62</td><td class="kezdés sticky-bal bal-3">08:29</td><td class="végzés sticky-bal bal-4">12:30</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="8" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1100</td><td class="forda sticky-bal bal-2">46</td><td class="kezdés sticky-bal bal-3">08:32</td><td class="végzés sticky-bal bal-4">13:03</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="9" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1820</td><td class="forda sticky-bal bal-2">40</td><td class="kezdés sticky-bal bal-3">08:33</td><td class="végzés sticky-bal bal-4">13:25</td><td class="hely sticky-bal bal-5">ArrivaBus Szállító telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="10" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0205</td><td class="forda sticky-bal bal-2">53</td><td class="kezdés sticky-bal bal-3">08:34</td><td class="végzés sticky-bal bal-4">11:23</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="11" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1240</td><td class="forda sticky-bal bal-2">57</td><td class="kezdés sticky-bal bal-3">08:34</td><td class="végzés sticky-bal bal-4">13:53</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="12" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">1821</td><td class="forda sticky-bal bal-2">23</td><td class="kezdés sticky-bal bal-3">08:36</td><td class="végzés sticky-bal bal-4">13:51</td><td class="hely sticky-bal bal-5">Pestszentlőrinc vasútállomás</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="13" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0310</td><td class="forda sticky-bal bal-2">56</td><td class="kezdés sticky-bal bal-3">08:38</td><td class="végzés sticky-bal bal-4">12:21</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="14" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0350</td><td class="forda sticky-bal bal-2">21</td><td class="kezdés sticky-bal bal-3">08:38</td><td class="végzés sticky-bal bal-4">12:38</td><td class="hely sticky-bal bal-5">ArrivaBus Szállító telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="15" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">2200</td><td class="forda sticky-bal bal-2">50</td><td class="kezdés sticky-bal bal-3">08:38</td><td class="végzés sticky-bal bal-4">12:12</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="16" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1335</td><td class="forda sticky-bal bal-2">44</td><td class="kezdés sticky-bal bal-3">08:41</td><td class="végzés sticky-bal bal-4">13:29</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="17" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1335</td><td class="forda sticky-bal bal-2">23</td><td class="kezdés sticky-bal bal-3">08:43</td><td class="végzés sticky-bal bal-4">12:56</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="18" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0660</td><td class="forda sticky-bal bal-2">40</td><td class="kezdés sticky-bal bal-3">08:45</td><td class="végzés sticky-bal bal-4">13:16</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="19" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1225</td><td class="forda sticky-bal bal-2">63</td><td class="kezdés sticky-bal bal-3">08:46</td><td class="végzés sticky-bal bal-4">13:35</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="20" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">1821</td><td class="forda sticky-bal bal-2">24</td><td class="kezdés sticky-bal bal-3">08:50</td><td class="végzés sticky-bal bal-4">14:26</td><td class="hely sticky-bal bal-5">Kőbánya-Kispest M (Sibrik tároló)</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="21" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1050</td><td class="forda sticky-bal bal-2">21</td><td class="kezdés sticky-bal bal-3">08:50</td><td class="végzés sticky-bal bal-4">13:25</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="22" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1240</td><td class="forda sticky-bal bal-2">61</td><td class="kezdés sticky-bal bal-3">08:50</td><td class="végzés sticky-bal bal-4">14:44</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="23" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1140</td><td class="forda sticky-bal bal-2">11</td><td class="kezdés sticky-bal bal-3">08:56</td><td class="végzés sticky-bal bal-4">12:24</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="24" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1335</td><td class="forda sticky-bal bal-2">24</td><td class="kezdés sticky-bal bal-3">08:56</td><td class="végzés sticky-bal bal-4">13:11</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="25" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0205</td><td class="forda sticky-bal bal-2">63</td><td class="kezdés sticky-bal bal-3">08:57</td><td class="végzés sticky-bal bal-4">13:19</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="26" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0300</td><td class="forda sticky-bal bal-2">61</td><td class="kezdés sticky-bal bal-3">08:57</td><td class="végzés sticky-bal bal-4">12:50</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="27" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1012</td><td class="forda sticky-bal bal-2">21</td><td class="kezdés sticky-bal bal-3">08:58</td><td class="végzés sticky-bal bal-4">13:06</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="28" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">0360</td><td class="forda sticky-bal bal-2">21</td><td class="kezdés sticky-bal bal-3">09:00</td><td class="végzés sticky-bal bal-4">12:36</td><td class="hely sticky-bal bal-5">Pestszentlőrinc vasútállomás</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="29" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1225</td><td class="forda sticky-bal bal-2">61</td><td class="kezdés sticky-bal bal-3">09:01</td><td class="végzés sticky-bal bal-4">14:05</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="30" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">0960</td><td class="forda sticky-bal bal-2">59</td><td class="kezdés sticky-bal bal-3">09:02</td><td class="végzés sticky-bal bal-4">13:22</td><td class="hely sticky-bal bal-5">Békásmegyer, Újmegyeri tér</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="31" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0350</td><td class="forda sticky-bal bal-2">22</td><td class="kezdés sticky-bal bal-3">09:02</td><td class="végzés sticky-bal bal-4">13:08</td><td class="hely sticky-bal bal-5">ArrivaBus Szállító telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="32" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1960</td><td class="forda sticky-bal bal-2">64</td><td class="kezdés sticky-bal bal-3">09:02</td><td class="végzés sticky-bal bal-4">09:50</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="33" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0960</td><td class="forda sticky-bal bal-2">61</td><td class="kezdés sticky-bal bal-3">09:03</td><td class="végzés sticky-bal bal-4">13:05</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="34" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0660</td><td class="forda sticky-bal bal-2">21</td><td class="kezdés sticky-bal bal-3">09:05</td><td class="végzés sticky-bal bal-4">13:38</td><td class="hely sticky-bal bal-5">ArrivaBus Szállító telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="35" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">2120</td><td class="forda sticky-bal bal-2">22</td><td class="kezdés sticky-bal bal-3">09:05</td><td class="végzés sticky-bal bal-4">12:45</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="36" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0205</td><td class="forda sticky-bal bal-2">64</td><td class="kezdés sticky-bal bal-3">09:06</td><td class="végzés sticky-bal bal-4">12:16</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="37" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1390</td><td class="forda sticky-bal bal-2">21</td><td class="kezdés sticky-bal bal-3">09:07</td><td class="végzés sticky-bal bal-4">13:52</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="38" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1050</td><td class="forda sticky-bal bal-2">22</td><td class="kezdés sticky-bal bal-3">09:08</td><td class="végzés sticky-bal bal-4">14:46</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="39" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1335</td><td class="forda sticky-bal bal-2">25</td><td class="kezdés sticky-bal bal-3">09:08</td><td class="végzés sticky-bal bal-4">13:38</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="40" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1100</td><td class="forda sticky-bal bal-2">45</td><td class="kezdés sticky-bal bal-3">09:13</td><td class="végzés sticky-bal bal-4">12:33</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="41" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0205</td><td class="forda sticky-bal bal-2">60</td><td class="kezdés sticky-bal bal-3">09:14</td><td class="végzés sticky-bal bal-4">12:48</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="42" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1480</td><td class="forda sticky-bal bal-2">21</td><td class="kezdés sticky-bal bal-3">09:14</td><td class="végzés sticky-bal bal-4">13:01</td><td class="hely sticky-bal bal-5">ArrivaBus Szállító telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="43" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">0360</td><td class="forda sticky-bal bal-2">23</td><td class="kezdés sticky-bal bal-3">09:16</td><td class="végzés sticky-bal bal-4">13:06</td><td class="hely sticky-bal bal-5">Pestszentlőrinc vasútállomás</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="44" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0960</td><td class="forda sticky-bal bal-2">60</td><td class="kezdés sticky-bal bal-3">09:18</td><td class="végzés sticky-bal bal-4">13:43</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="45" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1012</td><td class="forda sticky-bal bal-2">23</td><td class="kezdés sticky-bal bal-3">09:18</td><td class="végzés sticky-bal bal-4">14:45</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="46" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1335</td><td class="forda sticky-bal bal-2">21</td><td class="kezdés sticky-bal bal-3">09:18</td><td class="végzés sticky-bal bal-4">14:12</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="47" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1960</td><td class="forda sticky-bal bal-2">60</td><td class="kezdés sticky-bal bal-3">09:18</td><td class="végzés sticky-bal bal-4">13:21</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="48" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1225</td><td class="forda sticky-bal bal-2">62</td><td class="kezdés sticky-bal bal-3">09:19</td><td class="végzés sticky-bal bal-4">14:51</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="49" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1960</td><td class="forda sticky-bal bal-2">67</td><td class="kezdés sticky-bal bal-3">09:19</td><td class="végzés sticky-bal bal-4">12:50</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="50" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">0710</td><td class="forda sticky-bal bal-2">24</td><td class="kezdés sticky-bal bal-3">09:21</td><td class="végzés sticky-bal bal-4">13:22</td><td class="hely sticky-bal bal-5">Csepel, Szent Imre tér</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="51" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1335</td><td class="forda sticky-bal bal-2">61</td><td class="kezdés sticky-bal bal-3">09:21</td><td class="végzés sticky-bal bal-4">13:26</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="52" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1820</td><td class="forda sticky-bal bal-2">41</td><td class="kezdés sticky-bal bal-3">09:21</td><td class="végzés sticky-bal bal-4">13:22</td><td class="hely sticky-bal bal-5">ArrivaBus Szállító telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="53" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0310</td><td class="forda sticky-bal bal-2">57</td><td class="kezdés sticky-bal bal-3">09:23</td><td class="végzés sticky-bal bal-4">13:46</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="54" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1050</td><td class="forda sticky-bal bal-2">62</td><td class="kezdés sticky-bal bal-3">09:27</td><td class="végzés sticky-bal bal-4">14:26</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="55" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1390</td><td class="forda sticky-bal bal-2">24</td><td class="kezdés sticky-bal bal-3">09:28</td><td class="végzés sticky-bal bal-4">13:22</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="56" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">0710</td><td class="forda sticky-bal bal-2">25</td><td class="kezdés sticky-bal bal-3">09:33</td><td class="végzés sticky-bal bal-4">13:53</td><td class="hely sticky-bal bal-5">Csepel, Szent Imre tér</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="57" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1335</td><td class="forda sticky-bal bal-2">64</td><td class="kezdés sticky-bal bal-3">09:33</td><td class="végzés sticky-bal bal-4">12:24</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="58" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1960</td><td class="forda sticky-bal bal-2">66</td><td class="kezdés sticky-bal bal-3">09:33</td><td class="végzés sticky-bal bal-4">14:00</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="59" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1100</td><td class="forda sticky-bal bal-2">21</td><td class="kezdés sticky-bal bal-3">09:35</td><td class="végzés sticky-bal bal-4">13:43</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="60" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">2200</td><td class="forda sticky-bal bal-2">56</td><td class="kezdés sticky-bal bal-3">09:35</td><td class="végzés sticky-bal bal-4">14:24</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="61" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1335</td><td class="forda sticky-bal bal-2">62</td><td class="kezdés sticky-bal bal-3">09:37</td><td class="végzés sticky-bal bal-4">13:54</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="62" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1012</td><td class="forda sticky-bal bal-2">22</td><td class="kezdés sticky-bal bal-3">09:38</td><td class="végzés sticky-bal bal-4">13:46</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="63" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">0250</td><td class="forda sticky-bal bal-2">58</td><td class="kezdés sticky-bal bal-3">09:40</td><td class="végzés sticky-bal bal-4">14:02</td><td class="hely sticky-bal bal-5">Mexikói út M</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="64" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1335</td><td class="forda sticky-bal bal-2">22</td><td class="kezdés sticky-bal bal-3">09:42</td><td class="végzés sticky-bal bal-4">14:18</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="65" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1380</td><td class="forda sticky-bal bal-2">30</td><td class="kezdés sticky-bal bal-3">09:48</td><td class="végzés sticky-bal bal-4">13:33</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="66" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">1840</td><td class="forda sticky-bal bal-2">13</td><td class="kezdés sticky-bal bal-3">09:51</td><td class="végzés sticky-bal bal-4">15:11</td><td class="hely sticky-bal bal-5">Kőbánya-Kispest M (Sibrik tároló)</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="67" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1510</td><td class="forda sticky-bal bal-2">21</td><td class="kezdés sticky-bal bal-3">09:51</td><td class="végzés sticky-bal bal-4">13:05</td><td class="hely sticky-bal bal-5">ArrivaBus Szállító telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="68" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">1480</td><td class="forda sticky-bal bal-2">22</td><td class="kezdés sticky-bal bal-3">09:52</td><td class="végzés sticky-bal bal-4">13:59</td><td class="hely sticky-bal bal-5">Kőbánya-Kispest M (Sibrik tároló)</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="69" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1335</td><td class="forda sticky-bal bal-2">63</td><td class="kezdés sticky-bal bal-3">09:52</td><td class="végzés sticky-bal bal-4">14:24</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="70" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1960</td><td class="forda sticky-bal bal-2">68</td><td class="kezdés sticky-bal bal-3">09:52</td><td class="végzés sticky-bal bal-4">13:01</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="71" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1840</td><td class="forda sticky-bal bal-2">11</td><td class="kezdés sticky-bal bal-3">09:56</td><td class="végzés sticky-bal bal-4">13:45</td><td class="hely sticky-bal bal-5">ArrivaBus Szállító telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="72" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">2120</td><td class="forda sticky-bal bal-2">23</td><td class="kezdés sticky-bal bal-3">09:57</td><td class="végzés sticky-bal bal-4">14:14</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="73" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1012</td><td class="forda sticky-bal bal-2">26</td><td class="kezdés sticky-bal bal-3">09:58</td><td class="végzés sticky-bal bal-4">12:34</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="74" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">0710</td><td class="forda sticky-bal bal-2">23</td><td class="kezdés sticky-bal bal-3">10:00</td><td class="végzés sticky-bal bal-4">14:05</td><td class="hely sticky-bal bal-5">Csepel, Szent Imre tér</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="75" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1100</td><td class="forda sticky-bal bal-2">61</td><td class="kezdés sticky-bal bal-3">10:00</td><td class="végzés sticky-bal bal-4">14:36</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="76" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1470</td><td class="forda sticky-bal bal-2">56</td><td class="kezdés sticky-bal bal-3">10:00</td><td class="végzés sticky-bal bal-4">13:52</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="77" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1335</td><td class="forda sticky-bal bal-2">65</td><td class="kezdés sticky-bal bal-3">10:01</td><td class="végzés sticky-bal bal-4">13:27</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="78" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1390</td><td class="forda sticky-bal bal-2">23</td><td class="kezdés sticky-bal bal-3">10:01</td><td class="végzés sticky-bal bal-4">13:37</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="79" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1530</td><td class="forda sticky-bal bal-2">22</td><td class="kezdés sticky-bal bal-3">10:01</td><td class="végzés sticky-bal bal-4">15:13</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="80" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">0360</td><td class="forda sticky-bal bal-2">22</td><td class="kezdés sticky-bal bal-3">10:07</td><td class="végzés sticky-bal bal-4">13:46</td><td class="hely sticky-bal bal-5">Pestszentlőrinc vasútállomás</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="81" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">1510</td><td class="forda sticky-bal bal-2">22</td><td class="kezdés sticky-bal bal-3">10:12</td><td class="végzés sticky-bal bal-4">13:17</td><td class="hely sticky-bal bal-5">Kőbánya alsó vasútállomás</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="82" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1100</td><td class="forda sticky-bal bal-2">22</td><td class="kezdés sticky-bal bal-3">10:13</td><td class="végzés sticky-bal bal-4">15:15</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="83" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1040</td><td class="forda sticky-bal bal-2">61</td><td class="kezdés sticky-bal bal-3">10:14</td><td class="végzés sticky-bal bal-4">13:49</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="84" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">2250</td><td class="forda sticky-bal bal-2">60</td><td class="kezdés sticky-bal bal-3">10:16</td><td class="végzés sticky-bal bal-4">14:02</td><td class="hely sticky-bal bal-5">Mexikói út M</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="85" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1050</td><td class="forda sticky-bal bal-2">61</td><td class="kezdés sticky-bal bal-3">10:19</td><td class="végzés sticky-bal bal-4">13:52</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="86" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">1820</td><td class="forda sticky-bal bal-2">21</td><td class="kezdés sticky-bal bal-3">10:22</td><td class="végzés sticky-bal bal-4">14:51</td><td class="hely sticky-bal bal-5">Kőbánya-Kispest M (Sibrik tároló)</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="87" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">2235</td><td class="forda sticky-bal bal-2">41</td><td class="kezdés sticky-bal bal-3">10:22</td><td class="végzés sticky-bal bal-4">13:25</td><td class="hely sticky-bal bal-5">ArrivaBus Szállító telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="88" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">2120</td><td class="forda sticky-bal bal-2">21</td><td class="kezdés sticky-bal bal-3">10:26</td><td class="végzés sticky-bal bal-4">13:15</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="89" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1335</td><td class="forda sticky-bal bal-2">66</td><td class="kezdés sticky-bal bal-3">10:27</td><td class="végzés sticky-bal bal-4">13:42</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="90" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1390</td><td class="forda sticky-bal bal-2">22</td><td class="kezdés sticky-bal bal-3">10:30</td><td class="végzés sticky-bal bal-4">14:52</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="91" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1590</td><td class="forda sticky-bal bal-2">22</td><td class="kezdés sticky-bal bal-3">10:31</td><td class="végzés sticky-bal bal-4">13:58</td><td class="hely sticky-bal bal-5">ArrivaBus Szállító telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="92" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">1510</td><td class="forda sticky-bal bal-2">23</td><td class="kezdés sticky-bal bal-3">10:32</td><td class="végzés sticky-bal bal-4">13:47</td><td class="hely sticky-bal bal-5">Kőbánya alsó vasútállomás</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="93" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1225</td><td class="forda sticky-bal bal-2">50</td><td class="kezdés sticky-bal bal-3">10:33</td><td class="végzés sticky-bal bal-4">15:32</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="94" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1530</td><td class="forda sticky-bal bal-2">23</td><td class="kezdés sticky-bal bal-3">10:34</td><td class="végzés sticky-bal bal-4">15:14</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="95" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">1340</td><td class="forda sticky-bal bal-2">57</td><td class="kezdés sticky-bal bal-3">10:39</td><td class="végzés sticky-bal bal-4">14:11</td><td class="hely sticky-bal bal-5">Békásmegyer, Újmegyeri tér</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="96" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1240</td><td class="forda sticky-bal bal-2">62</td><td class="kezdés sticky-bal bal-3">10:43</td><td class="végzés sticky-bal bal-4">14:30</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="97" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1040</td><td class="forda sticky-bal bal-2">60</td><td class="kezdés sticky-bal bal-3">10:44</td><td class="végzés sticky-bal bal-4">13:12</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="98" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0300</td><td class="forda sticky-bal bal-2">67</td><td class="kezdés sticky-bal bal-3">10:45</td><td class="végzés sticky-bal bal-4">14:18</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="99" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1590</td><td class="forda sticky-bal bal-2">21</td><td class="kezdés sticky-bal bal-3">10:51</td><td class="végzés sticky-bal bal-4">14:58</td><td class="hely sticky-bal bal-5">ArrivaBus Szállító telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="100" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">2120</td><td class="forda sticky-bal bal-2">24</td><td class="kezdés sticky-bal bal-3">10:55</td><td class="végzés sticky-bal bal-4">14:30</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="101" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0300</td><td class="forda sticky-bal bal-2">66</td><td class="kezdés sticky-bal bal-3">11:06</td><td class="végzés sticky-bal bal-4">15:27</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="102" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1200</td><td class="forda sticky-bal bal-2">55</td><td class="kezdés sticky-bal bal-3">11:10</td><td class="végzés sticky-bal bal-4">13:32</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="103" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1100</td><td class="forda sticky-bal bal-2">62</td><td class="kezdés sticky-bal bal-3">11:11</td><td class="végzés sticky-bal bal-4">15:53</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="104" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1960</td><td class="forda sticky-bal bal-2">61</td><td class="kezdés sticky-bal bal-3">11:11</td><td class="végzés sticky-bal bal-4">14:06</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="105" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">1510</td><td class="forda sticky-bal bal-2">46</td><td class="kezdés sticky-bal bal-3">11:22</td><td class="végzés sticky-bal bal-4">14:09</td><td class="hely sticky-bal bal-5">Kőbánya alsó vasútállomás</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="106" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1040</td><td class="forda sticky-bal bal-2">63</td><td class="kezdés sticky-bal bal-3">11:22</td><td class="végzés sticky-bal bal-4">13:54</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="107" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1470</td><td class="forda sticky-bal bal-2">57</td><td class="kezdés sticky-bal bal-3">11:23</td><td class="végzés sticky-bal bal-4">14:22</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="108" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0205</td><td class="forda sticky-bal bal-2">65</td><td class="kezdés sticky-bal bal-3">11:34</td><td class="végzés sticky-bal bal-4">14:16</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="109" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0530</td><td class="forda sticky-bal bal-2">21</td><td class="kezdés sticky-bal bal-3">11:39</td><td class="végzés sticky-bal bal-4">16:09</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="110" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1530</td><td class="forda sticky-bal bal-2">21</td><td class="kezdés sticky-bal bal-3">11:46</td><td class="végzés sticky-bal bal-4">15:09</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="111" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">1480</td><td class="forda sticky-bal bal-2">23</td><td class="kezdés sticky-bal bal-3">11:52</td><td class="végzés sticky-bal bal-4">14:19</td><td class="hely sticky-bal bal-5">Csepel, Szent Imre tér</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="112" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0205</td><td class="forda sticky-bal bal-2">66</td><td class="kezdés sticky-bal bal-3">11:54</td><td class="végzés sticky-bal bal-4">15:01</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="113" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">2120</td><td class="forda sticky-bal bal-2">40</td><td class="kezdés sticky-bal bal-3">12:00</td><td class="végzés sticky-bal bal-4">14:12</td><td class="hely sticky-bal bal-5">ArrivaBus Szállító telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="114" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0660</td><td class="forda sticky-bal bal-2">51</td><td class="kezdés sticky-bal bal-3">12:09</td><td class="végzés sticky-bal bal-4">13:55</td><td class="hely sticky-bal bal-5">ArrivaBus Szállító telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="115" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1050</td><td class="forda sticky-bal bal-2">63</td><td class="kezdés sticky-bal bal-3">12:12</td><td class="végzés sticky-bal bal-4">15:29</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="116" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">2200</td><td class="forda sticky-bal bal-2">51</td><td class="kezdés sticky-bal bal-3">12:16</td><td class="végzés sticky-bal bal-4">13:30</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="117" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">1510</td><td class="forda sticky-bal bal-2">39</td><td class="kezdés sticky-bal bal-3">12:20</td><td class="végzés sticky-bal bal-4">13:45</td><td class="hely sticky-bal bal-5">Csepel, Szent Imre tér</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="118" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1390</td><td class="forda sticky-bal bal-2">31</td><td class="kezdés sticky-bal bal-3">12:28</td><td class="végzés sticky-bal bal-4">13:54</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="119" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1240</td><td class="forda sticky-bal bal-2">56</td><td class="kezdés sticky-bal bal-3">12:34</td><td class="végzés sticky-bal bal-4">13:07</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="biztor-sor" data-row-id="120" data-forras="biztor"><td class="viszonylat sticky-bal bal-1">0350</td><td class="forda sticky-bal bal-2">34</td><td class="kezdés sticky-bal bal-3">12:36</td><td class="végzés sticky-bal bal-4">14:04</td><td class="hely sticky-bal bal-5">Csepel, Szent Imre tér</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="121" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1050</td><td class="forda sticky-bal bal-2">30</td><td class="kezdés sticky-bal bal-3">12:40</td><td class="végzés sticky-bal bal-4">13:43</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="122" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1100</td><td class="forda sticky-bal bal-2">52</td><td class="kezdés sticky-bal bal-3">12:41</td><td class="végzés sticky-bal bal-4">13:26</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="123" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">1380</td><td class="forda sticky-bal bal-2">41</td><td class="kezdés sticky-bal bal-3">12:46</td><td class="végzés sticky-bal bal-4">14:03</td><td class="hely sticky-bal bal-5">ArrivaBus Andor telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="124" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0085</td><td class="forda sticky-bal bal-2">51</td><td class="kezdés sticky-bal bal-3">13:02</td><td class="végzés sticky-bal bal-4">13:35</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr><tr class="garazs-sor" data-row-id="125" data-forras="garazs"><td class="viszonylat sticky-bal bal-1">0250</td><td class="forda sticky-bal bal-2">56</td><td class="kezdés sticky-bal bal-3">13:22</td><td class="végzés sticky-bal bal-4">15:21</td><td class="hely sticky-bal bal-5">ArrivaBus Bogáncs telephely</td><td class="rendszam sticky-bal bal-6"></td><td class="sticky-jobb storage tarolas tarolas-na">n.a</td></tr></tbody></table></div><div class="mobil-scroll-nyil" aria-hidden="true"><span>›</span><span>›</span><span>›</span><span>›</span><span>›</span><span>›</span><span>›</span></div></div></div>
+<script>
+(function(){
+  const fo=document.getElementById('fo-tabla');
+  const slider=document.getElementById('fo-idopont-csuszka');
+  const sliderBar=document.getElementById('fo-csuszkasav');
+  const table=fo?.querySelector('.fo-kozos-tabla');
+  const tbody=table?.querySelector('tbody');
+  const buttons=document.querySelectorAll('.nezet-gomb');
+  if(!fo||!slider||!table||!tbody)return;
+  const NEZET_STORAGE_KEY='hidegtarolas-aktiv-nezet';
+  const ERVENYES_NEZETEK=['mindketto','biztor','garazs'];
+  function betoltottNezet(){
+    try{
+      const mentett=localStorage.getItem(NEZET_STORAGE_KEY);
+      return ERVENYES_NEZETEK.includes(mentett) ? mentett : 'mindketto';
+    }catch(e){return 'mindketto';}
+  }
+  let currentView=betoltottNezet(),sortState={col:null,dir:1};
+
+
+  function mobilTablaSorrend(){
+    const mobil=window.matchMedia('(max-width:600px)').matches;
+    const sorok=Array.from(table.querySelectorAll('tr'));
+    sorok.forEach(tr=>{
+      const storage=tr.querySelector('.storage');
+      if(!storage)return;
+      if(mobil){
+        const rendszam=tr.querySelector('.rendszam');
+        if(rendszam && storage.nextElementSibling!==rendszam){
+          tr.insertBefore(storage,rendszam);
+        }
+      }else{
+        if(storage.parentElement && storage !== tr.lastElementChild){
+          tr.appendChild(storage);
+        }
+      }
+    });
+  }
+  mobilTablaSorrend();
+  const rowList=Array.from(tbody.children);
+  const filterInputs=Array.from(document.querySelectorAll('.oszlop-kereso[data-col]'));
+  // Mobilon a kereső fókusza ne okozzon automatikus lapugrást.
+  filterInputs.forEach(inp=>{
+    inp.addEventListener('touchstart',()=>{
+      if(window.innerWidth<=900){
+        inp.dataset.savedScrollY=String(window.scrollY);
+      }
+    },{passive:true});
+
+    inp.addEventListener('focus',()=>{
+      if(window.innerWidth<=900){
+        const savedY=Number(inp.dataset.savedScrollY||window.scrollY);
+        const restore=()=>{
+          window.scrollTo(window.scrollX,savedY);
+        };
+        restore();
+        requestAnimationFrame(restore);
+        setTimeout(restore,50);
+        setTimeout(restore,150);
+        setTimeout(restore,300);
+      }
+    });
+  });
+
+  // Mobil kereső fókusz: a böngésző ne ugorjon a lap tetejére
+  // a billentyűzet megnyitásakor.
+  let mobilKeresesiScrollY=null;
+  filterInputs.forEach(inp=>{
+
+    inp.addEventListener('focus',()=>{
+      if(window.matchMedia('(max-width:900px)').matches){
+        mobilKeresesiScrollY=window.scrollY;
+        const visszaallit=()=>{
+          if(mobilKeresesiScrollY!==null){
+            window.scrollTo(window.scrollX,mobilKeresesiScrollY);
+          }
+        };
+        setTimeout(visszaallit,0);
+        setTimeout(visszaallit,100);
+        setTimeout(visszaallit,300);
+      }
+    });
+  });
+  const sortButtons=Array.from(document.querySelectorAll('.rendez-gomb'));
+  function rows(){return rowList;}
+
+  // A táblázat természetes szélességét a böngésző számolja ki.
+  // Nem írjuk végig minden sor celláinak width/left értékeit, mert ez
+  // több ezer DOM-műveletet és felesleges újratördelést okozott.
+  function sticky(){
+    const head=table.querySelector('thead tr:first-child');
+    if(!head)return;
+    const heads=head.children;
+    let left=0;
+    for(let i=0;i<6;i++){
+      const w=heads[i]?.getBoundingClientRect().width||0;
+      const px=left.toFixed(3)+'px';
+      document.documentElement.style.setProperty('--bal-'+(i+1),px);
+      left+=w;
+    }
+  }
+  function frissitMobilNyilat(){
+    const szekcio=fo.closest(".tabla-szekcio");
+    if(!szekcio)return;
+    const mobil=window.matchMedia("(max-width:600px)").matches;
+    const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
+    szekcio.classList.toggle("van-jobbra",mobil && max>4 && fo.scrollLeft < max-4);
+  }
+  function layoutScroll(){
+    const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
+    frissitMobilNyilat();
+    slider.max=String(max);
+    if (fo.scrollLeft > max) fo.scrollLeft=max;
+  }
+  function layout(){
+    sticky();
+    const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
+    slider.max=String(max);
+    const mobil=window.matchMedia('(max-width:600px)').matches;
+    if(mobil){
+      /* Mobilon az időoszlopok jobb széle ne kényszerítse a táblát
+         minden újratördeléskor a jobb oldalra. */
+      slider.value=String(Math.min(fo.scrollLeft,max));
+      if(fo.scrollLeft>max) fo.scrollLeft=max;
+    }else{
+      slider.value=String(max);
+      fo.scrollLeft=max;
+    }
+  }
+  function view(v,mentes=true){
+    if(!ERVENYES_NEZETEK.includes(v)) v='mindketto';
+    currentView=v;
+    if(mentes){
+      try{localStorage.setItem(NEZET_STORAGE_KEY,v);}catch(e){}
+    }
+    buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===v));
+    fo.classList.remove('view-biztor','view-garazs','view-mindketto');
+    fo.classList.add('view-'+v);fo.classList.toggle('all-view',v==='mindketto');
+    requestAnimationFrame(()=>{sticky();layoutScroll();});
+  }
+  function applyFilters(){
+    const mobilKereses=(window.matchMedia('(max-width:900px)').matches);
+    const oldWindowScrollY=window.scrollY;
+    rowList.forEach(r=>{
+      let ok=true;
+      for(const i of filterInputs){
+        const q=i.value.trim().toLocaleLowerCase('hu-HU');
+        if(!q) continue;
+        const c=i.dataset.col==='storage'?r.querySelector('.sticky-jobb'):r.children[+i.dataset.col];
+        if(!(c?.textContent||'').toLocaleLowerCase('hu-HU').includes(q)){ok=false;break;}
+      }
+      r.dataset.filterMatch=ok?'1':'0';
+    });
+    requestAnimationFrame(()=>{
+      sticky();
+      layoutScroll();
+      if(mobilKereses){
+        window.scrollTo(window.scrollX,oldWindowScrollY);
+        requestAnimationFrame(()=>{
+          if(Math.abs(window.scrollY-oldWindowScrollY)>1){
+            window.scrollTo(window.scrollX,oldWindowScrollY);
+          }
+        });
+      }
+    });
+  }
+  function filters(){
+    applyFilters();
+  }
+  function val(r,c){const x=c==='storage'?r.querySelector('.sticky-jobb'):r.children[+c];return x?.textContent.trim()||'';}
+  function cmp(a,b,t){
+    if(t==='time'){
+      const ma=/^(\d{1,2}):(\d{2})$/.exec(a),mb=/^(\d{1,2}):(\d{2})$/.exec(b);
+      if(ma&&mb)return(+ma[1]*60+ +ma[2])-(+mb[1]*60+ +mb[2]);
+    }
+    return a.localeCompare(b,'hu',{numeric:true,sensitivity:'base'});
+  }
+  function sort(btn){
+    const c=btn.dataset.sortCol,t=btn.dataset.sortType||'';
+    if(sortState.col===c)sortState.dir*=-1;else{sortState.col=c;sortState.dir=1;}
+    sortButtons.forEach(b=>{b.classList.remove('active');b.textContent='↕'});
+    btn.classList.add('active');btn.textContent=sortState.dir===1?'↑':'↓';
+    const frag=document.createDocumentFragment();
+    rowList.sort((a,b)=>cmp(val(a,c),val(b,c),t)*sortState.dir).forEach(r=>frag.appendChild(r));
+    tbody.appendChild(frag);
+    requestAnimationFrame(()=>{sticky();layoutScroll();});
+  }
+  let scrollFrame=0;
+  slider.addEventListener('input',()=>{
+    fo.scrollLeft=Math.min(fo.scrollWidth-fo.clientWidth,Math.max(0,+slider.value||0));
+  });
+  fo.addEventListener('scroll',()=>{
+    if(scrollFrame)return;
+    scrollFrame=requestAnimationFrame(()=>{
+      slider.value=String(Math.round(fo.scrollLeft));
+      frissitMobilNyilat();
+      scrollFrame=0;
+    });
+  },{passive:true});
+  buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet,true)));
+  sortButtons.forEach(b=>b.addEventListener('click',()=>sort(b)));
+  filterInputs.forEach(i=>i.addEventListener('input',filters));
+  window.addEventListener('resize',()=>requestAnimationFrame(()=>{mobilTablaSorrend();layout();}));
+  rowList.forEach(r=>r.dataset.filterMatch='1');
+  // Első megnyitáskor nincs korábbi választás: az Összes nézet az alapértelmezés.
+  // Frissítéskor az ezen a böngészőn legutóbb kiválasztott nézet áll vissza.
+  view(currentView,false);
+  layout();
+})();
+(function(){
+  const btn=document.getElementById('theme-toggle');
+  if(!btn) return;
+  const icon=btn.querySelector('.theme-icon');
+  function applyTheme(light, save=true){
+    document.body.classList.toggle('light-mode',light);
+    const darkEnabled=!light;
+    btn.setAttribute('aria-pressed',String(darkEnabled));
+    btn.setAttribute('aria-label',darkEnabled?'Sötét mód bekapcsolva':'Sötét mód kikapcsolva');
+    btn.title=darkEnabled?'Sötét mód bekapcsolva':'Sötét mód kikapcsolva';
+    if(icon) icon.textContent='☾';
+    if(save){
+      try{localStorage.setItem('futar-theme', light ? 'light' : 'dark');}catch(e){}
+    }
+    window.dispatchEvent(new Event('resize'));
+  }
+  let savedTheme=null;
+  try{savedTheme=localStorage.getItem('futar-theme');}catch(e){}
+  applyTheme(savedTheme==='light', false);
+  btn.addEventListener('click',()=>applyTheme(!document.body.classList.contains('light-mode'), true));
+})();
+
+// Archívumban végzett böngésző-újratöltés (F5 / Ctrl+R) esetén térjünk vissza a mai főoldalra.
+// Az archívum normál megnyitása és a dátumválasztóval történő navigáció továbbra is működik.
+(function(){
+  const isArchivePage = window.location.pathname.includes('/data/history/');
+  if (!isArchivePage) return;
+  let isReload = false;
+  try {
+    const navigation = performance.getEntriesByType('navigation');
+    if (navigation && navigation.length) {
+      isReload = navigation[0].type === 'reload';
+    } else if (performance.navigation) {
+      isReload = performance.navigation.type === 1;
+    }
+  } catch (e) {}
+  if (isReload) {
+    window.location.replace('https://owm-a.github.io/hidegtarolas/');
+  }
+})();
+
+// A "Mai nap" gomb mindig a kanonikus, aktuális napi főoldalra visz.
+(function(){
+  const button = document.getElementById('go-today-button');
+  if (button) button.addEventListener('click', () => {
+    window.location.href = 'https://owm-a.github.io/hidegtarolas/';
+  });
+})();
+
+// Napi archívum: naptárnézet, kizárólag elérhető napok választhatók.
+(function(){
+  const dateButton = document.getElementById('history-date-button');
+  const dateLabel = document.getElementById('history-date-label');
+  const popup = document.getElementById('history-calendar-popup');
+  const monthLabel = document.getElementById('history-month-label');
+  const grid = document.getElementById('history-calendar-grid');
+  const prevButton = document.getElementById('history-month-prev');
+  const nextButton = document.getElementById('history-month-next');
+  const status = document.getElementById('history-load-status');
+  if (!dateButton || !dateLabel || !popup || !monthLabel || !grid || !status) return;
+
+  const inHistoryFolder = window.location.pathname.includes('/data/history/');
+  const historyBase = inHistoryFolder ? './' : 'data/history/';
+
+  // A fejlécben a dátum magyar formátumú (pl. 2026.10.14.),
+  // az archív HTML fájlnévben pedig ISO formátumú (2026-10-14.html).
+  // Az archív fájlnév legyen az elsődleges forrás, így a mai dátum
+  // soha nem írhatja felül a megnyitott archív napot.
+  const archivePath = window.location.pathname.split('/').pop() || '';
+  const archiveMatch = archivePath.match(/[0-9]{4}-[0-9]{2}-[0-9]{2}(?=\.html$)/);
+  const currentDateMatch = document.querySelector('.fejlec-bal .adat');
+  const headerText = currentDateMatch ? currentDateMatch.textContent : '';
+  const headerMatch = headerText.match(/[0-9]{4}[.\/-][0-9]{2}[.\/-][0-9]{2}/);
+  const headerDate = headerMatch
+    ? headerMatch[0].replace(/[.\/]/g, '-')
+    : '';
+  const currentDate = inHistoryFolder && archiveMatch
+    ? archiveMatch[0]
+    : headerDate;
+  const weekdays = ['H', 'K', 'Sze', 'Cs', 'P', 'Szo', 'V'];
+  let availableDates = new Set();
+  let selectedDate = '';
+  let shownMonth = new Date();
+  shownMonth = new Date(shownMonth.getFullYear(), shownMonth.getMonth(), 1);
+
+  function getHomeUrl(){
+    const path = window.location.pathname;
+    const base = inHistoryFolder
+      ? path.split('/data/history/')[0] + '/'
+      : (path.endsWith('/') ? path : path.slice(0, path.lastIndexOf('/') + 1));
+    return base;
+  }
+  function formatDate(date){
+    const [y,m,d] = date.split('-').map(Number);
+    return `${y}.${String(m).padStart(2,'0')}.${String(d).padStart(2,'0')}.`;
+  }
+  function dateKey(year, month, day){
+    return `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  }
+  function closeCalendar(){
+    popup.hidden = true;
+    dateButton.setAttribute('aria-expanded','false');
+  }
+  function renderCalendar(){
+    const year = shownMonth.getFullYear();
+    const month = shownMonth.getMonth();
+    monthLabel.textContent = new Intl.DateTimeFormat('hu-HU',{month:'long',year:'numeric'}).format(shownMonth);
+    grid.replaceChildren();
+    weekdays.forEach(day => {
+      const el = document.createElement('div');
+      el.className = 'history-calendar-weekday';
+      el.textContent = day;
+      el.setAttribute('role','columnheader');
+      grid.appendChild(el);
+    });
+    const firstDay = new Date(year, month, 1);
+    const offset = (firstDay.getDay() + 6) % 7;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    for(let i=0;i<offset;i++){
+      const blank = document.createElement('span');
+      blank.setAttribute('aria-hidden','true');
+      grid.appendChild(blank);
+    }
+    for(let day=1; day<=daysInMonth; day++){
+      const key = dateKey(year, month, day);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'history-calendar-day';
+      button.textContent = String(day);
+      button.setAttribute('role','gridcell');
+      button.setAttribute('aria-label',formatDate(key));
+      if(availableDates.has(key)){
+        button.classList.add('available');
+        button.disabled = false;
+        if(key === selectedDate) button.classList.add('selected');
+        button.addEventListener('click', () => chooseDate(key));
+      } else {
+        button.disabled = true;
+        button.setAttribute('aria-disabled','true');
+      }
+      grid.appendChild(button);
+    }
+    if(prevButton) prevButton.disabled = availableDates.size === 0 || [...availableDates].every(d => d.slice(0,7) >= dateKey(year,month,1).slice(0,7));
+    if(nextButton) nextButton.disabled = availableDates.size === 0 || [...availableDates].every(d => d.slice(0,7) <= dateKey(year,month,1).slice(0,7));
+  }
+  async function chooseDate(date){
+    if(!availableDates.has(date)) return;
+    selectedDate = date;
+    dateLabel.textContent = formatDate(date);
+    closeCalendar();
+    status.textContent = '';
+    const budapestiReszek = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Europe/Budapest', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(new Date());
+    const budapestiDatum = Object.fromEntries(budapestiReszek.map(p => [p.type, p.value]));
+    const maiDatum = `${budapestiDatum.year}-${budapestiDatum.month}-${budapestiDatum.day}`;
+    if(date === maiDatum){
+      window.location.href = getHomeUrl();
+      return;
+    }
+    dateButton.disabled = true;
+    status.textContent = 'Archívum megnyitása…';
+    try{
+      const response = await fetch(historyBase + date + '.html', {method:'HEAD',cache:'no-store'});
+      if(!response.ok) throw new Error('Ehhez a naphoz még nincs HTML-archívum.');
+      window.location.href = historyBase + date + '.html';
+    }catch(err){
+      status.textContent = err.message || 'Az archívum nem tölthető be.';
+      dateButton.disabled = false;
+    }
+  }
+
+  dateButton.addEventListener('click', () => {
+    const opening = popup.hidden;
+    popup.hidden = !opening;
+    dateButton.setAttribute('aria-expanded',String(opening));
+    if(opening) renderCalendar();
+  });
+  if(prevButton) prevButton.addEventListener('click',()=>{shownMonth=new Date(shownMonth.getFullYear(),shownMonth.getMonth()-1,1);renderCalendar();});
+  if(nextButton) nextButton.addEventListener('click',()=>{shownMonth=new Date(shownMonth.getFullYear(),shownMonth.getMonth()+1,1);renderCalendar();});
+  document.addEventListener('click',e=>{if(!e.target.closest('#history-calendar')) closeCalendar();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape') closeCalendar();});
+
+  fetch(historyBase + 'index.json',{cache:'no-store'})
+    .then(r=>{if(!r.ok) throw new Error('Az archívumlista nem érhető el.');return r.json();})
+    .then(data=>{
+      const archiveDates = Array.isArray(data.dates) ? [...new Set(data.dates.filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)))].sort() : [];
+      const budapestiReszek = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Europe/Budapest', year: 'numeric', month: '2-digit', day: '2-digit'
+      }).formatToParts(new Date());
+      const budapestiDatum = Object.fromEntries(budapestiReszek.map(p => [p.type, p.value]));
+      const maiDatum = `${budapestiDatum.year}-${budapestiDatum.month}-${budapestiDatum.day}`;
+      const dates = [...new Set([...archiveDates, maiDatum])].sort();
+      availableDates = new Set(dates);
+      selectedDate = dates.includes(currentDate) ? currentDate : (dates.includes(maiDatum) ? maiDatum : dates[dates.length-1]);
+      dateLabel.textContent = formatDate(selectedDate);
+      const [year,month] = selectedDate.split('-').map(Number);
+      shownMonth = new Date(year,month-1,1);
+      dateButton.disabled = false;
+      if(!archiveDates.length) status.textContent = 'Csak a mai nap érhető el; régebbi napokhoz archívum szükséges.';
+      renderCalendar();
+    })
+    .catch(()=>{
+      dateLabel.textContent = 'Archívum nem érhető el';
+      dateButton.disabled = true;
+      status.textContent = 'Az archívumlista nem érhető el.';
+    });
+})();
+
+// A főcímre kattintva is mindig a kanonikus, aktuális napi főoldal nyílik meg.
+(function(){
+  const cim=document.getElementById('oldal-cim');
+  if(!cim) return;
+  const maiNap=()=>{ window.location.href='https://owm-a.github.io/hidegtarolas/'; };
+  cim.addEventListener('click',maiNap);
+  cim.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){
+      e.preventDefault();
+      maiNap();
+    }
+  });
+})();
+
+// Automatikus oldalfrissítés 5 percenként, kapcsolható gombbal.
+(function(){
+  const button = document.getElementById('auto-refresh-toggle');
+  if (!button) return;
+  // Új oldalbetöltéskor mindig bekapcsolt állapotból indul.
+  // A gomb az aktuális munkamenetben kikapcsolható, de ezt nem mentjük el.
+  let enabled = true;
+
+  function render(){
+    button.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+    button.title = enabled ? 'Automatikus frissítés bekapcsolva' : 'Automatikus frissítés kikapcsolva';
+  }
+  render();
+  button.addEventListener('click', function(){
+    enabled = !enabled;
+    render();
+  });
+  window.setInterval(function(){
+    if (enabled) window.location.reload();
+  }, 5 * 60 * 1000);
+})();
+</script>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+const terkepJarmuvek = [];
+
+const terkepZonak = [{"kulcs": "bekasmegyer", "nev": "Békásmegyer", "lat_min": 47.602215, "lat_max": 47.603865, "lon_min": 19.06499, "lon_max": 19.067875}, {"kulcs": "csepel_szent_imre", "nev": "Csepel, Szent Imre tér", "lat_min": 47.430462715266955, "lat_max": 47.431423515348, "lon_min": 19.07051806889125, "lon_max": 19.07169262649567}, {"kulcs": "andor", "nev": "ArrivaBus Andor telephely", "lat_min": 47.4569097787659, "lat_max": 47.45959981381292, "lon_min": 19.02607662455454, "lon_max": 19.030488378221204}, {"kulcs": "bogancs", "nev": "ArrivaBus Bogáncs telephely", "lat_min": 47.569747494207284, "lat_max": 47.5731577937613, "lon_min": 19.131368356259316, "lon_max": 19.137645363043006}, {"kulcs": "csepel", "nev": "ArrivaBus Szállító telephely", "lat_min": 47.441927955392465, "lat_max": 47.443590686509864, "lon_min": 19.079985583592567, "lon_max": 19.084841859297306}, {"kulcs": "kobanya_also", "nev": "Kőbánya alsó", "lat_min": 47.48261593267198, "lat_max": 47.48462411413879, "lon_min": 19.12645422616769, "lon_max": 19.128730058590182}, {"kulcs": "kobanya_kispest", "nev": "Kőbánya-Kispest", "lat_min": 47.461787898640296, "lat_max": 47.462689191826485, "lon_min": 19.15019439393539, "lon_max": 19.151124752353716}, {"kulcs": "mexikoi_ut", "nev": "Mexikói út", "lat_min": 47.51961606697856, "lat_max": 47.52095851759252, "lon_min": 19.08940531844454, "lon_max": 19.092618832603126}, {"kulcs": "ors_vezer_E", "nev": "Örs vezér tere M+H (észak", "lat_min": 47.5037844857071, "lat_max": 47.505753039404794, "lon_min": 19.135811875938057, "lon_max": 19.137435732899583}, {"kulcs": "ors_vezer_D", "nev": "Örs vezér tere M+H (dél", "lat_min": 47.49940180349382, "lat_max": 47.50073054813034, "lon_min": 19.134581747988502, "lon_max": 19.136151481399818}, {"kulcs": "pestszentlorinc", "nev": "Pestszentlőrinc", "lat_min": 47.45337269162761, "lat_max": 47.45651651124522, "lon_min": 19.178530697809354, "lon_max": 19.18350366084327}];
+
+
+
+const map = L.map(
+    "geozona-terkep"
+).setView(
+    [47.4979, 19.0402],
+    11
+);
+
+// OSM Standard, a sötét/világos megjelenítést a dashboard CSS kapcsolja.
+
+L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors"
+    }
+).addTo(map);
+
+
+const terkepElemek = [];
+const jarmuMarkerek = {};
+const TERKEP_MAX_ZOOM = 19;
+
+
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
+
+
+function jarmuIkon(statusz) {
+
+    let osztaly = "gray";
+
+    if (statusz === "OK") {
+        osztaly = "green";
+    }
+    else if (statusz === "NEM") {
+        osztaly = "red";
+    }
+    else if (statusz === "SÁRGA") {
+        // Betöltéskor / időoszlop nélküli alapnézetben nincs külön sárga PIN:
+        // az előzetes állapot is szürke marad, mint a normál alapnézetben.
+        osztaly = "gray";
+    }
+    else if (statusz === "PÓTLÁS") {
+        osztaly = "blue";
+    }
+
+    return L.divIcon({
+
+        className: "",
+
+        html:
+            '<div class="vehicle-pin '
+            + osztaly
+            + '"></div>',
+
+        iconSize: [22, 30],
+
+        iconAnchor: [11, 30],
+
+        popupAnchor: [0, -28]
+
+    });
+
+}
+
+
+// ---------------------------------------------------------
+// GEOZÓNÁK
+// ---------------------------------------------------------
+
+terkepZonak.forEach(function(zona) {
+
+    const rectangle = L.rectangle(
+
+        [
+            [zona.lat_min, zona.lon_min],
+            [zona.lat_max, zona.lon_max]
+        ],
+
+        {
+            color: (
+                zona.nev === "ArrivaBus Andor telephely"
+                || zona.nev === "ArrivaBus Bogáncs telephely"
+                || zona.nev === "ArrivaBus Szállító telephely"
+            ) ? "#00a651" : "#3388ff",
+            weight: 2,
+            fillOpacity: 0.12
+        }
+
+    ).addTo(map);
+
+
+    // A geozóna téglalapjára kattintva nem nyitunk külön információs ablakot.
+    terkepElemek.push(rectangle);
+
+});
+
+
+// ---------------------------------------------------------
+// JÁRMŰVEK
+// ---------------------------------------------------------
+
+terkepJarmuvek.forEach(function(jarmu) {
+
+    const marker = L.marker(
+
+        [
+            jarmu.latitude,
+            jarmu.longitude
+        ],
+
+        {
+            icon: jarmuIkon(
+                jarmu.statusz
+            )
+        }
+
+    );
+
+    marker.__forras = String(jarmu.forras || "biztor").trim() || "biztor";
+
+
+    let statuszSzoveg = "Nincs értékelés";
+
+    if (jarmu.statusz === "OK") {
+        statuszSzoveg =
+            '<span style="color:#00a040;font-weight:bold;">OK</span>';
+    }
+    else if (jarmu.statusz === "NEM") {
+        statuszSzoveg =
+            '<span style="color:#e00000;font-weight:bold;">ELTÉRÉS</span>';
+    }
+    else if (jarmu.statusz === "PÓTLÁS") {
+        statuszSzoveg =
+            '<span style="color:#4da3ff;font-weight:bold;">pótlás/cserekocsi</span>';
+    }
+
+
+    const jarmuAdatHtml =
+        "<b><u>"
+        + escapeHtml(jarmu.rendszam)
+        + "</u></b><br>"
+        + "<b>Viszonylat:</b> "
+        + escapeHtml(jarmu.viszonylat)
+        + "<br>"
+        + "<b>Forda:</b> "
+        + escapeHtml(jarmu.forda)
+        + "<br>"
+        + "<b>Geozóna:</b> "
+        + escapeHtml(jarmu.helyszin)
+        + "<br>"
+        + "<b>Állapot:</b> "
+        + statuszSzoveg
+        + "<br>"
+        + "<b>Utolsó friss GPS-pozíció:</b> "
+        + escapeHtml(jarmu.pozicio_frissitve || jarmu.frissitve)
+        + "<br>"
+        + "<b>GPS:</b> "
+        + escapeHtml(jarmu.latitude.toFixed(6) + ", " + jarmu.longitude.toFixed(6));
+
+    // Asztali gépen az adatok csak rámutatáskor jelennek meg,
+    // hogy kattintáskor ne legyen egyszerre tooltip és popup.
+    // Érintőképernyőn a PIN-re koppintva jelenik meg a popup.
+    const egeresEszkoz = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (egeresEszkoz) {
+        marker.bindTooltip(jarmuAdatHtml, {
+            direction: "top",
+            sticky: true,
+            opacity: 0.97,
+            className: "jarmu-hover-adatok"
+        });
+    } else {
+        marker.bindPopup(jarmuAdatHtml);
+    }
+
+
+    const rendszamKulcs = String(jarmu.rendszam || "").trim().toUpperCase();
+    if (rendszamKulcs) {
+        jarmuMarkerek[rendszamKulcs] = marker;
+    }
+
+    jarmuMarkerek["__lista__"] = jarmuMarkerek["__lista__"] || [];
+    jarmuMarkerek["__lista__"].push(marker);
+
+});
+
+// Kattintáskor a térképhez görgetünk, majd a megadott koordinátára fókuszálunk.
+function ugrasTerkephez(koordinata, marker, kesleltetes=220) {
+    const terkepDoboz = document.getElementById("geozona-terkep");
+    if (terkepDoboz) terkepDoboz.scrollIntoView({behavior: "smooth", block: "start"});
+    setTimeout(function() {
+        map.invalidateSize();
+        map.flyTo(koordinata, TERKEP_MAX_ZOOM, {duration: 0.7});
+        setTimeout(function() { if (marker) marker.openPopup(); }, 740);
+    }, kesleltetes);
+}
+
+// A Valós tárolás koordinátáihoz csak kattintáskor jelenik meg külön pin.
+// Geozónanév nem kattintható; kizárólag a geozónán kívüli GPS-koordináta.
+const tarolasMarkerek = [];
+function tarolasiKoordinata(hely) {
+    const szoveg = String(hely || "").trim();
+    if (!szoveg || /^(n\.a|nincs adat|pótlás\/cserekocsi|-)$/i.test(szoveg)) return null;
+    const zona = terkepZonak.find(function(z) {
+        return String(z.nev || "").trim().toLocaleLowerCase("hu") === szoveg.toLocaleLowerCase("hu");
+    });
+    // A geozónák neveihez soha nem készítünk tárolási pint.
+    if (zona) return null;
+    const m = szoveg.match(/(-?\d{1,2}(?:\.\d+)?)\s*[,;]\s*(-?\d{1,3}(?:\.\d+)?)/);
+    if (m) {
+        const lat = Number(m[1]), lon = Number(m[2]);
+        if (Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) return [lat, lon];
+    }
+    return null;
+}
+
+document.querySelectorAll("#fix-tbody-common tr[data-forras]").forEach(function(tr) {
+    const storageCell = tr.querySelector("td.storage");
+    if (!storageCell) return;
+    const hely = storageCell.textContent.trim();
+    const koordinata = tarolasiKoordinata(hely);
+    if (!koordinata) return;
+
+    storageCell.classList.add("storage-coordinate-clickable");
+    storageCell.title = "Kattints a koordináta térképen való megjelenítéséhez";
+    storageCell.setAttribute("role", "button");
+    storageCell.setAttribute("tabindex", "0");
+
+    const rendszam = tr.querySelector(".rendszam-link")?.dataset.rendszam || "";
+    const viszonylat = tr.children[0]?.textContent.trim() || "";
+    const forda = tr.children[1]?.textContent.trim() || "";
+    const forras = String(tr.dataset.forras || "biztor").trim();
+    let marker = null;
+
+    function mutatTarolasiPint() {
+        if (!marker) {
+            marker = L.marker(koordinata);
+            marker.__forras = forras;
+            marker.bindPopup(
+                "<b>Valós tárolás</b><br>"
+                + "<b>Hely:</b> " + escapeHtml(hely) + "<br>"
+                + "<b>Rendszám:</b> <u>" + escapeHtml(rendszam) + "</u><br>"
+                + "<b>Viszonylat:</b> " + escapeHtml(viszonylat) + "<br>"
+                + "<b>Forda:</b> " + escapeHtml(forda)
+            );
+        }
+        if (!tarolasMarkerek.includes(marker)) tarolasMarkerek.push(marker);
+        if (!map.hasLayer(marker)) marker.addTo(map);
+        ugrasTerkephez(koordinata, marker);
+    }
+
+    storageCell.addEventListener("click", mutatTarolasiPint);
+    storageCell.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            mutatTarolasiPint();
+        }
+    });
+});
+
+// Az idővonal I/N/P cellái az adott percben elmentett GPS-pozícióra mutatnak.
+// Egy időoszlop fejlécére kattintva az éppen látható sorok azonos időpontú lokációi egyszerre jelennek meg.
+const tortenetiLokacioMarkerek = [];
+let tortenetiOszlopAktiv = false;
+function tortenetiOraPerc(ertek) {
+    const match = String(ertek || "").trim().match(/(?:^|\D)(\d{1,2}):(\d{2})(?:\D|$)/);
+    if (!match) return null;
+    const ora = Number(match[1]);
+    const perc = Number(match[2]);
+    if (ora > 23 || perc > 59) return null;
+    return ora * 60 + perc;
+}
+
+// A történeti lokáció időbeli színe és láthatósága ugyanazt a szabályt követi:
+// szolgálat előtt 15 percig és utána 15 percig szürke, a szolgálat ideje alatt
+// I=zöld, N=piros, P=kék, végleges döntés nélkül pedig szürke.
+function tortenetiLokacioAllapot(cell) {
+    const sor = cell.closest("tr");
+    const kezdesSzoveg = sor?.querySelector(".kezdés")?.textContent || "";
+    const vegzesSzoveg = sor?.querySelector(".végzés")?.textContent || "";
+    const idoSzoveg = cell.dataset.idopont
+        || document.querySelector('.idopont-ertek[data-time-index="' + cell.dataset.timeIndex + '"]')?.textContent
+        || "";
+    let kezdes = tortenetiOraPerc(kezdesSzoveg);
+    let vegzes = tortenetiOraPerc(vegzesSzoveg);
+    let ido = tortenetiOraPerc(idoSzoveg);
+
+    const nyersStatusz = String(cell.dataset.statusz || "").trim().toUpperCase();
+    const statuszbolJarmu = nyersStatusz === "I" ? "OK"
+        : nyersStatusz === "N" ? "NEM"
+        : nyersStatusz === "P" ? "PÓTLÁS" : "";
+
+    // Ha a sorban nincs használható időadat, a korábbi státuszkezelés marad érvényben.
+    if (kezdes === null || vegzes === null || ido === null) {
+        return {jarmuStatusz: statuszbolJarmu, megjelenit: true, szolgIdonBelul: true};
+    }
+
+    // Éjfélen átnyúló szolgálatok kezelése.
+    if (vegzes < kezdes) {
+        vegzes += 1440;
+        if (ido < kezdes) ido += 1440;
+    }
+
+    const szolgIdonBelul = ido >= kezdes && ido <= vegzes;
+    const beleferElotte = ido >= kezdes - 15 && ido < kezdes;
+    const beleferUtana = ido > vegzes && ido <= vegzes + 15;
+
+    if (!szolgIdonBelul && !beleferElotte && !beleferUtana) {
+        return {jarmuStatusz: "", megjelenit: false, szolgIdonBelul: false};
+    }
+
+    if (!szolgIdonBelul) {
+        return {jarmuStatusz: "", megjelenit: true, szolgIdonBelul: false};
+    }
+
+    return {
+        jarmuStatusz: statuszbolJarmu,
+        megjelenit: true,
+        szolgIdonBelul: true
+    };
+}
+
+function tortenetiMarkerLetrehozasa(cell) {
+    const idoAllapot = tortenetiLokacioAllapot(cell);
+    if (!idoAllapot.megjelenit) return null;
+    if (cell.__tortenetiMarker) return cell.__tortenetiMarker;
+
+    const koordinata = [Number(cell.dataset.lat), Number(cell.dataset.lon)];
+    if (!Number.isFinite(koordinata[0]) || !Number.isFinite(koordinata[1])) return null;
+
+    const jarmuStatusz = idoAllapot.jarmuStatusz;
+    const marker = L.marker(koordinata, {icon: jarmuIkon(jarmuStatusz)});
+    marker.__forras = String(cell.closest("tr")?.dataset.forras || "biztor").trim();
+    marker.__tortenetiStatusz = jarmuStatusz;
+
+    let statuszSzoveg = "";
+    if (jarmuStatusz === "OK") statuszSzoveg = '<span style="color:#00a040;font-weight:bold;">OK</span>';
+    else if (jarmuStatusz === "NEM") statuszSzoveg = '<span style="color:#e00000;font-weight:bold;">ELTÉRÉS</span>';
+    else if (jarmuStatusz === "PÓTLÁS") statuszSzoveg = '<span style="color:#4da3ff;font-weight:bold;">pótlás/cserekocsi</span>';
+
+    const gpsIdo = cell.dataset.gpsIdo || "nem ismert";
+    const rendszam = cell.dataset.rendszam || "n.a";
+    const viszonylat = cell.dataset.viszonylat || "";
+    const forda = cell.dataset.forda || "";
+    const helyszin = cell.dataset.helyszin || "n.a";
+    const jarmuAdatHtml =
+        "<b><u>" + escapeHtml(rendszam) + "</u></b><br>"
+        + "<b>Viszonylat:</b> " + escapeHtml(viszonylat) + "<br>"
+        + "<b>Forda:</b> " + escapeHtml(forda) + "<br>"
+        + "<b>Geozóna:</b> " + escapeHtml(helyszin) + "<br>"
+        + (statuszSzoveg ? "<b>Állapot:</b> " + statuszSzoveg + "<br>" : "")
+        + "<b>Utolsó friss GPS-pozíció:</b> " + escapeHtml(gpsIdo) + "<br>"
+        + "<b>GPS:</b> " + escapeHtml(koordinata[0].toFixed(6) + ", " + koordinata[1].toFixed(6));
+
+    // Ugyanaz a jármű-pin, tooltip/popup viselkedés és információs szerkezet, mint az aktuális pozícióknál.
+    const egeresEszkoz = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (egeresEszkoz) {
+        marker.bindTooltip(jarmuAdatHtml, {direction:"top", sticky:true, opacity:0.97, className:"jarmu-hover-adatok"});
+    } else {
+        marker.bindPopup(jarmuAdatHtml);
+    }
+    cell.__tortenetiMarker = marker;
+    return marker;
+}
+
+// A történeti GPS-pontok közelség szerint csoportosulnak. A klaszter színenként
+// mutatja a darabszámot (I/zöld, N/piros, P/kék); a pontokat nem terítjük szét.
+// Kattintáskor nagyítunk, így a helyek fokozatosan válnak külön láthatóvá.
+const tortenetiCsoportMarkerek = [];
+function tortenetiStatuszSzin(statusz) {
+    if (statusz === "OK") return "#198754";
+    if (statusz === "NEM") return "#dc3545";
+    if (statusz === "PÓTLÁS") return "#0d6efd";
+    return "#687384";
+}
+function aktualisTerkepNezet() {
+    try {
+        const v = localStorage.getItem("hidegtarolas-aktiv-nezet");
+        return ["mindketto", "biztor", "garazs"].includes(v) ? v : "mindketto";
+    } catch (e) { return "mindketto"; }
+}
+function markerAktivNezetben(marker) {
+    const nezet = aktualisTerkepNezet();
+    return nezet === "mindketto" || marker.__forras === nezet;
+}
+function frissitTortenetiCsoportokat() {
+    tortenetiCsoportMarkerek.forEach(function(m) { if (map.hasLayer(m)) map.removeLayer(m); });
+    tortenetiCsoportMarkerek.length = 0;
+    const osszesTorteneti = tortenetiLokacioMarkerek.filter(function(m) { return !!m; });
+    const tortenetiak = osszesTorteneti.filter(markerAktivNezetben);
+    // Az aktuális nézetbe nem tartozó pontokat se egyedileg, se klaszterben ne mutassuk.
+    osszesTorteneti.forEach(function(m) {
+        if (!markerAktivNezetben(m)) { if (map.hasLayer(m)) map.removeLayer(m); }
+        else if (!map.hasLayer(m)) m.addTo(map);
+    });
+    // 15-ös zoom fölött minden pozíció külön jelölőként látszik, nincs klaszterezés.
+    if (map.getZoom() > 15 || tortenetiak.length < 2) return;
+
+    // Közös képernyőrács: egy klaszterbe kerülhet több állapot, de mindegyik
+    // saját színű számlálót kap. A rács zoommal kisebbedik, az azonos koordináták
+    // pedig külön nagyításkor sem vesznek el.
+    const racsMeret = map.getZoom() > 15 ? 20 : map.getZoom() > 12 ? 30 : 48;
+    const csoportok = new Map();
+    tortenetiak.forEach(function(m) {
+        const pont = map.latLngToLayerPoint(m.getLatLng());
+        const kulcs = Math.floor(pont.x / racsMeret) + ":" + Math.floor(pont.y / racsMeret);
+        if (!csoportok.has(kulcs)) csoportok.set(kulcs, {pontok: []});
+        csoportok.get(kulcs).pontok.push(m);
+    });
+
+    const klaszterezettPontok = new Set();
+    csoportok.forEach(function(csoport) {
+        if (csoport.pontok.length < 2) return;
+        csoport.pontok.forEach(function(m) { klaszterezettPontok.add(m); });
+        const latlngs = csoport.pontok.map(function(m) { return m.getLatLng(); });
+        const kozep = L.latLng(
+            latlngs.reduce((a, ll) => a + ll.lat, 0) / latlngs.length,
+            latlngs.reduce((a, ll) => a + ll.lng, 0) / latlngs.length
+        );
+        const darabok = new Map();
+        csoport.pontok.forEach(function(m) {
+            const statusz = m.__tortenetiStatusz || "EGYEB";
+            darabok.set(statusz, (darabok.get(statusz) || 0) + 1);
+        });
+        const sorrend = ["OK", "NEM", "PÓTLÁS", "EGYEB"];
+        const elemek = sorrend.filter(function(statusz) { return darabok.has(statusz); });
+        const szoveg = elemek.map(function(statusz) {
+            const szin = tortenetiStatuszSzin(statusz);
+            const szam = darabok.get(statusz);
+            return '<span style="display:inline-flex;align-items:center;justify-content:center;min-width:16px;padding:2px 3px;border-radius:8px;background:' + szin + ';color:#fff;font-weight:800;font-size:11px;line-height:15px;">' + szam + '</span>';
+        }).join('<span style="color:#374151;font-weight:800;padding:0 1px;">/</span>');
+        // Dinamikus szélesség: csak a szükséges helyet foglalja, 1/2/3 állapotnál is.
+        const szelesseg = Math.max(30, Math.min(92, elemek.length * 25 + Math.max(0, elemek.length - 1) * 5));
+        const ikon = L.divIcon({
+            className: "",
+            iconSize: [szelesseg, 27],
+            iconAnchor: [szelesseg / 2, 13],
+            html: '<div style="display:flex;align-items:center;justify-content:center;gap:1px;min-height:25px;box-sizing:border-box;padding:2px 4px;border:1.5px solid #fff;border-radius:14px;background:#fff;box-shadow:0 1px 5px #0007;white-space:nowrap;">' + szoveg + '</div>'
+        });
+        const osszevono = L.marker(kozep, {
+            icon: ikon,
+            keyboard: true,
+            title: elemek.map(function(statusz) {
+                const cimke = statusz === "OK" ? "zöld/I" : statusz === "NEM" ? "piros/N" : statusz === "PÓTLÁS" ? "kék/P" : "egyéb";
+                return darabok.get(statusz) + " " + cimke;
+            }).join(", ")
+        });
+        osszevono.on("click", function() {
+            if (map.getZoom() < TERKEP_MAX_ZOOM) {
+                map.setView(kozep, Math.min(map.getZoom() + 2, TERKEP_MAX_ZOOM));
+            } else {
+                // Azonos koordináták maximális zoomnál sem fedik el a tartalmat:
+                // a csoport popupja felsorolja a hozzá tartozó járműveket/státuszokat.
+                const reszletek = csoport.pontok.map(function(m) {
+                    const el = m.getPopup && m.getPopup();
+                    const tartalom = el ? el.getContent() : "GPS-pozíció";
+                    return '<div style="padding:4px 0;border-bottom:1px solid #ddd;">' + tartalom + '</div>';
+                }).join("");
+                L.popup({maxWidth:300,maxHeight:260}).setLatLng(kozep).setContent(reszletek).openOn(map);
+            }
+        });
+        osszevono.addTo(map);
+        tortenetiCsoportMarkerek.push(osszevono);
+    });
+    klaszterezettPontok.forEach(function(m) { if (map.hasLayer(m)) map.removeLayer(m); });
+}
+map.on("zoomend", frissitTortenetiCsoportokat);
+
+document.querySelectorAll(".idopont-cella.lokacio-kattinthato[data-lat][data-lon]").forEach(function(cell) {
+    function mutatTortenetiLokaciot() {
+        const marker = tortenetiMarkerLetrehozasa(cell);
+        if (!marker) return;
+        const marEzAzEgyetlen = tortenetiLokacioMarkerek.length === 1 && tortenetiLokacioMarkerek[0] === marker && map.hasLayer(marker);
+        (jarmuMarkerek["__lista__"] || []).forEach(function(m) { if (map.hasLayer(m)) map.removeLayer(m); });
+        tarolasMarkerek.forEach(function(m) { if (map.hasLayer(m)) map.removeLayer(m); });
+        tortenetiLokacioMarkerek.forEach(function(m) { if (map.hasLayer(m)) map.removeLayer(m); });
+        tortenetiLokacioMarkerek.length = 0;
+        tortenetiOszlopAktiv = true;
+        if (marEzAzEgyetlen) {
+            frissitLokacioSzam();
+            return;
+        }
+        tortenetiLokacioMarkerek.push(marker);
+        marker.addTo(map);
+        ugrasTerkephez([Number(cell.dataset.lat), Number(cell.dataset.lon)], marker);
+        frissitTortenetiCsoportokat();
+    }
+    cell.addEventListener("click", mutatTortenetiLokaciot);
+    cell.setAttribute("role", "button");
+    cell.setAttribute("tabindex", "0");
+    cell.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            mutatTortenetiLokaciot();
+        }
+    });
+});
+
+// A kiválasztott rendszám vagy időpont megjelenítése a nézetfülek mellett.
+let kijeloltTortenetiAdat = null;
+function frissitKijeloltAdat(tipus, ertek) {
+    kijeloltTortenetiAdat = (tipus && ertek !== null && ertek !== undefined && ertek !== "")
+        ? {tipus: tipus, ertek: ertek} : null;
+    document.querySelectorAll(".fo-kozos-tabla td.rendszam.kijelolt-rendszam").forEach(function(td) {
+        td.classList.remove("kijelolt-rendszam");
+    });
+    if (kijeloltTortenetiAdat && tipus === "rendszam") {
+        const keresett = String(ertek).trim().toUpperCase();
+        document.querySelectorAll("#fix-tbody-common tr[data-forras]").forEach(function(tr) {
+            const link = tr.querySelector(".rendszam-link");
+            const td = link && link.closest("td.rendszam");
+            if (td && String(link.dataset.rendszam || link.textContent).trim().toUpperCase() === keresett) {
+                td.classList.add("kijelolt-rendszam");
+            }
+        });
+    }
+    const cel = document.getElementById("kijelolt-adat");
+    if (!cel) return;
+    if (!kijeloltTortenetiAdat) { cel.textContent = ""; return; }
+    if (tipus === "jarmu-idopont") {
+        const rendszam = String(ertek.rendszam || "n.a.");
+        const idopont = String(ertek.idopont || "ismeretlen időpont");
+        cel.innerHTML = "<span>Rendszám:</span><span class=\"kijelolt-ertek\">" + escapeHtml(rendszam) +
+            "</span><span>Időpont:</span><span class=\"kijelolt-ertek\">" + escapeHtml(idopont) + "</span>";
+        return;
+    }
+    const cimke = tipus === "rendszam" ? "Rendszám:" : "Időpont:";
+    cel.innerHTML = "<span>" + cimke + "</span><span class=\"kijelolt-ertek\">" + escapeHtml(String(ertek)) + "</span>";
+}
+
+// Egy rendszám melletti apró előzménygomb az adott rendszám teljes napi GPS-történetét jeleníti meg.
+document.querySelectorAll(".rendszam-napi-elozmeny[data-rendszam-elozmeny]").forEach(function(btn) {
+    btn.addEventListener("click", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const rendszam = String(this.dataset.rendszamElozmeny || "").trim().toUpperCase();
+        if (!rendszam) return;
+        frissitKijeloltAdat("rendszam", rendszam);
+
+        // A rendszám napi előzménye önálló történeti nézet: az időoszlop kijelölését és a korábbi
+        // marker-készleteket levesszük, majd csak ehhez a rendszámhoz tartozó GPS-pontokat tesszük fel.
+        tortenetiOszlopAktiv = true;
+        document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEach(function(elem) {
+            elem.classList.remove("aktiv-idopont");
+        });
+        (jarmuMarkerek["__lista__"] || []).forEach(function(marker) {
+            if (map.hasLayer(marker)) map.removeLayer(marker);
+        });
+        tarolasMarkerek.forEach(function(marker) {
+            if (map.hasLayer(marker)) map.removeLayer(marker);
+        });
+        tortenetiLokacioMarkerek.forEach(function(marker) {
+            if (map.hasLayer(marker)) map.removeLayer(marker);
+        });
+        tortenetiLokacioMarkerek.length = 0;
+
+        const pontok = [];
+        const aktivNezet = aktualisTerkepNezet();
+        document.querySelectorAll("#fix-tbody-common tr[data-forras]").forEach(function(tr) {
+            if (aktivNezet !== "mindketto" && String(tr.dataset.forras || "biztor") !== aktivNezet) return;
+            const cells = tr.querySelectorAll('.idopont-cella.lokacio-kattinthato[data-lat][data-lon][data-rendszam]');
+            cells.forEach(function(cell) {
+                if (String(cell.dataset.rendszam || "").trim().toUpperCase() !== rendszam) return;
+                const marker = tortenetiMarkerLetrehozasa(cell);
+                if (!marker) return;
+                if (!tortenetiLokacioMarkerek.includes(marker)) tortenetiLokacioMarkerek.push(marker);
+                if (!map.hasLayer(marker)) marker.addTo(map);
+                pontok.push(marker);
+            });
+        });
+
+        if (pontok.length) {
+            const bounds = L.featureGroup(pontok).getBounds();
+            if (bounds.isValid()) {
+                if (bounds.getNorthEast().equals(bounds.getSouthWest())) {
+                    map.setView(bounds.getCenter(), TERKEP_MAX_ZOOM);
+                } else {
+                    map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_MAX_ZOOM});
+                }
+            }
+        }
+        frissitLokacioSzam();
+        // A napi előzmény térképes nézete a teljes oldal tetejére vigyen vissza.
+        window.scrollTo({top: 0, left: 0, behavior: "smooth"});
+    });
+});
+
+function jelolAktivIdopont(header) {
+    document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEach(function(elem) {
+        elem.classList.toggle("aktiv-idopont", elem === header);
+    });
+}
+
+function jelolLegutolsoIdopont() {
+    const idopontFejlecek = document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]");
+    if (idopontFejlecek.length) jelolAktivIdopont(idopontFejlecek[idopontFejlecek.length - 1]);
+}
+
+document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEach(function(header) {
+    function mutatOszlopLokacioit() {
+        jelolAktivIdopont(header);
+        frissitKijeloltAdat("idopont", String(header.textContent || "").trim());
+        const timeIndex = String(header.dataset.timeIndex);
+        window.__hidegtarolasAktivIdopontIndex = timeIndex;
+        // Az időoszlop kiválasztásakor kizárólag az adott időpont lokációi maradnak a térképen.
+        tortenetiOszlopAktiv = true;
+        (jarmuMarkerek["__lista__"] || []).forEach(function(marker) {
+            if (map.hasLayer(marker)) map.removeLayer(marker);
+        });
+        tarolasMarkerek.forEach(function(marker) {
+            if (map.hasLayer(marker)) map.removeLayer(marker);
+        });
+        tortenetiLokacioMarkerek.forEach(function(marker) {
+            if (map.hasLayer(marker)) map.removeLayer(marker);
+        });
+        tortenetiLokacioMarkerek.length = 0;
+
+        const sorok = Array.from(document.querySelectorAll("#fix-tbody-common tr[data-forras]"))
+            .filter(tr => tr.getClientRects().length > 0 && tr.dataset.filterMatch !== "0");
+        const markerek = [];
+        sorok.forEach(function(tr) {
+            const cell = tr.querySelector('.idopont-cella[data-time-index="' + timeIndex + '"][data-lat][data-lon]');
+            if (!cell) return;
+            const marker = tortenetiMarkerLetrehozasa(cell);
+            if (!marker) return;
+            if (!tortenetiLokacioMarkerek.includes(marker)) tortenetiLokacioMarkerek.push(marker);
+            if (!map.hasLayer(marker)) marker.addTo(map);
+            markerek.push(marker);
+        });
+
+        if (markerek.length) {
+            const bounds = L.featureGroup(markerek).getBounds();
+            if (bounds.isValid()) map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_MAX_ZOOM});
+            // Egy időpont kiválasztásakor a jelölők mind ugyanúgy nyithatók meg, mint az aktuális járművek.
+        }
+        frissitTortenetiCsoportokat();
+        frissitLokacioSzam();
+    }
+    header.addEventListener("click", mutatOszlopLokacioit);
+    header.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            mutatOszlopLokacioit();
+        }
+    });
+});
+
+// I/N/P (és egyéb idővonal-) cellára kattintva a nézetfülek mellett
+// egyszerre jelenjen meg a sorhoz tartozó rendszám és az oszlop időpontja.
+// Ez a tájékoztató akkor is működik, ha az adott cellához nincs GPS-koordináta.
+document.querySelectorAll(".idopont-cella[data-time-index]").forEach(function(cell) {
+    cell.addEventListener("click", function() {
+        const sor = cell.closest("tr");
+        const rendszamLink = sor && sor.querySelector(".rendszam-link");
+        const rendszam = String(
+            cell.dataset.rendszam ||
+            (rendszamLink && (rendszamLink.dataset.rendszam || rendszamLink.textContent)) ||
+            "n.a."
+        ).trim().toUpperCase();
+        const fejlec = document.querySelector('.idopont-ertek[data-time-index="' + cell.dataset.timeIndex + '"]');
+        const idopont = String(cell.dataset.idopont || (fejlec && fejlec.textContent) || "").trim();
+        frissitKijeloltAdat("jarmu-idopont", {rendszam: rendszam, idopont: idopont});
+    });
+});
+
+// Betöltéskor a legutolsó időpont legyen kékkel kiemelve.
+jelolLegutolsoIdopont();
+
+// Csak a kattintásra létrehozott tárolási és történeti lokációkat távolítja el.
+(function(){
+    const button = document.getElementById('clear-click-locations');
+    if (!button) return;
+    button.addEventListener('click', function(){
+        const tablaAblak = document.getElementById('fo-tabla');
+        const idovonalCsuszka = document.getElementById('fo-idopont-csuszka');
+        if(tablaAblak && idovonalCsuszka){
+            const jobbSzel = Math.max(0, tablaAblak.scrollWidth - tablaAblak.clientWidth);
+            tablaAblak.scrollLeft = jobbSzel;
+            idovonalCsuszka.max = String(jobbSzel);
+            idovonalCsuszka.value = String(jobbSzel);
+        }
+        // Az „Utolsó pozíciók” gomb ugyanazt a teljes műveletet végezze,
+        // mint az utolsó időoszlopra kattintás: kijelölés, időpontfelirat,
+        // történeti markerek, csoportosítás és a nézethez tartozó szűrés.
+        const idopontFejlecek = document.querySelectorAll('.idopont-oszlop-kattinthato[data-time-index]');
+        if (!idopontFejlecek.length) return;
+        const utolsoFejlec = idopontFejlecek[idopontFejlecek.length - 1];
+        utolsoFejlec.click();
+    });
+})();
+
+function frissitLokacioSzam() {
+    const elem = document.getElementById('map-location-count');
+    if (!elem) return;
+
+    // A klaszter csak összevonja a PIN-eket, az eredeti jelölők ettől még
+    // léteznek. Ezért nem a map.hasLayer() alapján számolunk.
+    // Történeti időpont vizsgálatakor csak a történeti PIN-ek számítanak.
+    const jelolok = tortenetiOszlopAktiv
+        ? tortenetiLokacioMarkerek
+        : (jarmuMarkerek["__lista__"] || []).concat(tarolasMarkerek);
+
+    const latszoDarab = new Set(jelolok.filter(function(marker) {
+        return marker && markerAktivNezetben(marker);
+    })).size;
+
+    elem.innerHTML = '<b>Lokációk száma:</b> ' + latszoDarab;
+}
+
+// A térképre kerülő vagy onnan eltávolított jelölők után automatikusan frissül a darabszám.
+map.on('layeradd layerremove', frissitLokacioSzam);
+frissitLokacioSzam();
+
+function frissitTerkepNezet(view) {
+    const lista = jarmuMarkerek["__lista__"] || [];
+    const osszesMarker = lista.concat(tarolasMarkerek, tortenetiLokacioMarkerek);
+    osszesMarker.forEach(function(marker){
+        if (map.hasLayer(marker)) map.removeLayer(marker);
+    });
+    const forrasLista = tortenetiOszlopAktiv ? tortenetiLokacioMarkerek : osszesMarker;
+    const latszo = forrasLista.filter(function(marker){
+        return view === "mindketto" || marker.__forras === view;
+    });
+    latszo.forEach(function(marker){ marker.addTo(map); });
+    if (latszo.length) {
+        const bounds = L.featureGroup(latszo).getBounds();
+        if (bounds.isValid()) map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_MAX_ZOOM});
+    }
+    if (tortenetiOszlopAktiv) frissitTortenetiCsoportokat();
+    frissitLokacioSzam();
+}
+
+const NEZET_STORAGE_KEY = 'hidegtarolas-aktiv-nezet';
+const ERVENYES_NEZETEK = ['mindketto', 'biztor', 'garazs'];
+function betoltottTerkepNezet(){
+    try {
+        const mentett = localStorage.getItem(NEZET_STORAGE_KEY);
+        return ERVENYES_NEZETEK.includes(mentett) ? mentett : 'mindketto';
+    } catch (e) {
+        return 'mindketto';
+    }
+}
+
+document.querySelectorAll(".nezet-gomb").forEach(function(btn){
+    btn.addEventListener("click", function(){
+        const nezet = ERVENYES_NEZETEK.includes(this.dataset.nezet)
+            ? this.dataset.nezet
+            : 'mindketto';
+        try { localStorage.setItem(NEZET_STORAGE_KEY, nezet); } catch (e) {}
+
+        // Ha időoszlopot vizsgálunk, a nézetváltás után ugyanazt az időpontot
+        // újra lekérjük, immár az új nézetben látható sorokból.
+        const aktivIdo = window.__hidegtarolasAktivIdopontIndex;
+        if (tortenetiOszlopAktiv && aktivIdo !== undefined && aktivIdo !== null) {
+            const header = document.querySelector('.idopont-oszlop-kattinthato[data-time-index="' + aktivIdo + '"]');
+            if (header) header.click();
+        }
+        frissitTerkepNezet(nezet);
+    });
+});
+
+function fokuszJarmure(rendszam) {
+    const kulcs = String(rendszam || "").trim().toUpperCase();
+    const marker = jarmuMarkerek[kulcs];
+    if (!marker) return;
+
+    // Rendszámra kattintva önálló, aktuális pozíciós nézetet mutatunk:
+    // minden korábbi időpontból származó PIN-t és gyűjtőmarkert eltávolítunk.
+    tortenetiOszlopAktiv = false;
+    tortenetiLokacioMarkerek.forEach(function(m) {
+        if (m && map.hasLayer(m)) map.removeLayer(m);
+    });
+    tortenetiLokacioMarkerek.length = 0;
+    tortenetiCsoportMarkerek.forEach(function(m) {
+        if (m && map.hasLayer(m)) map.removeLayer(m);
+    });
+    tortenetiCsoportMarkerek.length = 0;
+
+    // A többi aktuális jármű PIN-jét és a tárolási helyek jelölőit is levesszük,
+    // hogy kizárólag a kiválasztott jármű legutolsó pozíciója maradjon a térképen.
+    (jarmuMarkerek["__lista__"] || []).forEach(function(m) {
+        if (m && m !== marker && map.hasLayer(m)) map.removeLayer(m);
+    });
+    tarolasMarkerek.forEach(function(m) {
+        if (m && map.hasLayer(m)) map.removeLayer(m);
+    });
+    if (!map.hasLayer(marker)) marker.addTo(map);
+    frissitLokacioSzam();
+
+    const pos = marker.getLatLng();
+    // A táblázatból kattintva a térkép a globális maximális zoomig nagyíthat.
+    map.flyTo(pos, TERKEP_MAX_ZOOM, {duration: 0.7});
+    setTimeout(function(){
+        if (!map.hasLayer(marker)) marker.addTo(map);
+        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+            marker.openTooltip();
+        } else {
+            marker.openPopup();
+        }
+        const el = marker.getElement();
+        if (el) {
+            el.classList.remove("map-focus");
+            void el.offsetWidth;
+            el.classList.add("map-focus");
+        }
+    }, 700);
+}
+
+document.querySelectorAll(".rendszam-link").forEach(function(btn){
+    btn.addEventListener("click", function(){
+        window.scrollTo({top: 0, behavior: "smooth"});
+        fokuszJarmure(this.dataset.rendszam);
+    });
+});
+
+
+// ---------------------------------------------------------
+// TÉRKÉP NÉZET BEÁLLÍTÁSA
+// ---------------------------------------------------------
+
+// A térkép ugyanazt a nézetet állítja vissza, mint a táblázat.
+frissitTerkepNezet(betoltottTerkepNezet());
+
+// Betöltéskor ne csak az utolsó időpontot jelöljük ki vizuálisan:
+// ugyanazt a valódi kattintási műveletet futtatjuk le, mint kézi kiválasztáskor,
+// így a történeti PIN-ek és a gyűjtő/klaszter logika is azonnal aktiválódik.
+// A következő képkockára halasztjuk, hogy a táblázat és a lapfül láthatósága
+// már beálljon, mire az időoszlop a látható sorokból dolgozik.
+requestAnimationFrame(function() {
+    const idopontFejlecek = document.querySelectorAll('.idopont-oszlop-kattinthato[data-time-index]');
+    if (!idopontFejlecek.length) return;
+    const utolsoFejlec = idopontFejlecek[idopontFejlecek.length - 1];
+    utolsoFejlec.click();
+});
+
+const garazsAblak = document.getElementById("garazs-idopont-ablak");
+const garazsBelso = document.getElementById("garazs-idopont-belső");
+const garazsCsuszka = document.getElementById("garazs-idopont-csuszka");
+function frissitGarazsCsuszkat() {
+    if (!garazsAblak || !garazsBelso || !garazsCsuszka) return;
+    const w = window.innerWidth;
+    let timeWidth;
+    if (w <= 600) timeWidth = Math.max(360, Math.round(w * 0.88));
+    else if (w <= 900) timeWidth = Math.max(480, Math.round(w * 0.70));
+    else timeWidth = Math.min(1200, Math.max(560, Math.round(w * 0.62)));
+    document.documentElement.style.setProperty("--time-window-width", timeWidth + "px");
+    const maxScroll = Math.max(0, garazsBelso.scrollWidth - garazsAblak.clientWidth);
+    garazsCsuszka.value = "1000";
+    garazsCsuszka.oninput = function() { garazsAblak.scrollLeft = maxScroll * (Number(this.value) / 1000); };
+    garazsAblak.scrollLeft = maxScroll;
+}
+window.addEventListener("resize", frissitGarazsCsuszkat);
+window.addEventListener("load", frissitGarazsCsuszkat);
+
+</script>
+
+
+
+<script>
+(function(){
+  let lastTap=0;
+  document.addEventListener('touchend',function(e){
+    const now=Date.now();
+    if(now-lastTap<300){
+      e.preventDefault();
+    }
+    lastTap=now;
+  },{passive:false});
+})();
+</script>
+
+<footer class="adatforras"><span class="rejtett-poen">De ki az a Körporésön?</span><span>Adatok forrása: BKK Zrt., CC BY 4.0</span></footer>
+</body>
+
+</html>
+
+
+
+
+
