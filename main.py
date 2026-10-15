@@ -6253,7 +6253,8 @@ document.querySelectorAll(".idopont-cella.lokacio-kattinthato[data-lat][data-lon
 // A kiválasztott rendszám vagy időpont megjelenítése a nézetfülek mellett.
 let kijeloltTortenetiAdat = null;
 function frissitKijeloltAdat(tipus, ertek) {
-    kijeloltTortenetiAdat = (tipus && ertek) ? {tipus: tipus, ertek: String(ertek)} : null;
+    kijeloltTortenetiAdat = (tipus && ertek !== null && ertek !== undefined && ertek !== "")
+        ? {tipus: tipus, ertek: ertek} : null;
     document.querySelectorAll(".fo-kozos-tabla td.rendszam.kijelolt-rendszam").forEach(function(td) {
         td.classList.remove("kijelolt-rendszam");
     });
@@ -6270,6 +6271,13 @@ function frissitKijeloltAdat(tipus, ertek) {
     const cel = document.getElementById("kijelolt-adat");
     if (!cel) return;
     if (!kijeloltTortenetiAdat) { cel.textContent = ""; return; }
+    if (tipus === "jarmu-idopont") {
+        const rendszam = String(ertek.rendszam || "n.a.");
+        const idopont = String(ertek.idopont || "ismeretlen időpont");
+        cel.innerHTML = "<span>Rendszám:</span><span class=\"kijelolt-ertek\">" + escapeHtml(rendszam) +
+            "</span><span>Időpont:</span><span class=\"kijelolt-ertek\">" + escapeHtml(idopont) + "</span>";
+        return;
+    }
     const cimke = tipus === "rendszam" ? "Rendszám:" : "Időpont:";
     cel.innerHTML = "<span>" + cimke + "</span><span class=\"kijelolt-ertek\">" + escapeHtml(String(ertek)) + "</span>";
 }
@@ -6391,6 +6399,24 @@ document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEac
     });
 });
 
+// I/N/P (és egyéb idővonal-) cellára kattintva a nézetfülek mellett
+// egyszerre jelenjen meg a sorhoz tartozó rendszám és az oszlop időpontja.
+// Ez a tájékoztató akkor is működik, ha az adott cellához nincs GPS-koordináta.
+document.querySelectorAll(".idopont-cella[data-time-index]").forEach(function(cell) {
+    cell.addEventListener("click", function() {
+        const sor = cell.closest("tr");
+        const rendszamLink = sor && sor.querySelector(".rendszam-link");
+        const rendszam = String(
+            cell.dataset.rendszam ||
+            (rendszamLink && (rendszamLink.dataset.rendszam || rendszamLink.textContent)) ||
+            "n.a."
+        ).trim().toUpperCase();
+        const fejlec = document.querySelector('.idopont-ertek[data-time-index="' + cell.dataset.timeIndex + '"]');
+        const idopont = String(cell.dataset.idopont || (fejlec && fejlec.textContent) || "").trim();
+        frissitKijeloltAdat("jarmu-idopont", {rendszam: rendszam, idopont: idopont});
+    });
+});
+
 // Betöltéskor a legutolsó időpont legyen kékkel kiemelve.
 jelolLegutolsoIdopont();
 
@@ -6407,15 +6433,13 @@ jelolLegutolsoIdopont();
             idovonalCsuszka.max = String(jobbSzel);
             idovonalCsuszka.value = String(jobbSzel);
         }
-        jelolLegutolsoIdopont();
-        tarolasMarkerek.concat(tortenetiLokacioMarkerek, tortenetiCsoportMarkerek).forEach(function(marker){
-            if (map.hasLayer(marker)) map.removeLayer(marker);
-        });
-        tortenetiCsoportMarkerek.length = 0;
-        tarolasMarkerek.length = 0;
-        tortenetiLokacioMarkerek.length = 0;
-        tortenetiOszlopAktiv = false;
-        frissitTerkepNezet(betoltottTerkepNezet());
+        // Az „Utolsó pozíciók” gomb ugyanazt a teljes műveletet végezze,
+        // mint az utolsó időoszlopra kattintás: kijelölés, időpontfelirat,
+        // történeti markerek, csoportosítás és a nézethez tartozó szűrés.
+        const idopontFejlecek = document.querySelectorAll('.idopont-oszlop-kattinthato[data-time-index]');
+        if (!idopontFejlecek.length) return;
+        const utolsoFejlec = idopontFejlecek[idopontFejlecek.length - 1];
+        utolsoFejlec.click();
     });
 })();
 
