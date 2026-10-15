@@ -6517,10 +6517,35 @@ function fokuszJarmure(rendszam) {
     const kulcs = String(rendszam || "").trim().toUpperCase();
     const marker = jarmuMarkerek[kulcs];
     if (!marker) return;
+
+    // Rendszámra kattintva önálló, aktuális pozíciós nézetet mutatunk:
+    // minden korábbi időpontból származó PIN-t és gyűjtőmarkert eltávolítunk.
+    tortenetiOszlopAktiv = false;
+    tortenetiLokacioMarkerek.forEach(function(m) {
+        if (m && map.hasLayer(m)) map.removeLayer(m);
+    });
+    tortenetiLokacioMarkerek.length = 0;
+    tortenetiCsoportMarkerek.forEach(function(m) {
+        if (m && map.hasLayer(m)) map.removeLayer(m);
+    });
+    tortenetiCsoportMarkerek.length = 0;
+
+    // A többi aktuális jármű PIN-jét és a tárolási helyek jelölőit is levesszük,
+    // hogy kizárólag a kiválasztott jármű legutolsó pozíciója maradjon a térképen.
+    (jarmuMarkerek["__lista__"] || []).forEach(function(m) {
+        if (m && m !== marker && map.hasLayer(m)) map.removeLayer(m);
+    });
+    tarolasMarkerek.forEach(function(m) {
+        if (m && map.hasLayer(m)) map.removeLayer(m);
+    });
+    if (!map.hasLayer(marker)) marker.addTo(map);
+    frissitLokacioSzam();
+
     const pos = marker.getLatLng();
     // A táblázatból kattintva a térkép a globális maximális zoomig nagyíthat.
     map.flyTo(pos, TERKEP_MAX_ZOOM, {duration: 0.7});
     setTimeout(function(){
+        if (!map.hasLayer(marker)) marker.addTo(map);
         if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
             marker.openTooltip();
         } else {
