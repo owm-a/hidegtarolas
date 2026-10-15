@@ -4228,6 +4228,13 @@ body{
 #history-load-status{font-size:11px;color:var(--muted);max-width:210px}
 #geozona-terkep{width:100%;height:50vh;max-height:50vh;min-height:320px;margin:0 0 14px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);background:var(--surface)}
 .nezet-valaszto{display:flex;align-items:center;gap:6px;margin:0 0 14px;padding:4px;width:fit-content;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.16)}
+.nezet-fejlec-sor{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px}
+.nezet-fejlec-sor .nezet-valaszto{margin:0}
+.kijelolt-adat{min-height:20px;display:flex;align-items:center;gap:6px;color:var(--text);font-size:13px;font-weight:700}
+.kijelolt-adat:empty{display:none}
+.kijelolt-adat .kijelolt-ertek{color:#2583ff;border-top:2px solid #2583ff;border-bottom:2px solid #2583ff;padding:2px 6px;border-radius:2px}
+.fo-kozos-tabla td.rendszam.kijelolt-rendszam{border-top:2px solid #2583ff!important;border-bottom:2px solid #2583ff!important;box-shadow:inset 0 1px 0 #2583ff,inset 0 -1px 0 #2583ff}
+@media(max-width:600px){.nezet-fejlec-sor{align-items:stretch;gap:6px;margin-bottom:10px}.kijelolt-adat{padding:2px 6px;font-size:12px;min-height:22px}.nezet-fejlec-sor .nezet-valaszto{margin:0}}
 .nezet-gomb{border:0;border-radius:7px;padding:8px 13px;background:transparent;color:var(--muted);font:inherit;font-size:13px;font-weight:650;cursor:pointer;transition:.16s}
 .nezet-gomb:hover{color:var(--text);background:var(--surface3)}
 .nezet-gomb.active{color:white;background:linear-gradient(135deg,var(--accent2),#6b7ff0);box-shadow:0 4px 12px rgba(79,143,247,.24)}
@@ -5076,10 +5083,13 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   </div>
 </div>
 <div id="geozona-terkep"></div>
+<div class="nezet-fejlec-sor">
 <div class="nezet-valaszto" role="tablist" aria-label="Megjelenítés">
   <button class="nezet-gomb" data-nezet="mindketto" type="button">Összes <span class="online-szam">""" + str(osszes_online) + "/" + str(osszes_osszes) + """</span></button>
   <button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás <span class="online-szam">""" + str(biz_online) + "/" + str(biz_osszes) + """</span></button>
   <button class="nezet-gomb" data-nezet="garazs" type="button">Garázs <span class="online-szam">""" + str(garazs_online) + "/" + str(garazs_osszes) + """</span></button>
+</div>
+<div id="kijelolt-adat" class="kijelolt-adat" aria-live="polite"></div>
 </div>
 <div id="panel-adatok" class="nezet-panel">
 <div class="tabla-szekcio">
@@ -6240,6 +6250,30 @@ document.querySelectorAll(".idopont-cella.lokacio-kattinthato[data-lat][data-lon
     });
 });
 
+// A kiválasztott rendszám vagy időpont megjelenítése a nézetfülek mellett.
+let kijeloltTortenetiAdat = null;
+function frissitKijeloltAdat(tipus, ertek) {
+    kijeloltTortenetiAdat = (tipus && ertek) ? {tipus: tipus, ertek: String(ertek)} : null;
+    document.querySelectorAll(".fo-kozos-tabla td.rendszam.kijelolt-rendszam").forEach(function(td) {
+        td.classList.remove("kijelolt-rendszam");
+    });
+    if (kijeloltTortenetiAdat && tipus === "rendszam") {
+        const keresett = String(ertek).trim().toUpperCase();
+        document.querySelectorAll("#fix-tbody-common tr[data-forras]").forEach(function(tr) {
+            const link = tr.querySelector(".rendszam-link");
+            const td = link && link.closest("td.rendszam");
+            if (td && String(link.dataset.rendszam || link.textContent).trim().toUpperCase() === keresett) {
+                td.classList.add("kijelolt-rendszam");
+            }
+        });
+    }
+    const cel = document.getElementById("kijelolt-adat");
+    if (!cel) return;
+    if (!kijeloltTortenetiAdat) { cel.textContent = ""; return; }
+    const cimke = tipus === "rendszam" ? "Rendszám:" : "Időpont:";
+    cel.innerHTML = "<span>" + cimke + "</span><span class=\"kijelolt-ertek\">" + escapeHtml(String(ertek)) + "</span>";
+}
+
 // Egy rendszám melletti apró előzménygomb az adott rendszám teljes napi GPS-történetét jeleníti meg.
 document.querySelectorAll(".rendszam-napi-elozmeny[data-rendszam-elozmeny]").forEach(function(btn) {
     btn.addEventListener("click", function(e) {
@@ -6247,6 +6281,7 @@ document.querySelectorAll(".rendszam-napi-elozmeny[data-rendszam-elozmeny]").for
         e.stopPropagation();
         const rendszam = String(this.dataset.rendszamElozmeny || "").trim().toUpperCase();
         if (!rendszam) return;
+        frissitKijeloltAdat("rendszam", rendszam);
 
         // A rendszám napi előzménye önálló történeti nézet: az időoszlop kijelölését és a korábbi
         // marker-készleteket levesszük, majd csak ehhez a rendszámhoz tartozó GPS-pontokat tesszük fel.
@@ -6291,8 +6326,8 @@ document.querySelectorAll(".rendszam-napi-elozmeny[data-rendszam-elozmeny]").for
             }
         }
         frissitLokacioSzam();
-        const terkep = document.getElementById("geozona-terkep");
-        if (terkep) terkep.scrollIntoView({behavior:"smooth", block:"start"});
+        // A napi előzmény térképes nézete a teljes oldal tetejére vigyen vissza.
+        window.scrollTo({top: 0, left: 0, behavior: "smooth"});
     });
 });
 
@@ -6310,6 +6345,7 @@ function jelolLegutolsoIdopont() {
 document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEach(function(header) {
     function mutatOszlopLokacioit() {
         jelolAktivIdopont(header);
+        frissitKijeloltAdat("idopont", String(header.textContent || "").trim());
         const timeIndex = String(header.dataset.timeIndex);
         window.__hidegtarolasAktivIdopontIndex = timeIndex;
         // Az időoszlop kiválasztásakor kizárólag az adott időpont lokációi maradnak a térképen.
