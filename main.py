@@ -5780,7 +5780,9 @@ function jarmuIkon(statusz) {
         osztaly = "red";
     }
     else if (statusz === "SÁRGA") {
-        osztaly = "yellow";
+        // Betöltéskor / időoszlop nélküli alapnézetben nincs külön sárga PIN:
+        // az előzetes állapot is szürke marad, mint a normál alapnézetben.
+        osztaly = "gray";
     }
     else if (statusz === "PÓTLÁS") {
         osztaly = "blue";
