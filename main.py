@@ -6490,6 +6490,18 @@ document.querySelectorAll(".rendszam-link").forEach(function(btn){
 // A térkép ugyanazt a nézetet állítja vissza, mint a táblázat.
 frissitTerkepNezet(betoltottTerkepNezet());
 
+// Betöltéskor ne csak az utolsó időpontot jelöljük ki vizuálisan:
+// ugyanazt a valódi kattintási műveletet futtatjuk le, mint kézi kiválasztáskor,
+// így a történeti PIN-ek és a gyűjtő/klaszter logika is azonnal aktiválódik.
+// A következő képkockára halasztjuk, hogy a táblázat és a lapfül láthatósága
+// már beálljon, mire az időoszlop a látható sorokból dolgozik.
+requestAnimationFrame(function() {
+    const idopontFejlecek = document.querySelectorAll('.idopont-oszlop-kattinthato[data-time-index]');
+    if (!idopontFejlecek.length) return;
+    const utolsoFejlec = idopontFejlecek[idopontFejlecek.length - 1];
+    utolsoFejlec.click();
+});
+
 const garazsAblak = document.getElementById("garazs-idopont-ablak");
 const garazsBelso = document.getElementById("garazs-idopont-belső");
 const garazsCsuszka = document.getElementById("garazs-idopont-csuszka");
