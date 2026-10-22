@@ -4237,6 +4237,14 @@ body{
 .ertekelt-v{color:#4b91ff;font-weight:800}
 .ertekelt-g{color:#36a866;font-weight:800}
 .ertekelt-szumma{color:var(--text);font-weight:700}
+.ertekelt-osszes{display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap;flex:0 0 auto}
+.fejlec-jobb .adat:has(.ertekelt-osszes){white-space:nowrap;flex:0 0 auto;min-width:max-content}
+.fejecl-nezetek .nezet-gomb[data-nezet="mindketto"],
+.fejecl-nezetek .nezet-gomb[data-nezet="ures"]{display:none!important}
+@media(max-width:600px){
+  .fejlec-jobb .adat:has(.ertekelt-osszes){font-size:11px;letter-spacing:-.15px}
+  .ertekelt-osszes{gap:3px}
+}
 .nezet-fejlec-sor{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px}
 .nezet-fejlec-sor .nezet-valaszto{margin:0}
 .kijelolt-adat{min-height:20px;display:flex;align-items:center;gap:6px;color:var(--text);font-size:13px;font-weight:700}
@@ -5127,7 +5135,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     </div>
     <div class="fejlec-jobb">
       <div class="adat"><b>Riport készült:</b> """ + escape(re.search(r"(\d{1,2}:\d{2})", str(hidegtarolas_riport.get("keszult", "-"))).group(1) if re.search(r"(\d{1,2}:\d{2})", str(hidegtarolas_riport.get("keszult", "-"))) else "-") + """</div>
-      <div class="adat"><b>Értékelt fordák:</b> <span class="ertekelt-v">""" + str(hidegtarolas_riport.get("ertekelt_fordak", 0)) + "(V)" + """</span> + <span class="ertekelt-g">""" + str(garazstarolas_riport.get("ertekelt_fordak", 0)) + "(G)" + """</span> → <span class="ertekelt-szumma">""" + str(hidegtarolas_riport.get("ertekelt_fordak", 0) + garazstarolas_riport.get("ertekelt_fordak", 0)) + "(Σ)" + """</span></div>
+      <div class="adat"><b>Értékelt fordák:</b> <span class="ertekelt-osszes"><span class="ertekelt-v">""" + str(hidegtarolas_riport.get("ertekelt_fordak", 0)) + "(V)" + """</span> + <span class="ertekelt-g">""" + str(garazstarolas_riport.get("ertekelt_fordak", 0)) + "(G)" + """</span> → <span class="ertekelt-szumma">""" + str(hidegtarolas_riport.get("ertekelt_fordak", 0) + garazstarolas_riport.get("ertekelt_fordak", 0)) + "(Σ)" + """</span></span></div>
     </div>
   </div>
 </div>
@@ -5328,6 +5336,12 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   const sliderBar=document.getElementById('fo-csuszkasav');
   const table=fo?.querySelector('.fo-kozos-tabla');
   const tbody=table?.querySelector('tbody');
+  // A régebbi HTML-változatokból maradt „Összes” gombot is eltávolítjuk:
+  // az Összes nézetet a két kapcsoló együttes bekapcsolása jelenti.
+  document.querySelectorAll('.nezet-gomb[data-nezet="mindketto"], .nezet-gomb[data-nezet="ures"]').forEach(b=>b.remove());
+  document.querySelectorAll('.nezet-gomb').forEach(b=>{
+    if(b.textContent.trim().startsWith('Összes')) b.remove();
+  });
   const buttons=document.querySelectorAll('.nezet-gomb');
   if(!fo||!slider||!table||!tbody)return;
   const NEZET_STORAGE_KEY='hidegtarolas-aktiv-nezet';
