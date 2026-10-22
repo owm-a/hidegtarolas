@@ -4244,11 +4244,20 @@ body{
 .kijelolt-adat .kijelolt-ertek{color:#2583ff;border-top:2px solid #2583ff;border-bottom:2px solid #2583ff;padding:2px 6px;border-radius:2px}
 .fo-kozos-tabla td.rendszam.kijelolt-rendszam{border-top:2px solid #2583ff!important;border-bottom:2px solid #2583ff!important;box-shadow:inset 0 1px 0 #2583ff,inset 0 -1px 0 #2583ff}
 @media(max-width:600px){.nezet-fejlec-sor{align-items:stretch;gap:6px;margin-bottom:10px}.kijelolt-adat{padding:2px 6px;font-size:12px;min-height:22px}.nezet-fejlec-sor .nezet-valaszto{margin:0}}
-.nezet-gomb{border:0;border-radius:7px;padding:8px 13px;background:transparent;color:var(--muted);font:inherit;font-size:13px;font-weight:650;cursor:pointer;transition:.16s}
-.nezet-gomb:hover{color:var(--text);background:var(--surface3)}
-.nezet-gomb.active{color:white;background:linear-gradient(135deg,var(--accent2),#6b7ff0);box-shadow:0 4px 12px rgba(79,143,247,.24)}
+/* Nézetgombok: végállomás-kék, garázs-zöld, összes elegáns kék-zöld átmenet */
+.nezet-gomb{border:1px solid transparent;border-radius:8px;padding:8px 13px;background:var(--surface2);color:var(--text);font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:background .16s,border-color .16s,box-shadow .16s,transform .16s}
+.nezet-gomb[data-nezet="biztor"]{background:rgba(51,136,255,.16);border-color:rgba(51,136,255,.48);color:#3388ff}
+.nezet-gomb[data-nezet="garazs"]{background:rgba(0,166,81,.16);border-color:rgba(0,166,81,.48);color:#00a651}
+.nezet-gomb[data-nezet="mindketto"]{background:linear-gradient(110deg,rgba(51,136,255,.18),rgba(0,166,81,.18));border-color:#168f87;color:#168f87}
+.nezet-gomb:hover{filter:brightness(1.08);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.nezet-gomb.active{color:white;box-shadow:0 4px 12px rgba(22,143,135,.22)}
+.nezet-gomb.active[data-nezet="biztor"]{background:#3388ff;border-color:#3388ff}
+.nezet-gomb.active[data-nezet="garazs"]{background:#00a651;border-color:#00a651}
+.nezet-gomb.active[data-nezet="mindketto"]{background:linear-gradient(110deg,#3388ff,#00a651);border-color:#168f87}
 .nezet-gomb:active{transform:translateY(1px)}
-.online-szam{display:inline-block;margin-left:5px;font-size:11px;font-weight:600;color:var(--muted);opacity:.9}.nezet-gomb.active .online-szam{color:rgba(255,255,255,.82)}
+.online-szam{display:inline-block;margin-left:5px;font-size:11px;font-weight:700;color:inherit;opacity:.95}.nezet-gomb.active .online-szam{color:rgba(255,255,255,.9)}
+/* A riport számai ugyanazt a színkódot használják, mint a nézetgombok. */
+.ertekelt-biztor{color:#3388ff;font-weight:800}.ertekelt-garazs{color:#00a651;font-weight:800}.ertekelt-osszes{color:#168f87;font-weight:800}
 .nezet-panel{display:block}.nezet-panel.hidden{display:none!important}
 .tabla-szekcio{width:100%;max-width:100%;margin:0;padding:12px;border-top:1px solid var(--border);overflow:hidden;position:relative}
 .mobil-scroll-nyil{display:none}
@@ -5093,16 +5102,16 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     </div>
     <div class="fejlec-jobb">
       <div class="adat"><b>Riport készült:</b> """ + escape(re.search(r"(\d{1,2}:\d{2})", str(hidegtarolas_riport.get("keszult", "-"))).group(1) if re.search(r"(\d{1,2}:\d{2})", str(hidegtarolas_riport.get("keszult", "-"))) else "-") + """</div>
-      <div class="adat"><b>Értékelt fordák:</b> """ + str(hidegtarolas_riport.get("ertekelt_fordak", 0)) + " + " + str(garazstarolas_riport.get("ertekelt_fordak", 0)) + " → " + str(hidegtarolas_riport.get("ertekelt_fordak", 0) + garazstarolas_riport.get("ertekelt_fordak", 0)) + """</div>
+      <div class="adat"><b>Értékelt fordák:</b> <span class="ertekelt-biztor">""" + str(hidegtarolas_riport.get("ertekelt_fordak", 0)) + "V" + """</span>+<span class="ertekelt-garazs">""" + str(garazstarolas_riport.get("ertekelt_fordak", 0)) + "G" + """</span>→<span class="ertekelt-osszes">""" + str(hidegtarolas_riport.get("ertekelt_fordak", 0) + garazstarolas_riport.get("ertekelt_fordak", 0)) + "∑" + """</span></div>
     </div>
   </div>
 </div>
 <div id="geozona-terkep"></div>
 <div class="nezet-fejlec-sor">
 <div class="nezet-valaszto" role="tablist" aria-label="Megjelenítés">
-  <button class="nezet-gomb" data-nezet="mindketto" type="button">Összes <span class="online-szam">""" + str(osszes_online) + "/" + str(osszes_osszes) + """</span></button>
   <button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás <span class="online-szam">""" + str(biz_online) + "/" + str(biz_osszes) + """</span></button>
   <button class="nezet-gomb" data-nezet="garazs" type="button">Garázs <span class="online-szam">""" + str(garazs_online) + "/" + str(garazs_osszes) + """</span></button>
+  <button class="nezet-gomb" data-nezet="mindketto" type="button">Összes <span class="online-szam">""" + str(osszes_online) + "/" + str(osszes_osszes) + """</span></button>
 </div>
 <div id="kijelolt-adat" class="kijelolt-adat" aria-live="polite"></div>
 </div>
