@@ -5289,7 +5289,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
             rcls = "tarolas-na"
         html.append(f'<td class="sticky-jobb storage tarolas {rcls}">{escape(tarolas)}</td></tr>')
 
-    html.append('</tbody></table></div><div class="mobil-scroll-nyil" aria-hidden="true">' + ''.join('<span>›</span>' for _ in range(7)) + '</div></div></div>')
+    html.append('</tbody></table></div><div class="mobil-scroll-nyil" aria-hidden="true"><span>›</span></div></div></div>')
 
     html.append("""
 <script>
@@ -5398,6 +5398,27 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     if(!szekcio)return;
     const mobil=window.matchMedia("(max-width:600px)").matches;
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
+    const nyilDoboz=szekcio.querySelector(".mobil-scroll-nyil");
+    // Legalább egy nyíl mindig jelezze a vízszintes görgetést, üres táblánál is.
+    // Hosszú táblánál körülbelül 400 pixelenként jelenjen meg újabb nyíl.
+    // A nyíldoboz magassága pontosan a táblázathoz igazodik, így nem lóghat alá.
+    if(nyilDoboz){
+      const tablaRect=fo.getBoundingClientRect();
+      const szekcioRect=szekcio.getBoundingClientRect();
+      const tablaMagassag=Math.max(1,fo.offsetHeight);
+      const nyilDb=Math.max(1,Math.ceil(tablaMagassag/400));
+      if(nyilDoboz.childElementCount!==nyilDb){
+        nyilDoboz.replaceChildren();
+        for(let i=0;i<nyilDb;i++){
+          const span=document.createElement("span");
+          span.textContent="›";
+          nyilDoboz.appendChild(span);
+        }
+      }
+      nyilDoboz.style.top=(tablaRect.top-szekcioRect.top+szekcio.scrollTop)+"px";
+      nyilDoboz.style.height=tablaMagassag+"px";
+      nyilDoboz.style.bottom="auto";
+    }
     szekcio.classList.toggle("van-jobbra",mobil && max>4 && fo.scrollLeft < max-4);
   }
   function layoutScroll(){
