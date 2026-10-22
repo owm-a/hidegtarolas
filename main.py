@@ -797,21 +797,23 @@ print(
     talalt_munkalap
 )
 
-# SZ-VV munkalapon nincs aznapi feldolgozás.
-if str(talalt_munkalap).strip().upper() == "SZ-VV":
-    print("Az aktuális munkalap SZ-VV, a program leáll.")
-    raise SystemExit(0)
-
+# SZ-VV esetén nincs BIZTOR-forgalmi adat, de a programnak
+# ettől még el kell készítenie a HTML-fejlécet a dátummal és naptípussal.
+sz_vv_nap = str(talalt_munkalap).strip().upper() == "SZ-VV"
 
 # =========================================================
 # 9/g. MUNKALAP BEOLVASÁSA
 # =========================================================
 
-excel = pd.read_excel(
-    EXCEL_FAJL,
-    sheet_name=talalt_munkalap,
-    header=None
-)
+if sz_vv_nap:
+    print("Az aktuális munkalap SZ-VV: BIZTOR-fordák nélkül folytatjuk, hogy a dátum/naptípus fejléc elkészüljön.")
+    excel = pd.DataFrame()
+else:
+    excel = pd.read_excel(
+        EXCEL_FAJL,
+        sheet_name=talalt_munkalap,
+        header=None
+    )
 
 
 print(
