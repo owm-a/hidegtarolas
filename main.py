@@ -4191,10 +4191,8 @@ body{
 .theme-switch-toggle[aria-pressed="true"] .theme-switch span{transform:translateX(11px)}
 .fejlec-vezerlok{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
 .fejlec-archivum{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;margin-top:0}
-/* A dátumválasztó és a Mai nap gomb azonos szélességű asztali és mobil nézetben is. */
 .history-calendar{width:76px;flex:0 0 76px;box-sizing:border-box}
 .history-calendar-button{width:100%;box-sizing:border-box;justify-content:center}
-#go-today-button{width:76px;min-width:76px;box-sizing:border-box;text-align:center;padding-left:4px;padding-right:4px}
 .fejlec-archivum #history-load-status{margin-left:4px}
 .auto-refresh-toggle{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:58px;height:34px;padding:4px 7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:9px;cursor:pointer;transition:.16s}
 .auto-refresh-toggle:hover{border-color:var(--accent);background:var(--surface3)}
@@ -4208,8 +4206,6 @@ body{
 .torteneti-vezerlo{position:relative;display:flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:5px 7px;font:inherit;font-size:12px;width:max-content;max-width:100%;box-sizing:border-box}
 .history-calendar-button{display:inline-flex;align-items:center;gap:5px;min-width:0;width:auto;justify-content:flex-start;white-space:nowrap;border:0;background:transparent;color:var(--text);font:inherit;font-size:12px;cursor:pointer;padding:2px 1px}
 .history-calendar-button .calendar-mark{font-size:15px}
-#go-today-button{white-space:nowrap;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);font:inherit;font-size:12px;padding:5px 8px;cursor:pointer}
-#go-today-button:hover{border-color:var(--accent);background:var(--surface3)}
 .history-calendar-popup{position:absolute;top:calc(100% + 7px);left:0;z-index:10000;width:258px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow)}
 .history-calendar-popup[hidden]{display:none!important}
 .history-calendar-month{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
@@ -4971,18 +4967,17 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 }
 
 
-/* Mobilos fejléc: cím/kapcsolók felül, dátum + Mai nap + Utolsó pozíciók egy sorban alatta. */
+/* Mobilos fejléc: dátumválasztó és Utolsó pozíciók egy sorban. */
 @media(max-width:600px){
-  .fejlec-top{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:auto auto;align-items:center!important;gap:8px 5px;margin-bottom:12px!important;}
+  .fejlec-top{display:grid!important;grid-template-columns:76px minmax(0,1fr);grid-template-rows:auto auto;align-items:center!important;gap:8px 5px;margin-bottom:12px!important;}
   .fejlec-cim-archivum,.fejlec-archivum,.fejlec-vezerlok{display:contents!important;}
   .cim{grid-column:1;grid-row:1;min-width:0;font-size:18px!important;white-space:nowrap;}
   .cim-busz-svg{display:none!important;}
-  .fejlec-kapcsolok{grid-column:2 / 4;grid-row:1;display:flex!important;width:auto!important;gap:5px;justify-content:flex-end;align-items:center;}
+  .fejlec-kapcsolok{grid-column:2;grid-row:1;display:flex!important;width:auto!important;gap:5px;justify-content:flex-end;align-items:center;}
   .history-calendar{grid-column:1;grid-row:2;min-width:0;width:76px;flex:0 0 76px;justify-self:start;padding:0!important;}
   .history-calendar-button{max-width:100%;padding:2px 0!important;gap:0!important;font-size:10px!important;}
   .history-calendar-button .calendar-mark,.history-calendar-button > span:last-child{display:none!important;}
-  #go-today-button{grid-column:2;grid-row:2;justify-self:center;width:76px;min-width:76px;white-space:nowrap;padding:5px 4px;font-size:11px;}
-  #clear-click-locations{grid-column:3;grid-row:2;justify-self:end;white-space:nowrap;padding:5px 7px;font-size:11px;}
+  #clear-click-locations{grid-column:2;grid-row:2;justify-self:end;white-space:nowrap;padding:5px 7px;font-size:11px;}
   .fejlec-adatok.riport-fejlec-adatok{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:10px;row-gap:10px;align-items:start;}
   .fejlec-bal,.fejlec-jobb{display:contents!important;}
   .fejlec-bal .adat:nth-child(1){grid-column:1;grid-row:1;}
@@ -4999,7 +4994,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 .theme-switch-toggle[aria-pressed="true"] .theme-icon { color: #16a765 !important; }
 @media (max-width: 600px) {
   .fejlec-top {
-    grid-template-columns: 76px 76px minmax(0, 1fr) !important;
+    grid-template-columns: 76px minmax(0, 1fr) !important;
     grid-template-rows: auto auto !important;
     column-gap: 5px !important;
   }
@@ -5022,17 +5017,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     white-space: nowrap;
   }
   #history-date-label { display: inline-block; width: 100%; text-align: center; }
-  #go-today-button {
-    grid-column: 2 !important;
-    grid-row: 2 !important;
-    width: 76px !important;
-    min-width: 76px !important;
-    max-width: 76px !important;
-    justify-self: start !important;
-    box-sizing: border-box !important;
-  }
   #clear-click-locations {
-    grid-column: 3 !important;
+    grid-column: 2 !important;
     grid-row: 2 !important;
     justify-self: end !important;
     max-width: 100%;
@@ -5055,7 +5041,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
             <div id="history-calendar-grid" class="history-calendar-grid" role="grid" aria-label="Elérhető archív napok"></div>
           </div>
         </div>
-        <button id="go-today-button" type="button" title="A mai napi adatok megnyitása">Mai nap</button>
         <div id="history-load-status" role="status" aria-live="polite"></div>
       </div>
     </div>
@@ -5527,14 +5512,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   if (isReload) {
     window.location.replace('https://owm-a.github.io/hidegtarolas/');
   }
-})();
-
-// A "Mai nap" gomb mindig a kanonikus, aktuális napi főoldalra visz.
-(function(){
-  const button = document.getElementById('go-today-button');
-  if (button) button.addEventListener('click', () => {
-    window.location.href = 'https://owm-a.github.io/hidegtarolas/';
-  });
 })();
 
 // Napi archívum: naptárnézet, kizárólag elérhető napok választhatók.
