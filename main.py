@@ -5039,6 +5039,17 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 </style>
 </head>
 <body>
+<script>
+// A mentett témát még a felület első kirajzolása előtt alkalmazzuk,
+// így a világos módot használóknál nem villan fel először a sötét téma.
+(function(){
+  try {
+    if (localStorage.getItem('futar-theme') === 'light') {
+      document.body.classList.add('light-mode');
+    }
+  } catch (e) {}
+})();
+</script>
 <div class="fejlec">
   <div class="fejlec-top">
     <div class="fejlec-cim-archivum">
