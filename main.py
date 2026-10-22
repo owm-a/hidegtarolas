@@ -4202,6 +4202,16 @@ body{
 .theme-switch-toggle[aria-pressed="true"] .theme-switch span{transform:translateX(11px)}
 .fejlec-vezerlok{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
 .fejlec-archivum{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;margin-top:0}
+.fejlec-nezet-valaszto{margin:0!important;padding:2px!important;gap:3px!important;flex-shrink:0}
+.fejlec-nezet-valaszto .nezet-gomb{padding:6px 9px;font-size:12px;white-space:nowrap}
+.nezet-gomb.nezet-biztor{background:#2563eb;color:#fff}
+.nezet-gomb.nezet-garazs{background:#16a34a;color:#fff}
+.nezet-gomb.nezet-biztor.active{background:#2563eb;box-shadow:0 2px 8px rgba(37,99,235,.28)}
+.nezet-gomb.nezet-garazs.active{background:#16a34a;box-shadow:0 2px 8px rgba(22,163,74,.28)}
+.nezet-gomb.nezet-biztor .online-szam,.nezet-gomb.nezet-garazs .online-szam{color:rgba(255,255,255,.85)}
+.ertekelt-v{background:#2563eb;color:#fff;border-radius:4px;padding:2px 4px}
+.ertekelt-g{background:#16a34a;color:#fff;border-radius:4px;padding:2px 4px}
+.ertekelt-szumma{color:var(--text)}
 .history-calendar{width:76px;flex:0 0 76px;box-sizing:border-box}
 .history-calendar-button{width:100%;box-sizing:border-box;justify-content:center}
 .fejlec-archivum #history-load-status{margin-left:4px}
@@ -4243,7 +4253,7 @@ body{
 .kijelolt-adat:empty{display:none}
 .kijelolt-adat .kijelolt-ertek{color:#2583ff;border-top:2px solid #2583ff;border-bottom:2px solid #2583ff;padding:2px 6px;border-radius:2px}
 .fo-kozos-tabla td.rendszam.kijelolt-rendszam{border-top:2px solid #2583ff!important;border-bottom:2px solid #2583ff!important;box-shadow:inset 0 1px 0 #2583ff,inset 0 -1px 0 #2583ff}
-@media(max-width:600px){.nezet-fejlec-sor{align-items:stretch;gap:6px;margin-bottom:10px}.kijelolt-adat{padding:2px 6px;font-size:12px;min-height:22px}.nezet-fejlec-sor .nezet-valaszto{margin:0}}
+@media(max-width:600px){.fejlec-archivum{width:100%;justify-content:space-between;flex-wrap:wrap}.fejlec-nezet-valaszto{margin-left:auto!important;justify-content:flex-end}.fejlec-nezet-valaszto .nezet-gomb{padding:6px 8px;font-size:11px}.nezet-fejlec-sor{align-items:stretch;gap:6px;margin-bottom:10px}.kijelolt-adat{padding:2px 6px;font-size:12px;min-height:22px}.nezet-fejlec-sor .nezet-valaszto{margin:0}}
 .nezet-gomb{border:0;border-radius:7px;padding:8px 13px;background:transparent;color:var(--muted);font:inherit;font-size:13px;font-weight:650;cursor:pointer;transition:.16s}
 .nezet-gomb:hover{color:var(--text);background:var(--surface3)}
 .nezet-gomb.active{color:white;background:linear-gradient(135deg,var(--accent2),#6b7ff0);box-shadow:0 4px 12px rgba(79,143,247,.24)}
@@ -4296,6 +4306,7 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 #fo-tabla.view-garazs .fix-tabla tbody tr[data-forras="biztor"],
 #fo-tabla.view-garazs .ido-tabla tbody tr[data-forras="biztor"],
 #fo-tabla.view-garazs .storage-tabla tbody tr[data-forras="biztor"]{display:none}
+#fo-tabla.view-none .fix-tabla tbody tr,#fo-tabla.view-none .ido-tabla tbody tr,#fo-tabla.view-none .storage-tabla tbody tr{display:none!important}
 #fo-tabla tbody tr[data-filter-match="0"]{display:none}
 
 /* Mobilon a teljes nagy táblázat vízszintesen görgethető legyen. */
@@ -5071,6 +5082,10 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
           </div>
         </div>
         <div id="history-load-status" role="status" aria-live="polite"></div>
+        <div class="nezet-valaszto fejlec-nezet-valaszto" role="tablist" aria-label="Megjelenítés">
+          <button class="nezet-gomb nezet-biztor" data-nezet="biztor" type="button">Végállomás <span class="online-szam">""" + str(biz_online) + "/" + str(biz_osszes) + """</span></button>
+          <button class="nezet-gomb nezet-garazs" data-nezet="garazs" type="button">Garázs <span class="online-szam">""" + str(garazs_online) + "/" + str(garazs_osszes) + """</span></button>
+        </div>
       </div>
     </div>
     <div class="fejlec-vezerlok">
@@ -5093,17 +5108,12 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     </div>
     <div class="fejlec-jobb">
       <div class="adat"><b>Riport készült:</b> """ + escape(re.search(r"(\d{1,2}:\d{2})", str(hidegtarolas_riport.get("keszult", "-"))).group(1) if re.search(r"(\d{1,2}:\d{2})", str(hidegtarolas_riport.get("keszult", "-"))) else "-") + """</div>
-      <div class="adat"><b>Értékelt fordák:</b> """ + str(hidegtarolas_riport.get("ertekelt_fordak", 0)) + "V+" + str(garazstarolas_riport.get("ertekelt_fordak", 0)) + "G→" + str(hidegtarolas_riport.get("ertekelt_fordak", 0) + garazstarolas_riport.get("ertekelt_fordak", 0)) + "∑" + """</div>
+      <div class="adat"><b>Értékelt fordák:</b> <span class="ertekelt-v">""" + str(hidegtarolas_riport.get("ertekelt_fordak", 0)) + """ (V)</span> + <span class="ertekelt-g">""" + str(garazstarolas_riport.get("ertekelt_fordak", 0)) + """ (G)</span> = <span class="ertekelt-szumma">""" + str(hidegtarolas_riport.get("ertekelt_fordak", 0) + garazstarolas_riport.get("ertekelt_fordak", 0)) + """ (Σ)</span></div>
     </div>
   </div>
 </div>
 <div id="geozona-terkep"></div>
 <div class="nezet-fejlec-sor">
-<div class="nezet-valaszto" role="tablist" aria-label="Megjelenítés">
-  <button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás <span class="online-szam">""" + str(biz_online) + "/" + str(biz_osszes) + """</span></button>
-  <button class="nezet-gomb" data-nezet="garazs" type="button">Garázs <span class="online-szam">""" + str(garazs_online) + "/" + str(garazs_osszes) + """</span></button>
-  <button class="nezet-gomb" data-nezet="mindketto" type="button">Összes <span class="online-szam">""" + str(osszes_online) + "/" + str(osszes_osszes) + """</span></button>
-</div>
 <div id="kijelolt-adat" class="kijelolt-adat" aria-live="polite"></div>
 </div>
 <div id="panel-adatok" class="nezet-panel">
@@ -5302,7 +5312,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   const buttons=document.querySelectorAll('.nezet-gomb');
   if(!fo||!slider||!table||!tbody)return;
   const NEZET_STORAGE_KEY='hidegtarolas-aktiv-nezet';
-  const ERVENYES_NEZETEK=['mindketto','biztor','garazs'];
+  const ERVENYES_NEZETEK=['none','biztor','garazs','mindketto'];
   function betoltottNezet(){
     try{
       const mentett=localStorage.getItem(NEZET_STORAGE_KEY);
@@ -5449,8 +5459,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     if(mentes){
       try{localStorage.setItem(NEZET_STORAGE_KEY,v);}catch(e){}
     }
-    buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===v));
-    fo.classList.remove('view-biztor','view-garazs','view-mindketto');
+    buttons.forEach(b=>b.classList.toggle('active', v==='mindketto' || (v!=='none' && b.dataset.nezet===v)));
+    fo.classList.remove('view-biztor','view-garazs','view-mindketto','view-none');
     fo.classList.add('view-'+v);fo.classList.toggle('all-view',v==='mindketto');
     requestAnimationFrame(()=>{sticky();layoutScroll();});
   }
@@ -5513,7 +5523,16 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
       scrollFrame=0;
     });
   },{passive:true});
-  buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet,true)));
+  buttons.forEach(b=>b.addEventListener('click',()=>{
+    const key=b.dataset.nezet;
+    const biztorOn=currentView==='biztor'||currentView==='mindketto';
+    const garazsOn=currentView==='garazs'||currentView==='mindketto';
+    const ujBiztor=key==='biztor'?!biztorOn:biztorOn;
+    const ujGarazs=key==='garazs'?!garazsOn:garazsOn;
+    const ujNezet=ujBiztor&&ujGarazs?'mindketto':ujBiztor?'biztor':ujGarazs?'garazs':'none';
+    view(ujNezet,true);
+    if(typeof frissitTerkepNezet==='function') frissitTerkepNezet(ujNezet);
+  }));
   sortButtons.forEach(b=>b.addEventListener('click',()=>sort(b)));
   filterInputs.forEach(i=>i.addEventListener('input',filters));
   window.addEventListener('resize',()=>requestAnimationFrame(()=>{mobilTablaSorrend();layout();}));
@@ -6159,7 +6178,7 @@ function tortenetiStatuszSzin(statusz) {
 function aktualisTerkepNezet() {
     try {
         const v = localStorage.getItem("hidegtarolas-aktiv-nezet");
-        return ["mindketto", "biztor", "garazs"].includes(v) ? v : "mindketto";
+        return ["none", "mindketto", "biztor", "garazs"].includes(v) ? v : "mindketto";
     } catch (e) { return "mindketto"; }
 }
 function markerAktivNezetben(marker) {
@@ -6340,7 +6359,7 @@ document.querySelectorAll(".rendszam-napi-elozmeny[data-rendszam-elozmeny]").for
         const pontok = [];
         const aktivNezet = aktualisTerkepNezet();
         document.querySelectorAll("#fix-tbody-common tr[data-forras]").forEach(function(tr) {
-            if (aktivNezet !== "mindketto" && String(tr.dataset.forras || "biztor") !== aktivNezet) return;
+            if (aktivNezet === "none" || (aktivNezet !== "mindketto" && String(tr.dataset.forras || "biztor") !== aktivNezet)) return;
             const cells = tr.querySelectorAll('.idopont-cella.lokacio-kattinthato[data-lat][data-lon][data-rendszam]');
             cells.forEach(function(cell) {
                 if (String(cell.dataset.rendszam || "").trim().toUpperCase() !== rendszam) return;
@@ -6479,7 +6498,7 @@ function frissitTerkepNezet(view) {
     });
     const forrasLista = tortenetiOszlopAktiv ? tortenetiLokacioMarkerek : osszesMarker;
     const latszo = forrasLista.filter(function(marker){
-        return view === "mindketto" || marker.__forras === view;
+        return view !== "none" && (view === "mindketto" || marker.__forras === view);
     });
     latszo.forEach(function(marker){ marker.addTo(map); });
     if (latszo.length) {
@@ -6491,11 +6510,11 @@ function frissitTerkepNezet(view) {
 }
 
 const NEZET_STORAGE_KEY = 'hidegtarolas-aktiv-nezet';
-const ERVENYES_NEZETEK = ['mindketto', 'biztor', 'garazs'];
+const ERVENYES_NEZETEK = ['none', 'mindketto', 'biztor', 'garazs'];
 function betoltottTerkepNezet(){
     try {
         const mentett = localStorage.getItem(NEZET_STORAGE_KEY);
-        return ERVENYES_NEZETEK.includes(mentett) ? mentett : 'mindketto';
+        return ERVENYES_NEZETEK.includes(mentett) ? mentett : 'biztor';
     } catch (e) {
         return 'mindketto';
     }
@@ -6503,10 +6522,7 @@ function betoltottTerkepNezet(){
 
 document.querySelectorAll(".nezet-gomb").forEach(function(btn){
     btn.addEventListener("click", function(){
-        const nezet = ERVENYES_NEZETEK.includes(this.dataset.nezet)
-            ? this.dataset.nezet
-            : 'mindketto';
-        try { localStorage.setItem(NEZET_STORAGE_KEY, nezet); } catch (e) {}
+        const nezet = (function(){ try { return localStorage.getItem(NEZET_STORAGE_KEY) || 'mindketto'; } catch(e) { return 'mindketto'; } })();
 
         // Ha időoszlopot vizsgálunk, a nézetváltás után ugyanazt az időpontot
         // újra lekérjük, immár az új nézetben látható sorokból.
