@@ -599,6 +599,21 @@
       "pozicio_frissitve": "16:05:47",
       "ellenőrzés": "-",
       "frissítve": "16:05:47"
+    },
+    {
+      "viszonylat": "0250",
+      "forda": "56",
+      "kezdés": "13:22:00",
+      "végzés": "15:21:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAHY865",
+      "jármű_id": "427",
+      "pozíció": "47.56267, 19.114798",
+      "pozicio_frissitve": "16:10:52",
+      "ellenőrzés": "-",
+      "frissítve": "16:10:56"
     }
   ],
   "hidegtarolas_riport": {
@@ -606,7 +621,7 @@
     "kesz": true,
     "excel_kesz": false,
     "keszult": "-",
-    "utolso_futas": "16:05:47",
+    "utolso_futas": "16:10:57",
     "vizsgalt_fordak": 21,
     "ertekelt_fordak": 21,
     "forrás": "biztor",
@@ -1163,12 +1178,12 @@
   },
   "garazstarolas_riport": {
     "datum": "2026-10-22",
-    "kesz": false,
+    "kesz": true,
     "excel_kesz": false,
     "keszult": "-",
-    "utolso_futas": "16:05:48",
+    "utolso_futas": "16:10:57",
     "vizsgalt_fordak": 105,
-    "ertekelt_fordak": 104,
+    "ertekelt_fordak": 105,
     "forrás": "garazs",
     "dontesek": {
       "garazs|0205|53": {
@@ -2626,6 +2641,20 @@
         "pótlás_jármű_id": "",
         "pótlás_route_id": "",
         "pótlás_direction_id": ""
+      },
+      "garazs|0530|21": {
+        "viszonylat": "0530",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "16:09:00",
+        "pozíció időpontja": "",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": "",
+        "pótlás_trip_id": "",
+        "pótlás_jármű_id": "",
+        "pótlás_route_id": "",
+        "pótlás_direction_id": ""
       }
     },
     "eredmenyek": [
@@ -2814,10 +2843,10 @@
         "viszonylat": "0530",
         "forda": "21",
         "rendszám": "",
-        "eredmény": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
         "terv tárolás": "ArrivaBus Andor telephely",
-        "tárolás helye": "",
-        "döntés időpontja": "",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "16:09:00",
         "pótlás_viszonylata": "",
         "pótlás_fordája": ""
       },
