@@ -11,7 +11,7 @@
       "helyszín": "bogancs",
       "rendszám": "AAHY865",
       "jármű_id": "427",
-      "frissítve": "13:01:18"
+      "frissítve": "13:05:44"
     }
   },
   "pozicio_tortenet": [
@@ -44,6 +44,21 @@
       "pozicio_frissitve": "13:01:12",
       "ellenőrzés": "-",
       "frissítve": "13:01:19"
+    },
+    {
+      "viszonylat": "0250",
+      "forda": "56",
+      "kezdés": "13:22:00",
+      "végzés": "15:21:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAHY865",
+      "jármű_id": "427",
+      "pozíció": "47.54459, 19.110826",
+      "pozicio_frissitve": "13:05:36",
+      "ellenőrzés": "-",
+      "frissítve": "13:05:44"
     }
   ],
   "hidegtarolas_riport": {
@@ -51,7 +66,7 @@
     "kesz": false,
     "excel_kesz": false,
     "keszult": "-",
-    "utolso_futas": "13:01:19",
+    "utolso_futas": "13:05:45",
     "vizsgalt_fordak": 21,
     "ertekelt_fordak": 1,
     "forrás": "biztor",
@@ -331,9 +346,9 @@
     "kesz": false,
     "excel_kesz": false,
     "keszult": "-",
-    "utolso_futas": "13:01:20",
+    "utolso_futas": "13:05:45",
     "vizsgalt_fordak": 105,
-    "ertekelt_fordak": 21,
+    "ertekelt_fordak": 24,
     "forrás": "garazs",
     "dontesek": {
       "garazs|0205|53": {
@@ -629,6 +644,48 @@
         "pótlás_jármű_id": "",
         "pótlás_route_id": "",
         "pótlás_direction_id": ""
+      },
+      "garazs|0960|61": {
+        "viszonylat": "0960",
+        "forda": "61",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:05:00",
+        "pozíció időpontja": "",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": "",
+        "pótlás_trip_id": "",
+        "pótlás_jármű_id": "",
+        "pótlás_route_id": "",
+        "pótlás_direction_id": ""
+      },
+      "garazs|1100|46": {
+        "viszonylat": "1100",
+        "forda": "46",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:03:00",
+        "pozíció időpontja": "",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": "",
+        "pótlás_trip_id": "",
+        "pótlás_jármű_id": "",
+        "pótlás_route_id": "",
+        "pótlás_direction_id": ""
+      },
+      "garazs|1510|21": {
+        "viszonylat": "1510",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:05:00",
+        "pozíció időpontja": "",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": "",
+        "pótlás_trip_id": "",
+        "pótlás_jármű_id": "",
+        "pótlás_route_id": "",
+        "pótlás_direction_id": ""
       }
     },
     "eredmenyek": [
@@ -877,10 +934,10 @@
         "viszonylat": "0960",
         "forda": "61",
         "rendszám": "",
-        "eredmény": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
         "terv tárolás": "ArrivaBus Bogáncs telephely",
-        "tárolás helye": "",
-        "döntés időpontja": "",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:05:00",
         "pótlás_viszonylata": "",
         "pótlás_fordája": ""
       },
@@ -1105,10 +1162,10 @@
         "viszonylat": "1100",
         "forda": "46",
         "rendszám": "",
-        "eredmény": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
         "terv tárolás": "ArrivaBus Andor telephely",
-        "tárolás helye": "",
-        "döntés időpontja": "",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:03:00",
         "pótlás_viszonylata": "",
         "pótlás_fordája": ""
       },
@@ -1573,10 +1630,10 @@
         "viszonylat": "1510",
         "forda": "21",
         "rendszám": "",
-        "eredmény": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
         "terv tárolás": "ArrivaBus Szállító telephely",
-        "tárolás helye": "",
-        "döntés időpontja": "",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "13:05:00",
         "pótlás_viszonylata": "",
         "pótlás_fordája": ""
       },
