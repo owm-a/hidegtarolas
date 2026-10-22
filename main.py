@@ -453,11 +453,11 @@ HELYSZINEK = {
 
     "csepel": {
         "kulcsszo": "ArrivaBus Szállító telephely",
-        # Bal felső sarok: 47.443590686509864, 19.079985583592567
+        # Bal felső sarok: 47.44387628998278, 19.0795423224357
         # Jobb alsó sarok változatlan.
         "lat_min": 47.441927955392465,
-        "lat_max": 47.443590686509864,
-        "lon_min": 19.079985583592567,
+        "lat_max": 47.44387628998278,
+        "lon_min": 19.0795423224357,
         "lon_max": 19.084841859297306
     },
 
