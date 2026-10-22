@@ -419,6 +419,21 @@
       "pozicio_frissitve": "15:05:36",
       "ellenőrzés": "NEM",
       "frissítve": "15:05:39"
+    },
+    {
+      "viszonylat": "0250",
+      "forda": "56",
+      "kezdés": "13:22:00",
+      "végzés": "15:21:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAHY865",
+      "jármű_id": "427",
+      "pozíció": "47.555058, 19.10033",
+      "pozicio_frissitve": "15:10:44",
+      "ellenőrzés": "NEM",
+      "frissítve": "15:10:45"
     }
   ],
   "hidegtarolas_riport": {
@@ -426,7 +441,7 @@
     "kesz": false,
     "excel_kesz": false,
     "keszult": "-",
-    "utolso_futas": "15:05:39",
+    "utolso_futas": "15:10:45",
     "vizsgalt_fordak": 21,
     "ertekelt_fordak": 20,
     "forrás": "biztor",
@@ -972,9 +987,9 @@
     "kesz": false,
     "excel_kesz": false,
     "keszult": "-",
-    "utolso_futas": "15:05:40",
+    "utolso_futas": "15:10:46",
     "vizsgalt_fordak": 105,
-    "ertekelt_fordak": 95,
+    "ertekelt_fordak": 96,
     "forrás": "garazs",
     "dontesek": {
       "garazs|0205|53": {
@@ -2306,6 +2321,20 @@
         "pótlás_jármű_id": "",
         "pótlás_route_id": "",
         "pótlás_direction_id": ""
+      },
+      "garazs|1530|21": {
+        "viszonylat": "1530",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "15:09:00",
+        "pozíció időpontja": "",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": "",
+        "pótlás_trip_id": "",
+        "pótlás_jármű_id": "",
+        "pótlás_route_id": "",
+        "pótlás_direction_id": ""
       }
     },
     "eredmenyek": [
@@ -3262,10 +3291,10 @@
         "viszonylat": "1530",
         "forda": "21",
         "rendszám": "",
-        "eredmény": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
         "terv tárolás": "ArrivaBus Andor telephely",
-        "tárolás helye": "",
-        "döntés időpontja": "",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "15:09:00",
         "pótlás_viszonylata": "",
         "pótlás_fordája": ""
       },
