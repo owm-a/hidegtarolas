@@ -1088,9 +1088,17 @@ for i in range(5, len(excel_garazs)):
         "forrás": "garazs"
     })
 
-figyelt_fordak_garazs = pd.DataFrame(figyelt_fordak_garazs)
-figyelt_fordak_biztor = pd.DataFrame(figyelt_fordak)
-figyelt_fordak = pd.concat([figyelt_fordak_biztor, figyelt_fordak_garazs], ignore_index=True)
+# Az oszlopokat akkor is rögzítjük, ha SZ-VV miatt nincs egyetlen adatsor sem.
+# Így az üres BIZTOR- vagy garázslista nem okoz KeyError-t a későbbi ellenőrzéseknél.
+figyelt_oszlopok = [
+    "viszonylat", "forda", "kezdés", "végzés", "hely", "helyszín", "forrás"
+]
+figyelt_fordak_garazs = pd.DataFrame(figyelt_fordak_garazs, columns=figyelt_oszlopok)
+figyelt_fordak_biztor = pd.DataFrame(figyelt_fordak, columns=figyelt_oszlopok)
+figyelt_fordak = pd.concat(
+    [figyelt_fordak_biztor, figyelt_fordak_garazs],
+    ignore_index=True
+)
 
 def forda_kulcs_adat(forda_sor):
     viszonylat = str(forda_sor.get("viszonylat", "")).strip()
