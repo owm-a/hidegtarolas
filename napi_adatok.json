@@ -584,6 +584,21 @@
       "pozicio_frissitve": "16:01:06",
       "ellenőrzés": "-",
       "frissítve": "16:01:17"
+    },
+    {
+      "viszonylat": "0250",
+      "forda": "56",
+      "kezdés": "13:22:00",
+      "végzés": "15:21:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAHY865",
+      "jármű_id": "427",
+      "pozíció": "47.554813, 19.116327",
+      "pozicio_frissitve": "16:05:47",
+      "ellenőrzés": "-",
+      "frissítve": "16:05:47"
     }
   ],
   "hidegtarolas_riport": {
@@ -591,7 +606,7 @@
     "kesz": true,
     "excel_kesz": false,
     "keszult": "-",
-    "utolso_futas": "16:01:18",
+    "utolso_futas": "16:05:47",
     "vizsgalt_fordak": 21,
     "ertekelt_fordak": 21,
     "forrás": "biztor",
@@ -1151,7 +1166,7 @@
     "kesz": false,
     "excel_kesz": false,
     "keszult": "-",
-    "utolso_futas": "16:01:19",
+    "utolso_futas": "16:05:48",
     "vizsgalt_fordak": 105,
     "ertekelt_fordak": 104,
     "forrás": "garazs",
