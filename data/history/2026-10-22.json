@@ -254,6 +254,21 @@
       "pozicio_frissitve": "14:10:29",
       "ellenőrzés": "NEM",
       "frissítve": "14:10:43"
+    },
+    {
+      "viszonylat": "0250",
+      "forda": "56",
+      "kezdés": "13:22:00",
+      "végzés": "15:21:00",
+      "hely": "ArrivaBus Bogáncs telephely",
+      "helyszín": "bogancs",
+      "forrás": "garazs",
+      "rendszám": "AAHY865",
+      "jármű_id": "427",
+      "pozíció": "47.51981, 19.090935",
+      "pozicio_frissitve": "14:15:29",
+      "ellenőrzés": "NEM",
+      "frissítve": "14:15:53"
     }
   ],
   "hidegtarolas_riport": {
@@ -261,9 +276,9 @@
     "kesz": false,
     "excel_kesz": false,
     "keszult": "-",
-    "utolso_futas": "14:10:43",
+    "utolso_futas": "14:15:54",
     "vizsgalt_fordak": 21,
-    "ertekelt_fordak": 16,
+    "ertekelt_fordak": 17,
     "forrás": "biztor",
     "dontesek": {
       "0360|21": {
@@ -489,6 +504,20 @@
         "pótlás_jármű_id": "",
         "pótlás_route_id": "",
         "pótlás_direction_id": ""
+      },
+      "1340|57": {
+        "viszonylat": "1340",
+        "forda": "57",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:11:00",
+        "pozíció időpontja": "",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": "",
+        "pótlás_trip_id": "",
+        "pótlás_jármű_id": "",
+        "pótlás_route_id": "",
+        "pótlás_direction_id": ""
       }
     },
     "eredmenyek": [
@@ -509,10 +538,10 @@
         "viszonylat": "1340",
         "forda": "57",
         "rendszám": "",
-        "eredmény": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
         "terv tárolás": "Békásmegyer, Újmegyeri tér",
-        "tárolás helye": "",
-        "döntés időpontja": "",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:11:00",
         "pótlás_viszonylata": "",
         "pótlás_fordája": ""
       },
@@ -751,9 +780,9 @@
     "kesz": false,
     "excel_kesz": false,
     "keszult": "-",
-    "utolso_futas": "14:10:44",
+    "utolso_futas": "14:15:55",
     "vizsgalt_fordak": 105,
-    "ertekelt_fordak": 75,
+    "ertekelt_fordak": 78,
     "forrás": "garazs",
     "dontesek": {
       "garazs|0205|53": {
@@ -1805,6 +1834,48 @@
         "pótlás_jármű_id": "",
         "pótlás_route_id": "",
         "pótlás_direction_id": ""
+      },
+      "garazs|1335|21": {
+        "viszonylat": "1335",
+        "forda": "21",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:12:00",
+        "pozíció időpontja": "",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": "",
+        "pótlás_trip_id": "",
+        "pótlás_jármű_id": "",
+        "pótlás_route_id": "",
+        "pótlás_direction_id": ""
+      },
+      "garazs|2120|23": {
+        "viszonylat": "2120",
+        "forda": "23",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:14:00",
+        "pozíció időpontja": "",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": "",
+        "pótlás_trip_id": "",
+        "pótlás_jármű_id": "",
+        "pótlás_route_id": "",
+        "pótlás_direction_id": ""
+      },
+      "garazs|2120|40": {
+        "viszonylat": "2120",
+        "forda": "40",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:12:00",
+        "pozíció időpontja": "",
+        "pótlás_viszonylata": "",
+        "pótlás_fordája": "",
+        "pótlás_trip_id": "",
+        "pótlás_jármű_id": "",
+        "pótlás_route_id": "",
+        "pótlás_direction_id": ""
       }
     },
     "eredmenyek": [
@@ -2449,10 +2520,10 @@
         "viszonylat": "1335",
         "forda": "21",
         "rendszám": "",
-        "eredmény": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
         "terv tárolás": "ArrivaBus Andor telephely",
-        "tárolás helye": "",
-        "döntés időpontja": "",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:12:00",
         "pótlás_viszonylata": "",
         "pótlás_fordája": ""
       },
@@ -2989,10 +3060,10 @@
         "viszonylat": "2120",
         "forda": "23",
         "rendszám": "",
-        "eredmény": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
         "terv tárolás": "ArrivaBus Andor telephely",
-        "tárolás helye": "",
-        "döntés időpontja": "",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:14:00",
         "pótlás_viszonylata": "",
         "pótlás_fordája": ""
       },
@@ -3013,10 +3084,10 @@
         "viszonylat": "2120",
         "forda": "40",
         "rendszám": "",
-        "eredmény": "",
+        "eredmény": "ELTÉRÉS TÖRTÉNT",
         "terv tárolás": "ArrivaBus Szállító telephely",
-        "tárolás helye": "",
-        "döntés időpontja": "",
+        "tárolás helye": "Nincs adat",
+        "döntés időpontja": "14:12:00",
         "pótlás_viszonylata": "",
         "pótlás_fordája": ""
       },
