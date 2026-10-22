@@ -5122,8 +5122,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
           if str(talalt_munkalap).strip() == str(garazs_talalt_munkalap).strip()
           else escape(str(talalt_munkalap)) + " / " + escape(str(garazs_talalt_munkalap))
       ) + """</div>
-      <div class="adat"><b>Utolsó lekérdezés:</b> """ + escape(str(idopontok[-1] if idopontok else "-")) + """</div>
       <div class="adat" id="map-location-count"><b>Lokációk száma:</b> 0</div>
+      <div class="adat"><b>Utolsó lekérdezés:</b> """ + escape(str(idopontok[-1] if idopontok else "-")) + """</div>
     </div>
     <div class="fejlec-jobb">
       <div class="adat"><b>Riport készült:</b> """ + escape(re.search(r"(\d{1,2}:\d{2})", str(hidegtarolas_riport.get("keszult", "-"))).group(1) if re.search(r"(\d{1,2}:\d{2})", str(hidegtarolas_riport.get("keszult", "-"))) else "-") + """</div>
