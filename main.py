@@ -4171,8 +4171,9 @@ def html_export():
     --left-width:auto;--storage-width:auto;
 }
 html{background:var(--bg);width:100%;max-width:100%;overflow-x:hidden}
+html:has(body.light-mode){background:#eef2f6}
 body{
-    margin:0;padding:18px;width:100%;max-width:100%;box-sizing:border-box;
+    margin:0;padding:18px;width:100%;max-width:100%;min-height:100vh;box-sizing:border-box;
     overflow-x:hidden;background:radial-gradient(circle at 10% 0%,rgba(110,168,254,.07),transparent 28%),var(--bg);
     color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
 }
@@ -5073,7 +5074,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
       </div>
     </div>
     <div class="fejlec-vezerlok">
-      <button id="clear-click-locations" type="button" title="Az aktuális utolsó pozíciók megjelenítése">Utolsó pozíciók</button>
       <div class="fejlec-kapcsolok">
         <button id="auto-refresh-toggle" class="auto-refresh-toggle" type="button" aria-label="Automatikus frissítés" aria-pressed="true" title="Automatikus frissítés bekapcsolva"><span class="refresh-icon" aria-hidden="true">↻</span><span class="auto-switch" aria-hidden="true"><span></span></span></button>
         <button id="theme-toggle" class="theme-switch-toggle" type="button" aria-label="Sötét mód" aria-pressed="true" title="Sötét mód bekapcsolva"><span class="theme-icon" aria-hidden="true">☾</span><span class="theme-switch" aria-hidden="true"><span></span></span></button>
@@ -6426,29 +6426,6 @@ document.querySelectorAll(".idopont-cella[data-time-index]").forEach(function(ce
 
 // Betöltéskor a legutolsó időpont legyen kékkel kiemelve.
 jelolLegutolsoIdopont();
-
-// Csak a kattintásra létrehozott tárolási és történeti lokációkat távolítja el.
-(function(){
-    const button = document.getElementById('clear-click-locations');
-    if (!button) return;
-    button.addEventListener('click', function(){
-        const tablaAblak = document.getElementById('fo-tabla');
-        const idovonalCsuszka = document.getElementById('fo-idopont-csuszka');
-        if(tablaAblak && idovonalCsuszka){
-            const jobbSzel = Math.max(0, tablaAblak.scrollWidth - tablaAblak.clientWidth);
-            tablaAblak.scrollLeft = jobbSzel;
-            idovonalCsuszka.max = String(jobbSzel);
-            idovonalCsuszka.value = String(jobbSzel);
-        }
-        // Az „Utolsó pozíciók” gomb ugyanazt a teljes műveletet végezze,
-        // mint az utolsó időoszlopra kattintás: kijelölés, időpontfelirat,
-        // történeti markerek, csoportosítás és a nézethez tartozó szűrés.
-        const idopontFejlecek = document.querySelectorAll('.idopont-oszlop-kattinthato[data-time-index]');
-        if (!idopontFejlecek.length) return;
-        const utolsoFejlec = idopontFejlecek[idopontFejlecek.length - 1];
-        utolsoFejlec.click();
-    });
-})();
 
 function frissitLokacioSzam() {
     const elem = document.getElementById('map-location-count');
