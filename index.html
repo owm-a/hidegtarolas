@@ -1070,14 +1070,15 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     const mobil=window.matchMedia("(max-width:600px)").matches;
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
     const nyilDoboz=szekcio.querySelector(".mobil-scroll-nyil");
-    // Legalább egy nyíl mindig jelezze a vízszintes görgetést, üres táblánál is.
-    // Hosszú táblánál körülbelül 400 pixelenként jelenjen meg újabb nyíl.
-    // A nyíldoboz magassága pontosan a táblázathoz igazodik, így nem lóghat alá.
+    // Mobilon legalább egy nyíl jelezze a vízszintes görgetést, üres táblánál is.
+    // A nyilak száma a táblázat magasságából következik; hosszú táblánál
+    // egyenletesen elosztva több nyíl jelzi a görgetést.
+    // A nyíldoboz a táblázat magasságához igazodik, így nem lóghat alá.
     if(nyilDoboz){
       const tablaRect=fo.getBoundingClientRect();
       const szekcioRect=szekcio.getBoundingClientRect();
       const tablaMagassag=Math.max(1,fo.offsetHeight);
-      const nyilDb=Math.max(1,Math.ceil(tablaMagassag/400));
+      const nyilDb=Math.max(1,Math.ceil(tablaMagassag/200));
       if(nyilDoboz.childElementCount!==nyilDb){
         nyilDoboz.replaceChildren();
         for(let i=0;i<nyilDb;i++){
