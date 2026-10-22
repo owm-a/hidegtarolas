@@ -4387,6 +4387,13 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 .jarmu-hover-adatok{white-space:normal;max-width:300px;line-height:1.45;font-size:12px}
 .jarmu-hover-adatok .leaflet-tooltip-content{white-space:normal}
 body.light-mode{--bg:#eef2f6;--surface:#fff;--surface2:#f4f6f8;--surface3:#e7ebf0;--border:#cbd3dc;--text:#1f2937;--muted:#667085;--accent:#2f6fed;--accent2:#4f7ff5;--ok:#16a765;--bad:#df4f4f;--dark:#4b5563;--shadow:0 8px 24px rgba(15,23,42,.10);background:var(--bg);color:var(--text)}
+/* Ha a mentett téma világos, az első HTML-ben a kapcsoló még alapból
+   sötét módot jelezhet. A body témája alapján már az első kirajzoláskor
+   a világos módhoz tartozó kikapcsolt állapotot mutassuk. */
+body.light-mode #theme-toggle[aria-pressed="true"] .theme-switch{background:#687384!important}
+body.light-mode #theme-toggle[aria-pressed="true"] .theme-switch span{transform:none!important}
+body.light-mode #theme-toggle[aria-pressed="true"] .theme-icon{color:var(--text)!important}
+
 body.light-mode .fejlec,body.light-mode .tabla-szekcio{background:var(--surface);border-color:var(--border)}
 body.light-mode .cim,body.light-mode .adat b{color:var(--text)}
 body.light-mode .status-pill.ok{color:#198754;background:rgba(25,135,84,.10);border-color:rgba(25,135,84,.28)}
