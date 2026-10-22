@@ -3374,17 +3374,10 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
     return riportok
 
 
-# SZ-VV esetén nincs munkanapi forgalom, ezért egyik riportot sem készítjük el.
-# A HTML ettől még elkészülhet, hogy a dátum és a naptípus fejléc frissüljön.
+# A 70%-os döntések minden futáskor ellenőrzésre kerülnek.
+hidegtarolas_riport = keszit_hidegtarolas_riport("biztor", RIport_XLSX, "hidegtarolas_riport")
 GARAZS_RIPORT_XLSX = "data/garazstarolas_export.xlsx"
-if sz_vv_nap:
-    print("SZ-VV munkalap: hidegtárolási és garázstárolási riport készítése kihagyva.")
-    hidegtarolas_riport = None
-    garazstarolas_riport = None
-else:
-    # A 70%-os döntések minden futáskor ellenőrzésre kerülnek.
-    hidegtarolas_riport = keszit_hidegtarolas_riport("biztor", RIport_XLSX, "hidegtarolas_riport")
-    garazstarolas_riport = keszit_hidegtarolas_riport("garazs", GARAZS_RIPORT_XLSX, "garazstarolas_riport")
+garazstarolas_riport = keszit_hidegtarolas_riport("garazs", GARAZS_RIPORT_XLSX, "garazstarolas_riport")
 
 
 def _mai_excel_export_ervenyes(fajl):
@@ -3415,8 +3408,7 @@ def _mai_excel_export_ervenyes(fajl):
 # elmentődött és mindkettőben található mai adatsor. A JSON és az Excel-fájlok
 # ugyanabban a Git-commitban kerülnek vissza a repóba.
 if (
-    not sz_vv_nap
-    and budapesti_most().time() >= time(16, 30)
+    budapesti_most().time() >= time(16, 30)
     and hidegtarolas_riport.get("datum") == MAI_NAP
     and hidegtarolas_riport.get("excel_kesz") is True
     and garazstarolas_riport.get("datum") == MAI_NAP
@@ -3441,9 +3433,7 @@ if (
     else:
         print("A napi páros Excel-export már korábban elkészült; nincs újragenerálás.")
 else:
-    if sz_vv_nap:
-        print("SZ-VV munkalap miatt napi Excel-riport és páros export nem készül.")
-    elif budapesti_most().time() < time(16, 30):
+    if budapesti_most().time() < time(16, 30):
         print("A napi Excel-export 16:30 után készülhet el.")
     else:
         print("A napi páros Excel-export még nem zárható le: legalább az egyik Excel hiányzik vagy érvénytelen.")
