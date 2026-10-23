@@ -1005,12 +1005,10 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   if(!fo||!slider||!table||!tbody)return;
   const NEZET_STORAGE_KEY='hidegtarolas-aktiv-nezet';
   const ERVENYES_NEZETEK=['mindketto','biztor','garazs','none'];
-  function betoltottNezet(){
-    try{
-      const mentett=localStorage.getItem(NEZET_STORAGE_KEY);
-      return ERVENYES_NEZETEK.includes(mentett) ? mentett : 'mindketto';
-    }catch(e){return 'mindketto';}
-  }
+  // Minden teljes oldalbetöltéskor a Végállomás legyen az alapnézet.
+  // A felhasználó menet közbeni választását továbbra is elmentjük, de F5/újranyitás
+  // után ismét a Végállomás nézet indul.
+  function betoltottNezet(){ return 'biztor'; }
   let currentView=betoltottNezet(),sortState={col:null,dir:1};
 
 
@@ -1228,9 +1226,9 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   filterInputs.forEach(i=>i.addEventListener('input',filters));
   window.addEventListener('resize',()=>requestAnimationFrame(()=>{mobilTablaSorrend();layout();}));
   rowList.forEach(r=>r.dataset.filterMatch='1');
-  // Első megnyitáskor nincs korábbi választás: az Összes nézet az alapértelmezés.
-  // Frissítéskor az ezen a böngészőn legutóbb kiválasztott nézet áll vissza.
-  view(currentView,false);
+  // Új megnyitáskor és F5 után mindig a Végállomás nézet indul.
+  // A nézetet elmentjük, hogy a térkép jelölői is ehhez igazodjanak.
+  view(currentView,true);
   layout();
 })();
 (function(){
@@ -1868,8 +1866,8 @@ function tortenetiStatuszSzin(statusz) {
 function aktualisTerkepNezet() {
     try {
         const v = localStorage.getItem("hidegtarolas-aktiv-nezet");
-        return ["mindketto", "biztor", "garazs", "none"].includes(v) ? v : "mindketto";
-    } catch (e) { return "mindketto"; }
+        return ["mindketto", "biztor", "garazs", "none"].includes(v) ? v : "biztor";
+    } catch (e) { return "biztor"; }
 }
 function markerAktivNezetben(marker) {
     const nezet = aktualisTerkepNezet();
