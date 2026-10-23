@@ -859,12 +859,24 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 }
 
 
-/* Értékelt fordák: V és G geozóna-jellegű színek, a szumma a másik téma színét kapja. */
-.ertekelt-v,.ertekelt-g,.ertekelt-szumma{display:inline-block;padding:1px 4px;border-radius:4px;font-weight:700;}
-.ertekelt-v{background:#2563eb;color:#fff;}
-.ertekelt-g{background:#16a34a;color:#fff;}
-body:not(.light-mode) .ertekelt-szumma{background:#e5e7eb;color:var(--text);}
-body.light-mode .ertekelt-szumma{background:#374151;color:var(--text);}
+/* Értékelt fordák: kontrasztos fekete-fehér jelölés mindkét témában. */
+.fejlec-jobb .adat:nth-child(2){display:flex;align-items:center;gap:4px;flex-wrap:nowrap;white-space:nowrap;min-width:0;}
+.ertekelt-v,.ertekelt-g,.ertekelt-szumma{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;padding:2px 5px;border:1px solid currentColor;border-radius:4px;font-weight:750;line-height:1.25;}
+body:not(.light-mode) .ertekelt-v,body:not(.light-mode) .ertekelt-g{background:#f3f4f6;color:#111827;border-color:#d1d5db;}
+body:not(.light-mode) .ertekelt-szumma{background:#111827;color:#fff;border-color:#f3f4f6;}
+body.light-mode .ertekelt-v,body.light-mode .ertekelt-g{background:#fff;color:#111827;border-color:#6b7280;}
+body.light-mode .ertekelt-szumma{background:#111827;color:#fff;border-color:#111827;}
+/* A nézetgombok állapota mobilon is egyértelmű és témától független. */
+.fejlec-nezet-valaszto .nezet-gomb{background:var(--surface2)!important;color:var(--muted)!important;box-shadow:none!important;opacity:1!important;-webkit-tap-highlight-color:transparent;}
+.fejlec-nezet-valaszto .nezet-gomb:hover,.fejlec-nezet-valaszto .nezet-gomb:active{background:var(--surface2)!important;color:var(--muted)!important;transform:none!important;}
+.fejlec-nezet-valaszto .nezet-gomb.active{background:#111827!important;color:#fff!important;border:1px solid #111827!important;box-shadow:none!important;}
+body.light-mode .fejlec-nezet-valaszto .nezet-gomb.active{background:#111827!important;color:#fff!important;border-color:#111827!important;}
+@media(max-width:600px){
+  .fejlec-nezet-valaszto .nezet-gomb{padding:5px 7px!important;font-size:10px!important;}
+  .fejlec-adatok.riport-fejlec-adatok{column-gap:5px!important;}
+  .fejlec-jobb .adat:nth-child(2){grid-column:1 / -1!important;grid-row:4!important;justify-self:start!important;width:max-content!important;max-width:calc(100vw - 20px)!important;margin-left:-3px!important;gap:3px!important;font-size:11px!important;}
+  .fejlec-jobb .adat:nth-child(2) .ertekelt-v,.fejlec-jobb .adat:nth-child(2) .ertekelt-g,.fejlec-jobb .adat:nth-child(2) .ertekelt-szumma{padding:2px 4px!important;}
+}
 
 /* Végső fejléc-felülírás: a hold ikonja asztali nézetben is zöld sötét módban. */
 .theme-switch-toggle[aria-pressed="true"] .theme-icon { color: #16a765 !important; }
@@ -2187,7 +2199,7 @@ function frissitTerkepNezet(view) {
 }
 
 const NEZET_STORAGE_KEY = 'hidegtarolas-aktiv-nezet';
-const ERVENYES_NEZETEK = ['mindketto', 'biztor', 'garazs'];
+const ERVENYES_NEZETEK = ['mindketto', 'biztor', 'garazs', 'none'];
 function betoltottTerkepNezet(){
     try {
         const mentett = localStorage.getItem(NEZET_STORAGE_KEY);
@@ -2199,10 +2211,10 @@ function betoltottTerkepNezet(){
 
 document.querySelectorAll(".nezet-gomb").forEach(function(btn){
     btn.addEventListener("click", function(){
-        const nezet = ERVENYES_NEZETEK.includes(this.dataset.nezet)
-            ? this.dataset.nezet
-            : 'mindketto';
-        try { localStorage.setItem(NEZET_STORAGE_KEY, nezet); } catch (e) {}
+        // A fő táblázat kezelője már frissítette a közös, két kapcsolóból
+        // számolt állapotot és elmentette localStorage-ba. Itt ezt olvassuk vissza;
+        // ne írjuk felül a kombinált állapotot a pusztán kattintott gomb nevével.
+        const nezet = betoltottTerkepNezet();
 
         // Ha időoszlopot vizsgálunk, a nézetváltás után ugyanazt az időpontot
         // újra lekérjük, immár az új nézetben látható sorokból.
