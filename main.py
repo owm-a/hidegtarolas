@@ -4242,12 +4242,25 @@ body{
 .nezet-gomb[data-nezet="garazs"]{background:#198754;color:#fff}
 .nezet-gomb[data-nezet="biztor"].active{background:#2878d0!important;color:#fff!important;box-shadow:0 3px 10px rgba(40,120,208,.28)}
 .nezet-gomb[data-nezet="garazs"].active{background:#198754!important;color:#fff!important;box-shadow:0 3px 10px rgba(25,135,84,.28)}
-/* Hover/érintés közben is maradjon meg a forrásszín; kikapcsolva tompább legyen. */
-.nezet-gomb[data-nezet="biztor"]:hover,.nezet-gomb[data-nezet="biztor"]:focus-visible{background:#2878d0!important;color:#fff!important}
-.nezet-gomb[data-nezet="garazs"]:hover,.nezet-gomb[data-nezet="garazs"]:focus-visible{background:#198754!important;color:#fff!important}
-.nezet-gomb[data-nezet="biztor"]:not(.active),.nezet-gomb[data-nezet="garazs"]:not(.active){opacity:.55}
-.nezet-gomb[data-nezet="biztor"]:not(.active):hover,.nezet-gomb[data-nezet="garazs"]:not(.active):hover{opacity:.8}
-.nezet-gomb[data-nezet="biztor"]:not(.active):active,.nezet-gomb[data-nezet="garazs"]:not(.active):active{opacity:.8}
+/* Aktív nézet élénk színű, kikapcsolva tompább; a szám mindkét témában olvasható. */
+.nezet-gomb[data-nezet="biztor"] .online-szam,
+.nezet-gomb[data-nezet="garazs"] .online-szam{color:#fff!important;opacity:1!important}
+.nezet-gomb[data-nezet="biztor"].active,
+.nezet-gomb[data-nezet="biztor"].active:hover,
+.nezet-gomb[data-nezet="biztor"].active:focus-visible{background:#2878d0!important;color:#fff!important;opacity:1!important}
+.nezet-gomb[data-nezet="garazs"].active,
+.nezet-gomb[data-nezet="garazs"].active:hover,
+.nezet-gomb[data-nezet="garazs"].active:focus-visible{background:#198754!important;color:#fff!important;opacity:1!important}
+.nezet-gomb[data-nezet="biztor"]:not(.active),
+.nezet-gomb[data-nezet="biztor"]:not(.active):hover,
+.nezet-gomb[data-nezet="biztor"]:not(.active):focus-visible{background:#8bb7e8!important;color:#10243b!important;opacity:1!important}
+.nezet-gomb[data-nezet="garazs"]:not(.active),
+.nezet-gomb[data-nezet="garazs"]:not(.active):hover,
+.nezet-gomb[data-nezet="garazs"]:not(.active):focus-visible{background:#91c9ad!important;color:#103324!important;opacity:1!important}
+.nezet-gomb[data-nezet="biztor"]:not(.active) .online-szam,
+.nezet-gomb[data-nezet="garazs"]:not(.active) .online-szam{color:inherit!important}
+.nezet-gomb[data-nezet="biztor"]:not(.active):active,
+.nezet-gomb[data-nezet="garazs"]:not(.active):active{filter:brightness(.96)}
 .ertekelt-fordak{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;vertical-align:middle}
 .ertekelt-fordak .ertek-v,.ertekelt-fordak .ertek-g{display:inline-block;padding:1px 5px;border-radius:4px;color:#fff;font-weight:700}
 .ertekelt-fordak .ertek-v{background:#2878d0}
@@ -4915,16 +4928,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
 
 
 @media(max-width:900px){
-  .nezet-valaszto .nezet-gomb{
-    flex:0 0 auto;
-  }
-  .nezet-valaszto .nezet-gomb[data-nezet="mindketto"],
-  .nezet-valaszto .nezet-gomb[data-nezet="garazs"]{
-    flex:1 1 0;
-  }
-  .nezet-valaszto .nezet-gomb[data-nezet="biztor"]{
-    flex:1.2 1 0;
-  }
+  .nezet-valaszto{justify-content:flex-end}
+  .nezet-valaszto .nezet-gomb{flex:0 0 auto;width:max-content}
 }
 
 
@@ -5120,7 +5125,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     </div>
     <div class="fejlec-jobb">
       <div class="adat"><b>Riport készült:</b> """ + escape(re.search(r"(\d{1,2}:\d{2})", str(hidegtarolas_riport.get("keszult", "-"))).group(1) if re.search(r"(\d{1,2}:\d{2})", str(hidegtarolas_riport.get("keszult", "-"))) else "-") + """</div>
-      <div class="adat"><b>Értékelt fordák:</b> <span class="ertekelt-fordak"><span class="ertek-v">""" + str(hidegtarolas_riport.get("ertekelt_fordak", 0)) + " (V)" + """</span><span>+</span><span class="ertek-g">""" + str(garazstarolas_riport.get("ertekelt_fordak", 0)) + " (G)" + """</span><span>→</span><span class="ertek-szumma">""" + str(hidegtarolas_riport.get("ertekelt_fordak", 0) + garazstarolas_riport.get("ertekelt_fordak", 0)) + " (Σ)" + """</span></span></div>
+      <div class="adat"><b>Értékelt fordák:</b> <span class="ertekelt-fordak"><span class="ertek-v">""" + str(hidegtarolas_riport.get("ertekelt_fordak", 0)) + """</span><span>+</span><span class="ertek-g">""" + str(garazstarolas_riport.get("ertekelt_fordak", 0)) + """</span><span>→</span><span class="ertek-szumma">""" + str(hidegtarolas_riport.get("ertekelt_fordak", 0) + garazstarolas_riport.get("ertekelt_fordak", 0)) + """</span></span></div>
     </div>
   </div>
 </div>
