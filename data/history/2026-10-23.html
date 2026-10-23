@@ -151,6 +151,7 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 #fo-tabla.view-garazs .fix-tabla tbody tr[data-forras="biztor"],
 #fo-tabla.view-garazs .ido-tabla tbody tr[data-forras="biztor"],
 #fo-tabla.view-garazs .storage-tabla tbody tr[data-forras="biztor"]{display:none}
+#fo-tabla.view-none .fix-tabla tbody tr[data-forras],#fo-tabla.view-none .ido-tabla tbody tr[data-forras],#fo-tabla.view-none .storage-tabla tbody tr[data-forras]{display:none}
 #fo-tabla tbody tr[data-filter-match="0"]{display:none}
 
 /* Mobilon a teljes nagy táblázat vízszintesen görgethető legyen. */
@@ -987,7 +988,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   const buttons=document.querySelectorAll('.nezet-gomb');
   if(!fo||!slider||!table||!tbody)return;
   const NEZET_STORAGE_KEY='hidegtarolas-aktiv-nezet';
-  const ERVENYES_NEZETEK=['mindketto','biztor','garazs'];
+  const ERVENYES_NEZETEK=['mindketto','biztor','garazs','none'];
   function betoltottNezet(){
     try{
       const mentett=localStorage.getItem(NEZET_STORAGE_KEY);
@@ -1134,8 +1135,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     if(mentes){
       try{localStorage.setItem(NEZET_STORAGE_KEY,v);}catch(e){}
     }
-    buttons.forEach(b=>b.classList.toggle('active',b.dataset.nezet===v));
-    fo.classList.remove('view-biztor','view-garazs','view-mindketto');
+    buttons.forEach(b=>b.classList.toggle('active', v==='mindketto' || b.dataset.nezet===v));
+    fo.classList.remove('view-biztor','view-garazs','view-mindketto','view-none');
     fo.classList.add('view-'+v);fo.classList.toggle('all-view',v==='mindketto');
     requestAnimationFrame(()=>{sticky();layoutScroll();});
   }
@@ -1198,7 +1199,15 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
       scrollFrame=0;
     });
   },{passive:true});
-  buttons.forEach(b=>b.addEventListener('click',()=>view(b.dataset.nezet,true)));
+  buttons.forEach(b=>b.addEventListener('click',()=>{
+    const clicked=b.dataset.nezet;
+    let next;
+    if(currentView==='none') next=clicked;
+    else if(currentView==='mindketto') next=clicked==='biztor'?'garazs':'biztor';
+    else if(currentView===clicked) next='none';
+    else next='mindketto';
+    view(next,true);
+  }));
   sortButtons.forEach(b=>b.addEventListener('click',()=>sort(b)));
   filterInputs.forEach(i=>i.addEventListener('input',filters));
   window.addEventListener('resize',()=>requestAnimationFrame(()=>{mobilTablaSorrend();layout();}));
@@ -1843,12 +1852,12 @@ function tortenetiStatuszSzin(statusz) {
 function aktualisTerkepNezet() {
     try {
         const v = localStorage.getItem("hidegtarolas-aktiv-nezet");
-        return ["mindketto", "biztor", "garazs"].includes(v) ? v : "mindketto";
+        return ["mindketto", "biztor", "garazs", "none"].includes(v) ? v : "mindketto";
     } catch (e) { return "mindketto"; }
 }
 function markerAktivNezetben(marker) {
     const nezet = aktualisTerkepNezet();
-    return nezet === "mindketto" || marker.__forras === nezet;
+    return nezet !== "none" && (nezet === "mindketto" || marker.__forras === nezet);
 }
 function frissitTortenetiCsoportokat() {
     tortenetiCsoportMarkerek.forEach(function(m) { if (map.hasLayer(m)) map.removeLayer(m); });
@@ -2163,7 +2172,7 @@ function frissitTerkepNezet(view) {
     });
     const forrasLista = tortenetiOszlopAktiv ? tortenetiLokacioMarkerek : osszesMarker;
     const latszo = forrasLista.filter(function(marker){
-        return view === "mindketto" || marker.__forras === view;
+        return view !== "none" && (view === "mindketto" || marker.__forras === view);
     });
     latszo.forEach(function(marker){ marker.addTo(map); });
     if (latszo.length) {
@@ -2175,7 +2184,7 @@ function frissitTerkepNezet(view) {
 }
 
 const NEZET_STORAGE_KEY = 'hidegtarolas-aktiv-nezet';
-const ERVENYES_NEZETEK = ['mindketto', 'biztor', 'garazs'];
+const ERVENYES_NEZETEK = ['mindketto', 'biztor', 'garazs', 'none'];
 function betoltottTerkepNezet(){
     try {
         const mentett = localStorage.getItem(NEZET_STORAGE_KEY);
@@ -2187,10 +2196,13 @@ function betoltottTerkepNezet(){
 
 document.querySelectorAll(".nezet-gomb").forEach(function(btn){
     btn.addEventListener("click", function(){
-        const nezet = ERVENYES_NEZETEK.includes(this.dataset.nezet)
-            ? this.dataset.nezet
-            : 'mindketto';
-        try { localStorage.setItem(NEZET_STORAGE_KEY, nezet); } catch (e) {}
+        // A fő nézetkapcsoló kezelője már frissítette a nézetet és a localStorage-t.
+        // Itt csak a térképet szinkronizáljuk, nem váltunk újra nézetet.
+        let nezet = 'mindketto';
+        try {
+            const mentett = localStorage.getItem(NEZET_STORAGE_KEY);
+            if (ERVENYES_NEZETEK.includes(mentett)) nezet = mentett;
+        } catch (e) {}
 
         // Ha időoszlopot vizsgálunk, a nézetváltás után ugyanazt az időpontot
         // újra lekérjük, immár az új nézetben látható sorokból.
