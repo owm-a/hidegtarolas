@@ -131,7 +131,7 @@ body:not(.light-mode) .ertekelt-fordak .ertek-szumma{background:#f9fafb;color:#1
 .nezet-panel{display:block}.nezet-panel.hidden{display:none!important}
 .tabla-szekcio{width:100%;max-width:100%;margin:0;padding:12px;border-top:1px solid var(--border);overflow:hidden;position:relative}
 .mobil-scroll-nyil{display:none}
-@media(max-width:600px){.mobil-scroll-nyil{position:absolute;right:8px;top:12px;bottom:12px;z-index:80;width:42px;display:flex;flex-direction:column;align-items:center;justify-content:space-around;padding:7px 0;box-sizing:border-box;border-radius:0 8px 8px 0;background:linear-gradient(90deg,rgba(59,130,246,.06),rgba(59,130,246,.22) 45%,rgba(37,99,235,.36));backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);color:#1677e8;font-size:25px;font-weight:800;line-height:1;pointer-events:none;text-shadow:0 0 7px rgba(59,130,246,.35);opacity:0;transition:opacity .18s}.mobil-scroll-nyil span{display:block;flex:0 0 auto}.tabla-szekcio.van-jobbra .mobil-scroll-nyil{opacity:1}body.light-mode .mobil-scroll-nyil{background:linear-gradient(90deg,rgba(147,197,253,.08),rgba(96,165,250,.24) 45%,rgba(59,130,246,.35))}}
+@media(max-width:600px){.mobil-scroll-nyil{position:absolute;right:8px;top:12px;bottom:12px;z-index:80;width:42px;display:flex;flex-direction:column;align-items:center;justify-content:space-around;padding:7px 0;box-sizing:border-box;border-radius:0 8px 8px 0;background:linear-gradient(90deg,rgba(59,130,246,.06),rgba(59,130,246,.22) 45%,rgba(37,99,235,.36));backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);color:#1677e8;font-size:25px;font-weight:800;line-height:1;pointer-events:auto;cursor:pointer;touch-action:manipulation;text-shadow:0 0 7px rgba(59,130,246,.35);opacity:0;transition:opacity .18s}.mobil-scroll-nyil span{display:block;flex:0 0 auto}.tabla-szekcio.van-jobbra .mobil-scroll-nyil{opacity:1}body.light-mode .mobil-scroll-nyil{background:linear-gradient(90deg,rgba(147,197,253,.08),rgba(96,165,250,.24) 45%,rgba(59,130,246,.35))}}
 .idopont-csuszkasav{
     width:90%;height:38px;margin:0 auto;display:flex;align-items:center;justify-content:center;
     background:var(--surface2);border:1px solid var(--border);border-radius:8px;
@@ -1128,6 +1128,15 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
     slider.max=String(max);
     if (fo.scrollLeft > max) fo.scrollLeft=max;
   }
+  // Mobilon a jobb oldali nyílra koppintva ugorjunk az idővonal legvégére.
+  const mobilNyilDobozok=document.querySelectorAll('.mobil-scroll-nyil');
+  mobilNyilDobozok.forEach(nyil=>{
+    nyil.addEventListener('click',()=>{
+      if(!window.matchMedia('(max-width:600px)').matches)return;
+      const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
+      fo.scrollTo({left:max,behavior:'smooth'});
+    });
+  });
   function layout(){
     sticky();
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
