@@ -4240,14 +4240,21 @@ body{
 .fejlec-archivum{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .nezet-gomb[data-nezet="biztor"]{background:#2878d0;color:#fff}
 .nezet-gomb[data-nezet="garazs"]{background:#198754;color:#fff}
-.nezet-gomb[data-nezet="biztor"].active{background:#2878d0;box-shadow:0 3px 10px rgba(40,120,208,.28)}
-.nezet-gomb[data-nezet="garazs"].active{background:#198754;box-shadow:0 3px 10px rgba(25,135,84,.28)}
+.nezet-gomb[data-nezet="biztor"].active{background:#2878d0!important;color:#fff!important;box-shadow:0 3px 10px rgba(40,120,208,.28)}
+.nezet-gomb[data-nezet="garazs"].active{background:#198754!important;color:#fff!important;box-shadow:0 3px 10px rgba(25,135,84,.28)}
+/* Hover/érintés közben is maradjon meg a forrásszín; kikapcsolva tompább legyen. */
+.nezet-gomb[data-nezet="biztor"]:hover,.nezet-gomb[data-nezet="biztor"]:focus-visible{background:#2878d0!important;color:#fff!important}
+.nezet-gomb[data-nezet="garazs"]:hover,.nezet-gomb[data-nezet="garazs"]:focus-visible{background:#198754!important;color:#fff!important}
 .nezet-gomb[data-nezet="biztor"]:not(.active),.nezet-gomb[data-nezet="garazs"]:not(.active){opacity:.55}
+.nezet-gomb[data-nezet="biztor"]:not(.active):hover,.nezet-gomb[data-nezet="garazs"]:not(.active):hover{opacity:.8}
+.nezet-gomb[data-nezet="biztor"]:not(.active):active,.nezet-gomb[data-nezet="garazs"]:not(.active):active{opacity:.8}
 .ertekelt-fordak{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;vertical-align:middle}
 .ertekelt-fordak .ertek-v,.ertekelt-fordak .ertek-g{display:inline-block;padding:1px 5px;border-radius:4px;color:#fff;font-weight:700}
 .ertekelt-fordak .ertek-v{background:#2878d0}
 .ertekelt-fordak .ertek-g{background:#198754}
-.ertekelt-fordak .ertek-szumma{display:inline-block;padding:1px 5px;border-radius:4px;background:var(--surface2);color:var(--text);font-weight:700}
+.ertekelt-fordak .ertek-szumma{display:inline-block;padding:2px 6px;border:1px solid #111827;border-radius:4px;background:#111827;color:#fff;font-weight:800;line-height:1.25}
+body.light-mode .ertekelt-fordak .ertek-szumma{background:#111827;color:#fff;border-color:#111827}
+body:not(.light-mode) .ertekelt-fordak .ertek-szumma{background:#f9fafb;color:#111827;border-color:#f9fafb}
 .nezet-fejlec-sor{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px}
 .nezet-fejlec-sor .nezet-valaszto{margin:0}
 .kijelolt-adat{min-height:20px;display:flex;align-items:center;gap:6px;color:var(--text);font-size:13px;font-weight:700}
@@ -5002,8 +5009,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   .fejlec-top{display:grid!important;grid-template-columns:76px minmax(0,1fr);grid-template-rows:auto auto;align-items:center!important;gap:8px 5px;margin-bottom:12px!important;}
   .fejlec-cim-archivum,.fejlec-vezerlok{display:contents!important;}
   .fejlec-archivum{grid-column:1 / -1;grid-row:2;display:flex!important;align-items:center;justify-content:space-between!important;gap:6px;width:100%;min-width:0;}
-  .fejlec-archivum .nezet-valaszto{margin-left:auto!important;justify-content:flex-end;max-width:calc(100% - 84px);padding:2px;gap:3px;}
-  .fejlec-archivum .nezet-gomb{font-size:10px!important;padding:6px 7px!important;white-space:nowrap;}
+  .fejlec-archivum .nezet-valaszto{margin-left:auto!important;margin-right:0!important;justify-self:end;justify-content:flex-end;flex:0 0 auto;width:max-content!important;max-width:calc(100% - 84px);padding:2px;gap:3px;}
+  .fejlec-archivum .nezet-valaszto .nezet-gomb{flex:0 0 auto!important;width:max-content!important;min-width:0!important;font-size:10px!important;padding:6px 7px!important;white-space:nowrap;}
   .history-calendar{grid-column:auto!important;grid-row:auto!important;}
   .cim{grid-column:1;grid-row:1;min-width:0;font-size:18px!important;white-space:nowrap;}
   .cim-busz-svg{display:none!important;}
