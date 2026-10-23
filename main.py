@@ -4242,17 +4242,29 @@ body{
 .nezet-gomb[data-nezet="garazs"]{background:#198754;color:#fff}
 .nezet-gomb[data-nezet="biztor"].active{background:#2878d0!important;color:#fff!important;box-shadow:0 3px 10px rgba(40,120,208,.28)}
 .nezet-gomb[data-nezet="garazs"].active{background:#198754!important;color:#fff!important;box-shadow:0 3px 10px rgba(25,135,84,.28)}
-/* A korábbi kék/zöld gombszínek maradnak mindkét témában; a darabszám kontrasztos jelölést kap. */
+/* Csak az aktív nézet kap kék/zöld hátteret; az inaktív gomb beleolvad az alapháttérbe. */
 .nezet-gomb[data-nezet="biztor"],
 .nezet-gomb[data-nezet="biztor"]:hover,
-.nezet-gomb[data-nezet="biztor"]:focus-visible{background:#2878d0!important;color:#fff!important}
+.nezet-gomb[data-nezet="biztor"]:focus-visible,
 .nezet-gomb[data-nezet="garazs"],
 .nezet-gomb[data-nezet="garazs"]:hover,
-.nezet-gomb[data-nezet="garazs"]:focus-visible{background:#198754!important;color:#fff!important}
-.nezet-gomb[data-nezet="biztor"] .online-szam,
-.nezet-gomb[data-nezet="garazs"] .online-szam{display:inline-block;color:#fff!important;background:rgba(0,0,0,.22)!important;opacity:1!important;font-weight:800!important;font-size:11px!important;line-height:1.4;padding:1px 5px;border-radius:5px;text-shadow:none!important}
+.nezet-gomb[data-nezet="garazs"]:focus-visible{background:transparent!important;box-shadow:none!important}
+.nezet-gomb[data-nezet="biztor"]:not(.active),
+.nezet-gomb[data-nezet="biztor"]:not(.active):hover,
+.nezet-gomb[data-nezet="biztor"]:not(.active):focus-visible{color:#2878d0!important}
+.nezet-gomb[data-nezet="garazs"]:not(.active),
+.nezet-gomb[data-nezet="garazs"]:not(.active):hover,
+.nezet-gomb[data-nezet="garazs"]:not(.active):focus-visible{color:#198754!important}
 .nezet-gomb[data-nezet="biztor"].active,
-.nezet-gomb[data-nezet="garazs"].active{box-shadow:inset 0 0 0 2px rgba(255,255,255,.7),0 3px 10px rgba(0,0,0,.18)!important}
+.nezet-gomb[data-nezet="biztor"].active:hover,
+.nezet-gomb[data-nezet="biztor"].active:focus-visible{background:#2878d0!important;color:#fff!important;box-shadow:inset 0 0 0 2px rgba(255,255,255,.7),0 3px 10px rgba(0,0,0,.18)!important}
+.nezet-gomb[data-nezet="garazs"].active,
+.nezet-gomb[data-nezet="garazs"].active:hover,
+.nezet-gomb[data-nezet="garazs"].active:focus-visible{background:#198754!important;color:#fff!important;box-shadow:inset 0 0 0 2px rgba(255,255,255,.7),0 3px 10px rgba(0,0,0,.18)!important}
+.nezet-gomb[data-nezet="biztor"] .online-szam,
+.nezet-gomb[data-nezet="garazs"] .online-szam{display:inline-block;color:var(--text)!important;background:var(--surface2)!important;border:1px solid var(--border);opacity:1!important;font-weight:800!important;font-size:11px!important;line-height:1.4;padding:1px 5px;border-radius:5px;text-shadow:none!important}
+.nezet-gomb[data-nezet="biztor"].active .online-szam,
+.nezet-gomb[data-nezet="garazs"].active .online-szam{color:#fff!important;background:rgba(0,0,0,.22)!important;border-color:transparent!important}
 .ertekelt-fordak{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;vertical-align:middle}
 .ertekelt-fordak .ertek-v,.ertekelt-fordak .ertek-g{display:inline-block;padding:1px 5px;border-radius:4px;color:#fff;font-weight:700}
 .ertekelt-fordak .ertek-v{background:#2878d0}
