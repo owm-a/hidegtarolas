@@ -2757,16 +2757,16 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
 
 
 def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
-    """
-    A forda kezdése és végzése közötti időtartam legalább 70%-ában
-    egymást követő OK (I / rendben tárolt) állapot szükséges.
+    """A forda félidejében geozóna alapján véglegesíti a Valós tárolás értékét.
 
-    - Amint egy megszakítás nélküli OK-sorozat eléri a teljes menetrendi
-      időtartam 70%-át, a döntés azonnal véglegesül.
-    - Ha ez a végzésig nem teljesül, a végzéskor ELTÉRÉS TÖRTÉNT lesz.
+    - A döntés időpontja a menetrendi kezdés és végzés közötti időtartam fele.
+    - A félidőben a legutóbbi, félidőig rögzített pozíciót ellenőrzi.
+    - Ha a pozíció a forda számára kijelölt geozónában van, az eredmény
+      RENDBEN TÁROLT; minden más esetben ELTÉRÉS TÖRTÉNT.
+    - Az I/N ellenőrzési mintákat továbbra is tároljuk, de a döntéshez nem
+      használjuk fel őket.
+    - A pótlás/cserekocsi felismerésének elsőbbsége változatlan.
     - Nincs külön 10 perces GPS-frissességi feltétel a döntéshez.
-    - A minták sorrendjét a program lekérdezési ideje (frissítve) adja;
-      a NEM vagy ismeretlen állapot megszakítja az OK-sorozatot.
     """
     kezdés = _ido_objektum(forda_sor.get("kezdés"))
     végzés = _ido_objektum(forda_sor.get("végzés"))
@@ -2785,9 +2785,10 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
     teljes_idotartam = (végzés_dt - kezdés_dt).total_seconds()
     if teljes_idotartam <= 0:
         return None
-    szukseges_ok_mp = teljes_idotartam * 0.70
+    felido_dt = kezdés_dt + timedelta(seconds=teljes_idotartam * 0.5)
 
-    # A forda saját rekordjait gyűjtjük össze a menetrendi intervallumban.
+    # A forda saját pozíciórekordjait gyűjtjük össze a menetrendi intervallumban.
+    # Az I/N mezőket szándékosan nem használjuk az értékeléshez.
     mintak = []
     for rekord in pozicio_tortenet if isinstance(pozicio_tortenet, list) else []:
         if str(rekord.get("viszonylat", "")).strip() != str(forda_sor.get("viszonylat", "")).strip():
@@ -2797,8 +2798,6 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
         if str(rekord.get("forrás", "biztor")).strip() != str(forda_sor.get("forrás", "biztor")).strip():
             continue
 
-        # A státusz a lekérdezéskor született, ezért a minta időpontja
-        # a frissítve mező, nem a jármű esetleg korábbi GPS-timestampje.
         idopont = str(rekord.get("frissítve", "")).strip()
         ido = None
         for fmt in ("%H:%M:%S", "%H:%M"):
@@ -2818,28 +2817,7 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
 
     mintak.sort(key=lambda item: item[0])
 
-    # A megszakítás nélküli OK-sorozat hosszát mérjük. Egy NEM vagy '-'
-    # státusz új sorozatot indít; a sorozat időtartama az első OK-mintától
-    # az aktuális OK-mintáig tart.
-    sorozat_kezdete = None
-    utolso_ok_rekord = None
-    elert_kuszob_idopont = None
-    for minta_dt, rekord in mintak:
-        allapot = str(rekord.get("ellenőrzés", "-")).strip().upper()
-        if allapot == "OK":
-            if sorozat_kezdete is None:
-                sorozat_kezdete = minta_dt
-            utolso_ok_rekord = rekord
-            if (minta_dt - sorozat_kezdete).total_seconds() >= szukseges_ok_mp:
-                elert_kuszob_idopont = minta_dt
-                break
-        else:
-            sorozat_kezdete = None
-            utolso_ok_rekord = None
-
-    # A pótlás elsőbbséget élvez a 70%-os I/N döntéssel szemben.
-    # Ha a jármű jelenleg másik tripet teljesít, a státusz P legyen akkor is,
-    # ha az OK-sorozat már elérte a 70%-ot.
+    # A pótlás elsőbbséget élvez, és az eddigi felismerési logikáját nem módosítjuk.
     if budapest_now < végzés_dt:
         forda_kulcs = forda_kulcs_adat(forda_sor)
         forda_adat = forda_rendszamok.get(forda_kulcs, {})
@@ -2859,31 +2837,37 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
                 "pótlás_direction_id": potlas["direction_id"],
             }
 
-    # Siker esetén azonnal véglegesítünk, nem várjuk meg a forda végét.
-    if elert_kuszob_idopont is not None and utolso_ok_rekord is not None:
-        return {
-            "eredmény": "RENDBEN TÁROLT",
-            "tárolás helye": gps_geozona_vagy_koordinata(utolso_ok_rekord.get("pozíció", "")),
-            "döntés időpontja": elert_kuszob_idopont.strftime("%H:%M:%S"),
-            "pozíció időpontja": str(utolso_ok_rekord.get("pozicio_frissitve", "")).strip()
-        }
-
-    # Ha még nincs végleges döntés és nincs pótlás, a forda végzéséig várunk.
-    if budapest_now < végzés_dt:
+    # A normál Valós tárolás értékelés csak a forda félidejében történik.
+    if budapest_now < felido_dt:
         return None
 
-    # A végzés elérkezett, de nem volt meg a szükséges hosszúságú
-    # megszakítás nélküli OK-sorozat: végleges eltérés.
-    utolso_rekord = mintak[-1][1] if mintak else None
-    hely = (
-        gps_geozona_vagy_koordinata(utolso_rekord.get("pozíció", ""))
-        if utolso_rekord is not None and str(utolso_rekord.get("pozíció", "")).strip()
-        else "Nincs adat"
-    )
+    # A döntés pillanatáig rögzített legutóbbi mintát használjuk, hogy későbbi
+    # pozíció ne változtassa meg visszamenőleg a félidőben fennálló állapotot.
+    felidoig_mintak = [item for item in mintak if item[0] <= felido_dt]
+    utolso_rekord = felidoig_mintak[-1][1] if felidoig_mintak else None
+    pozicio = str(utolso_rekord.get("pozíció", "")).strip() if utolso_rekord else ""
+    hely = gps_geozona_vagy_koordinata(pozicio) if pozicio else "Nincs adat"
+
+    # A célgeozóna a menetrendben a fordához rendelt helyszín.
+    cel_helyszin_kulcs = str(forda_sor.get("helyszín", "")).strip()
+    cel_helyszin = HELYSZINEK.get(cel_helyszin_kulcs)
+    megfelelo_geozonaban = False
+    if cel_helyszin and pozicio:
+        try:
+            latitude_s, longitude_s = pozicio.split(",", 1)
+            latitude = float(latitude_s.strip())
+            longitude = float(longitude_s.strip())
+            megfelelo_geozonaban = (
+                cel_helyszin["lat_min"] <= latitude <= cel_helyszin["lat_max"]
+                and cel_helyszin["lon_min"] <= longitude <= cel_helyszin["lon_max"]
+            )
+        except (ValueError, TypeError, KeyError):
+            megfelelo_geozonaban = False
+
     return {
-        "eredmény": "ELTÉRÉS TÖRTÉNT",
+        "eredmény": "RENDBEN TÁROLT" if megfelelo_geozonaban else "ELTÉRÉS TÖRTÉNT",
         "tárolás helye": hely,
-        "döntés időpontja": végzés_dt.strftime("%H:%M:%S"),
+        "döntés időpontja": felido_dt.strftime("%H:%M:%S"),
         "pozíció időpontja": str(utolso_rekord.get("pozicio_frissitve", "")).strip() if utolso_rekord else ""
     }
 
@@ -2898,13 +2882,13 @@ def hidegtarolas_riport_eredmeny(forda_sor, pozicio_tortenet):
 
 def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_kulcs="hidegtarolas_riport"):
     """
-    A 70%-os döntéseket minden futáskor ellenőrzi és véglegesen elmenti.
+    A forda félidejében, a kijelölt geozóna alapján hozott döntéseket
+    minden futáskor ellenőrzi és véglegesen elmenti.
 
     Az Excel-riport naponta egyszer, 16:30 után készül el az aktuális állapotról.
     A Riport munkalap gyűjtő: a korábbi napok sorait megőrzi, és csak az adott
     nap esetlegesen már exportált sorait cseréli le újrafuttatáskor.
-    Nem várjuk meg hozzá, hogy minden forda 70%-os döntése megszülessen;
-    a még nem eldöntött sorok is bekerülnek az exportba.
+    A még félidő előtti, nem eldöntött sorok is bekerülnek az exportba.
     """
 
     most = budapesti_most()
@@ -2913,12 +2897,19 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         napi_kulcs
     ) or {}
 
-    # A döntést nem számoljuk újra, de a korábban elmentett koordinátát
-    # utólag geozónára oldjuk fel, ha valamelyik zónába esik.
+    # Az új értékelési szabályra történő első átálláskor a korábbi I/N
+    # döntéseket újra kell számolni; a pótlásos státuszokat viszont megőrizzük.
+    ertekeles_verzio = "geozona_felido_v1"
     dontesek = korabbi_riport.get("dontesek", {})
 
     if not isinstance(dontesek, dict):
         dontesek = {}
+    if korabbi_riport.get("ertekeles_verzio") != ertekeles_verzio:
+        dontesek = {
+            kulcs: dontes for kulcs, dontes in dontesek.items()
+            if isinstance(dontes, dict)
+            and str(dontes.get("eredmény", "")).strip() == "pótlás/cserekocsi"
+        }
 
     for dontes in dontesek.values():
         if not isinstance(dontes, dict):
@@ -2942,7 +2933,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         and str(rekord.get("pozíció", "")).strip() not in ("", "None")
     )
     print(
-        f"70%-os ellenőrzés ({forrás}): {len(figyelt_forras)} forda, "
+        f"Félidős geozóna-ellenőrzés ({forrás}): {len(figyelt_forras)} forda, "
         f"{gps_rekordok_forras_szerint} GPS-rekord időbélyeggel és koordinátával, "
         f"{len(dontesek)} korábban mentett döntés."
     )
@@ -2961,7 +2952,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         korabbi_vegleges = korabbi_eredmeny in ("RENDBEN TÁROLT", "ELTÉRÉS TÖRTÉNT")
 
         # A pótlás státusz tapadó: ha a Valós tárolás akár egyszer is
-        # pótlás/cserekocsi volt, a későbbi 70%-os I/N döntés nem írhatja felül.
+        # pótlás/cserekocsi volt, a későbbi geozóna-alapú döntés nem írhatja felül.
         # A régi döntés mellett a történeti idővonal-jelölőket is ellenőrizzük,
         # mert egy korábbi futás már tévesen I/N-re cserélhette a riportstátuszt.
         torteneti_potlas = any(
@@ -3004,7 +2995,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
                     "pótlás_route_id": "",
                     "pótlás_direction_id": ""
                 }
-            # Már rögzített pótlásos státusz esetén nincs új 70%-os döntés.
+            # Már rögzített pótlásos státusz esetén nincs új normál döntés.
             continue
 
         # Ha a forda korábban már I/N döntést kapott, akkor is ellenőrizzük,
@@ -3357,6 +3348,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         "vizsgalt_fordak": len(eredmenyek),
         "ertekelt_fordak": ertekelt_fordak,
         "forrás": forrás,
+        "ertekeles_verzio": ertekeles_verzio,
         "dontesek": dontesek,
         "eredmenyek": eredmenyek
     }
@@ -3367,14 +3359,14 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
 
     print()
     print("=== HIDEGTÁROLÁSI RIPORT ===")
-    print("Új 70%-os döntések:", uj_dontes)
+    print("Új félidős döntések:", uj_dontes)
     print("Meghozott döntések:", ertekelt_fordak, "/", len(figyelt_forras), "végleges értékelés")
     print("Excel:", "mentve" if excel_mar_mentve else "16:30-ra vár")
 
     return riportok
 
 
-# A 70%-os döntések minden futáskor ellenőrzésre kerülnek.
+# A félidős geozóna-döntések minden futáskor ellenőrzésre kerülnek.
 hidegtarolas_riport = keszit_hidegtarolas_riport("biztor", RIport_XLSX, "hidegtarolas_riport")
 GARAZS_RIPORT_XLSX = "data/garazstarolas_export.xlsx"
 garazstarolas_riport = keszit_hidegtarolas_riport("garazs", GARAZS_RIPORT_XLSX, "garazstarolas_riport")
@@ -4390,6 +4382,7 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
  .status-pill{height:20px;line-height:1}
 .ido-tabla th.idopont-fejlec{font-size:0;color:transparent;padding:0}
 .ido-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px;text-align:left}
+ body.light-mode .fo-kozos-tabla .idopont-ertek{color:#344054;font-weight:550}
 .szuro-sor th{background:var(--surface2);height:31px;padding:3px 4px}
 .szuro-sor th:empty{background:var(--surface2)}
 .oszlop-kereso{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:5px;padding:1px 4px;font:inherit;font-size:10px;outline:none}
