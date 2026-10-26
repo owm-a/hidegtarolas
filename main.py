@@ -6246,6 +6246,8 @@ function tortenetiMarkerLetrehozasa(cell) {
     const marker = L.marker(koordinata, {icon: jarmuIkon(jarmuStatusz)});
     marker.__forras = String(cell.closest("tr")?.dataset.forras || "biztor").trim();
     marker.__tortenetiStatusz = jarmuStatusz;
+    // A szürke PIN-ek mögötti adat és státusz megmarad, csak a térképen nem rajzoljuk ki.
+    marker.__szurke = !["OK", "NEM", "PÓTLÁS"].includes(jarmuStatusz);
 
     let statuszSzoveg = "";
     if (jarmuStatusz === "OK") statuszSzoveg = '<span style="color:#00a040;font-weight:bold;">OK</span>';
@@ -6303,10 +6305,13 @@ function frissitTortenetiCsoportokat() {
     tortenetiCsoportMarkerek.forEach(function(m) { if (map.hasLayer(m)) map.removeLayer(m); });
     tortenetiCsoportMarkerek.length = 0;
     const osszesTorteneti = tortenetiLokacioMarkerek.filter(function(m) { return !!m; });
-    const tortenetiak = osszesTorteneti.filter(markerAktivNezetben);
-    // Az aktuális nézetbe nem tartozó pontokat se egyedileg, se klaszterben ne mutassuk.
+    // A szürke pontok megmaradnak a történeti adatokban, de nem kerülnek fel a térképre,
+    // és a klaszterek darabszámába sem számítanak bele.
+    const lathatoTorteneti = osszesTorteneti.filter(function(m) { return !m.__szurke; });
+    const tortenetiak = lathatoTorteneti.filter(markerAktivNezetben);
+    // Az aktuális nézetbe nem tartozó vagy szürke pontokat se egyedileg, se klaszterben ne mutassuk.
     osszesTorteneti.forEach(function(m) {
-        if (!markerAktivNezetben(m)) { if (map.hasLayer(m)) map.removeLayer(m); }
+        if (m.__szurke || !markerAktivNezetben(m)) { if (map.hasLayer(m)) map.removeLayer(m); }
         else if (!map.hasLayer(m)) m.addTo(map);
     });
     // 15-ös zoom fölött minden pozíció külön jelölőként látszik, nincs klaszterezés.
@@ -6397,8 +6402,10 @@ document.querySelectorAll(".idopont-cella.lokacio-kattinthato[data-lat][data-lon
             return;
         }
         tortenetiLokacioMarkerek.push(marker);
-        marker.addTo(map);
-        ugrasTerkephez([Number(cell.dataset.lat), Number(cell.dataset.lon)], marker);
+        if (!marker.__szurke) {
+            marker.addTo(map);
+            ugrasTerkephez([Number(cell.dataset.lat), Number(cell.dataset.lon)], marker);
+        }
         frissitTortenetiCsoportokat();
     }
     cell.addEventListener("click", mutatTortenetiLokaciot);
@@ -6480,8 +6487,10 @@ document.querySelectorAll(".rendszam-link[data-rendszam]").forEach(function(btn)
                 const marker = tortenetiMarkerLetrehozasa(cell);
                 if (!marker) return;
                 if (!tortenetiLokacioMarkerek.includes(marker)) tortenetiLokacioMarkerek.push(marker);
-                if (!map.hasLayer(marker)) marker.addTo(map);
-                pontok.push(marker);
+                if (!marker.__szurke) {
+                    if (!map.hasLayer(marker)) marker.addTo(map);
+                    pontok.push(marker);
+                }
             });
         });
 
@@ -6540,8 +6549,10 @@ document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEac
             const marker = tortenetiMarkerLetrehozasa(cell);
             if (!marker) return;
             if (!tortenetiLokacioMarkerek.includes(marker)) tortenetiLokacioMarkerek.push(marker);
-            if (!map.hasLayer(marker)) marker.addTo(map);
-            markerek.push(marker);
+            if (!marker.__szurke) {
+                if (!map.hasLayer(marker)) marker.addTo(map);
+                markerek.push(marker);
+            }
         });
 
         if (markerek.length) {
