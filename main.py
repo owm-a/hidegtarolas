@@ -4261,22 +4261,25 @@ body{
 .ertekelt-fordak .ertek-v,.ertekelt-fordak .ertek-g{display:inline-block;padding:1px 5px;border-radius:4px;color:#fff;font-weight:700}
 .ertekelt-fordak .ertek-v{background:#2878d0}
 .ertekelt-fordak .ertek-g{background:#198754}
-.ertekelt-fordak .ertek-szumma{display:inline-block;padding:2px 6px;border:1px solid #111827;border-radius:4px;background:#111827;color:#fff;font-weight:800;line-height:1.25}
+.ertekelt-fordak .ertek-szumma{display:inline-block;padding:1px 5px;border:1px solid #111827;border-radius:4px;background:#111827;color:#fff;font-size:inherit;font-weight:700;line-height:normal}
 body.light-mode .ertekelt-fordak .ertek-szumma{background:#111827;color:#fff;border-color:#111827}
 body:not(.light-mode) .ertekelt-fordak .ertek-szumma{background:#f9fafb;color:#111827;border-color:#f9fafb}
 .nezet-fejlec-sor{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px}
 .nezet-fejlec-sor .nezet-valaszto{margin:0}
-.kijelolt-adat{min-height:20px;display:flex;align-items:center;gap:6px;color:var(--text);font-size:13px;font-weight:700}
+.kijelolt-adat{min-height:20px;display:flex;align-items:center;gap:6px;color:var(--text);font-size:13px;font-weight:700;white-space:nowrap}
 .kijelolt-adat:empty{display:none}
+.nezet-valaszto .kijelolt-adat:not(:empty){margin-left:8px;padding-left:10px;border-left:1px solid var(--border)}
 .kijelolt-adat .kijelolt-ertek{color:#2583ff;border-top:2px solid #2583ff;border-bottom:2px solid #2583ff;padding:2px 6px;border-radius:2px}
 .fo-kozos-tabla td.rendszam.kijelolt-rendszam{border-top:2px solid #2583ff!important;border-bottom:2px solid #2583ff!important;box-shadow:inset 0 1px 0 #2583ff,inset 0 -1px 0 #2583ff}
-@media(max-width:600px){.nezet-fejlec-sor{align-items:stretch;gap:6px;margin-bottom:10px}.kijelolt-adat{padding:2px 6px;font-size:12px;min-height:22px}.nezet-fejlec-sor .nezet-valaszto{margin:0}}
+@media(max-width:600px){.nezet-fejlec-sor{align-items:stretch;gap:6px;margin-bottom:10px}.kijelolt-adat{padding:2px 0;font-size:12px;min-height:22px;white-space:normal;flex-wrap:wrap}.nezet-valaszto .kijelolt-adat:not(:empty){flex:1 0 100%;width:100%;box-sizing:border-box;margin:2px 0 0;padding:5px 3px 2px;border-left:0;border-top:1px solid var(--border)}.nezet-fejlec-sor .nezet-valaszto{margin:0}}
 .nezet-gomb{border:0;border-radius:7px;padding:8px 13px;background:transparent;color:var(--muted);font:inherit;font-size:13px;font-weight:650;cursor:pointer;transition:.16s}
 .nezet-gomb:hover{color:var(--text);background:var(--surface3)}
 .nezet-gomb.active{color:white;background:linear-gradient(135deg,var(--accent2),#6b7ff0);box-shadow:0 4px 12px rgba(79,143,247,.24)}
 .nezet-gomb:active{transform:translateY(1px)}
 .online-szam{display:inline-block;margin-left:5px;font-size:11px;font-weight:600;color:var(--muted);opacity:.9}.nezet-gomb.active .online-szam{color:rgba(255,255,255,.82)}
 .nezet-panel{display:block}.nezet-panel.hidden{display:none!important}
+#fo-tabla.view-none{display:none!important}
+.tabla-szekcio:has(#fo-tabla.view-none){display:none!important}
 .tabla-szekcio{width:100%;max-width:100%;margin:0;padding:12px;border-top:1px solid var(--border);overflow:hidden;position:relative}
 .mobil-scroll-nyil{display:none}
 @media(max-width:600px){.mobil-scroll-nyil{position:absolute;right:8px;top:12px;bottom:12px;z-index:80;width:42px;display:flex;flex-direction:column;align-items:center;justify-content:space-around;padding:7px 0;box-sizing:border-box;border-radius:0 8px 8px 0;background:linear-gradient(90deg,rgba(59,130,246,.06),rgba(59,130,246,.22) 45%,rgba(37,99,235,.36));backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);color:#1677e8;font-size:25px;font-weight:800;line-height:1;pointer-events:auto;cursor:pointer;touch-action:manipulation;text-shadow:0 0 7px rgba(59,130,246,.35);opacity:0;transition:opacity .18s}.mobil-scroll-nyil span{display:block;flex:0 0 auto}.tabla-szekcio.van-jobbra .mobil-scroll-nyil{opacity:1}body.light-mode .mobil-scroll-nyil{background:linear-gradient(90deg,rgba(147,197,253,.08),rgba(96,165,250,.24) 45%,rgba(59,130,246,.35))}}
@@ -5028,7 +5031,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   .fejlec-bal .adat:nth-child(3){grid-column:1;grid-row:3;}
   #map-location-count{grid-column:2;grid-row:1;}
   .fejlec-jobb .adat:nth-child(1){grid-column:2;grid-row:2;}
-  .fejlec-jobb .adat:nth-child(2){grid-column:2;grid-row:3;}
+  .fejlec-jobb .adat:nth-child(2){grid-column:1 / -1;grid-row:4;justify-self:start;white-space:nowrap!important;}
   #map-location-count,.fejlec-jobb .adat{justify-self:start!important;text-align:left!important;margin-left:0!important;width:100%;}
 }
 
@@ -5099,6 +5102,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
         <div class="nezet-valaszto" role="group" aria-label="Megjelenítés">
           <button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás <span class="online-szam">""" + str(biz_online) + "/" + str(biz_osszes) + """</span></button>
           <button class="nezet-gomb" data-nezet="garazs" type="button">Garázs <span class="online-szam">""" + str(garazs_online) + "/" + str(garazs_osszes) + """</span></button>
+          <div id="kijelolt-adat" class="kijelolt-adat" aria-live="polite"></div>
         </div>
       </div>
     </div>
@@ -5127,9 +5131,6 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   </div>
 </div>
 <div id="geozona-terkep"></div>
-<div class="nezet-fejlec-sor">
-<div id="kijelolt-adat" class="kijelolt-adat" aria-live="polite"></div>
-</div>
 <div id="panel-adatok" class="nezet-panel">
 <div class="tabla-szekcio">
   <div class="idopont-csuszkasav" id="fo-csuszkasav">
