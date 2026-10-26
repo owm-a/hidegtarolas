@@ -562,6 +562,31 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   color:var(--accent)!important;
 }
 
+/* Mobilos végső simítások: a kijelölt időpont/rendszám a statisztika alatt, középen. */
+@media (max-width: 600px) {
+  .fejlec { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; }
+  .fejlec-top, .fejlec-cim-archivum, .fejlec-vezerlok, .fejlec-archivum,
+  .fejlec-archivum .nezet-vezerlo-csoport { display: contents !important; }
+  .cim { grid-column: 1 !important; grid-row: 1 !important; }
+  .fejlec-kapcsolok { grid-column: 1 !important; grid-row: 1 !important; }
+  .history-calendar { grid-column: 1 !important; grid-row: 2 !important; justify-self: start !important; }
+  .nezet-valaszto { grid-column: 1 !important; grid-row: 2 !important; justify-self: end !important; }
+  .fejlec-adatok.riport-fejlec-adatok { grid-column: 1 !important; grid-row: 3 !important; width: 100% !important; }
+  .kijelolt-adat:not(:empty) {
+    grid-column: 1 !important; grid-row: 4 !important; justify-self: center !important;
+    width: 100% !important; max-width: 100% !important; box-sizing: border-box !important;
+    margin: 8px 0 0 !important; padding: 5px 0 0 !important;
+    text-align: center !important; justify-content: center !important;
+    white-space: normal !important; border: 0 !important;
+  }
+}
+/* Világos módban erősebb kontraszt az időpont/rendszám kiemelésének. */
+body.light-mode .fejlec-archivum .kijelolt-adat:not(:empty) { color: #65420a !important; }
+body.light-mode .kijelolt-adat .kijelolt-ertek {
+  color: #513300 !important; background: #f3d58a !important;
+  box-shadow: inset 0 0 0 1px #c49a45 !important; font-weight: 800 !important;
+}
+
 </style>
 <style>
 /* Easter egg – a lap alján balra, háttérszínnel rejtve, kijelölve látható. */
@@ -1747,8 +1772,8 @@ terkepJarmuvek.forEach(function(jarmu) {
 
 // Kattintáskor a térképhez görgetünk, majd a megadott koordinátára fókuszálunk.
 function ugrasTerkephez(koordinata, marker, kesleltetes=220) {
-    const terkepDoboz = document.getElementById("geozona-terkep");
-    if (terkepDoboz) terkepDoboz.scrollIntoView({behavior: "smooth", block: "start"});
+    // A teljes oldal tetejére ugrunk, nem csak a térképhez.
+    window.scrollTo({top: 0, behavior: "smooth"});
     setTimeout(function() {
         map.invalidateSize();
         map.flyTo(koordinata, TERKEP_MAX_ZOOM, {duration: 0.7});
@@ -2225,6 +2250,14 @@ document.querySelectorAll(".idopont-cella[data-time-index]").forEach(function(ce
         frissitKijeloltAdat("jarmu-idopont", {rendszam: rendszam, idopont: idopont});
     });
 });
+
+// I/N cella, időoszlop vagy valós tárolás koordináta kattintásakor a teljes oldal tetejére ugrunk.
+document.addEventListener("click", function(event) {
+    const cel = event.target && event.target.closest
+        ? event.target.closest(".idopont-cella, .idopont-oszlop-kattinthato, td.storage-coordinate-clickable")
+        : null;
+    if (cel) window.scrollTo({top: 0, behavior: "smooth"});
+}, true);
 
 // Betöltéskor a legutolsó időpont legyen kékkel kiemelve.
 jelolLegutolsoIdopont();
