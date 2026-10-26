@@ -3767,7 +3767,9 @@ def html_export():
 
             viszonylat = str(forda_sor_map.get("viszonylat", "")).strip()
             forda = str(forda_sor_map.get("forda", "")).strip()
-            helyszin_nev = str(forda_sor_map.get("hely", "")).strip()
+            # A térképi Geozóna mező az aktuális GPS alapján ugyanazt a
+            # zónanevet/koordinátát mutatja, mint a félidős értékelés.
+            helyszin_nev = gps_geozona_vagy_koordinata(f"{latitude}, {longitude}")
 
             statusz = "-"
             for rekord in reversed(pozicio_tortenet):
@@ -3989,17 +3991,9 @@ def html_export():
                 except (ValueError, TypeError):
                     pass
 
-                if helyszin is not None:
-                    helyszin_nev = helyszin.get(
-                        "kulcsszo",
-                        helyszin_kulcs
-                    )
-                else:
-                    helyszin_nev = (
-                        helyszin_kulcs
-                        if helyszin_kulcs
-                        else "Nincs kijelölt geozóna"
-                    )
+                # A térképi Geozóna mező a jármű tényleges GPS-helyét mutatja,
+                # ugyanazzal a leképezéssel, mint a félidős értékelés.
+                helyszin_nev = gps_geozona_vagy_koordinata(f"{latitude}, {longitude}")
 
                 terkep_jarmuvek[rendszam] = {
 
@@ -4265,21 +4259,22 @@ body{
 body.light-mode .ertekelt-fordak .ertek-szumma{background:#111827;color:#fff;border-color:#111827}
 body:not(.light-mode) .ertekelt-fordak .ertek-szumma{background:#f9fafb;color:#111827;border-color:#f9fafb}
 .nezet-fejlec-sor{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px}
+.nezet-vezerlo-csoport{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
+.nezet-vezerlo-csoport .nezet-valaszto{margin:0}
+.nezet-vezerlo-csoport .kijelolt-adat:not(:empty){margin:0;padding:3px 0 0;border:0;border-top:1px solid var(--border);width:100%;box-sizing:border-box}
 .nezet-fejlec-sor .nezet-valaszto{margin:0}
 .kijelolt-adat{min-height:20px;display:flex;align-items:center;gap:6px;color:var(--text);font-size:13px;font-weight:700;white-space:nowrap}
 .kijelolt-adat:empty{display:none}
 .nezet-valaszto .kijelolt-adat:not(:empty){margin-left:8px;padding-left:10px;border-left:1px solid var(--border)}
 .kijelolt-adat .kijelolt-ertek{color:#2583ff;border-top:2px solid #2583ff;border-bottom:2px solid #2583ff;padding:2px 6px;border-radius:2px}
 .fo-kozos-tabla td.rendszam.kijelolt-rendszam{border-top:2px solid #2583ff!important;border-bottom:2px solid #2583ff!important;box-shadow:inset 0 1px 0 #2583ff,inset 0 -1px 0 #2583ff}
-@media(max-width:600px){.nezet-fejlec-sor{align-items:stretch;gap:6px;margin-bottom:10px}.kijelolt-adat{padding:2px 0;font-size:12px;min-height:22px;white-space:normal;flex-wrap:wrap}.nezet-valaszto .kijelolt-adat:not(:empty){flex:1 0 100%;width:100%;box-sizing:border-box;margin:2px 0 0;padding:5px 3px 2px;border-left:0;border-top:1px solid var(--border)}.nezet-fejlec-sor .nezet-valaszto{margin:0}}
+@media(max-width:600px){.nezet-fejlec-sor{align-items:stretch;gap:6px;margin-bottom:10px}.kijelolt-adat{padding:2px 0;font-size:12px;min-height:22px;white-space:normal;flex-wrap:wrap}.nezet-vezerlo-csoport{width:max-content;max-width:100%;min-width:0}.nezet-vezerlo-csoport .nezet-valaszto{width:max-content;max-width:100%;margin:0}.nezet-vezerlo-csoport .kijelolt-adat:not(:empty){width:100%;max-width:100%;margin:0;padding:5px 0 2px;border:0;border-top:1px solid var(--border)}.nezet-fejlec-sor .nezet-valaszto{margin:0}}
 .nezet-gomb{border:0;border-radius:7px;padding:8px 13px;background:transparent;color:var(--muted);font:inherit;font-size:13px;font-weight:650;cursor:pointer;transition:.16s}
 .nezet-gomb:hover{color:var(--text);background:var(--surface3)}
 .nezet-gomb.active{color:white;background:linear-gradient(135deg,var(--accent2),#6b7ff0);box-shadow:0 4px 12px rgba(79,143,247,.24)}
 .nezet-gomb:active{transform:translateY(1px)}
 .online-szam{display:inline-block;margin-left:5px;font-size:11px;font-weight:600;color:var(--muted);opacity:.9}.nezet-gomb.active .online-szam{color:rgba(255,255,255,.82)}
 .nezet-panel{display:block}.nezet-panel.hidden{display:none!important}
-#fo-tabla.view-none{display:none!important}
-.tabla-szekcio:has(#fo-tabla.view-none){display:none!important}
 .tabla-szekcio{width:100%;max-width:100%;margin:0;padding:12px;border-top:1px solid var(--border);overflow:hidden;position:relative}
 .mobil-scroll-nyil{display:none}
 @media(max-width:600px){.mobil-scroll-nyil{position:absolute;right:8px;top:12px;bottom:12px;z-index:80;width:42px;display:flex;flex-direction:column;align-items:center;justify-content:space-around;padding:7px 0;box-sizing:border-box;border-radius:0 8px 8px 0;background:linear-gradient(90deg,rgba(59,130,246,.06),rgba(59,130,246,.22) 45%,rgba(37,99,235,.36));backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);color:#1677e8;font-size:25px;font-weight:800;line-height:1;pointer-events:auto;cursor:pointer;touch-action:manipulation;text-shadow:0 0 7px rgba(59,130,246,.35);opacity:0;transition:opacity .18s}.mobil-scroll-nyil span{display:block;flex:0 0 auto}.tabla-szekcio.van-jobbra .mobil-scroll-nyil{opacity:1}body.light-mode .mobil-scroll-nyil{background:linear-gradient(90deg,rgba(147,197,253,.08),rgba(96,165,250,.24) 45%,rgba(59,130,246,.35))}}
@@ -4327,6 +4322,7 @@ th{background:var(--surface3);font-weight:600;color:#cbd5e1}
 #fo-tabla.view-garazs .ido-tabla tbody tr[data-forras="biztor"],
 #fo-tabla.view-garazs .storage-tabla tbody tr[data-forras="biztor"]{display:none}
 #fo-tabla.view-none .fix-tabla tbody tr[data-forras],#fo-tabla.view-none .ido-tabla tbody tr[data-forras],#fo-tabla.view-none .storage-tabla tbody tr[data-forras]{display:none}
+#fo-tabla.view-none .fo-kozos-tabla tbody tr[data-forras]{display:none!important}
 #fo-tabla tbody tr[data-filter-match="0"]{display:none}
 
 /* Mobilon a teljes nagy táblázat vízszintesen görgethető legyen. */
@@ -5014,7 +5010,8 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   .fejlec-top{display:grid!important;grid-template-columns:76px minmax(0,1fr);grid-template-rows:auto auto;align-items:center!important;gap:8px 5px;margin-bottom:12px!important;}
   .fejlec-cim-archivum,.fejlec-vezerlok{display:contents!important;}
   .fejlec-archivum{grid-column:1 / -1;grid-row:2;display:flex!important;align-items:center;justify-content:space-between!important;gap:6px;width:100%;min-width:0;}
-  .fejlec-archivum .nezet-valaszto{margin-left:auto!important;margin-right:0!important;justify-self:end;justify-content:flex-end;flex:0 0 auto;width:max-content!important;max-width:calc(100% - 84px);padding:2px;gap:3px;}
+  .fejlec-archivum .nezet-vezerlo-csoport{margin-left:auto!important;margin-right:0!important;justify-self:end;align-items:flex-end;flex:0 0 auto;width:max-content!important;max-width:calc(100% - 84px);min-width:0;}
+  .fejlec-archivum .nezet-valaszto{justify-content:flex-end;flex:0 0 auto;width:max-content!important;max-width:100%;padding:2px;gap:3px;}
   .fejlec-archivum .nezet-valaszto .nezet-gomb{flex:0 0 auto!important;width:max-content!important;min-width:0!important;font-size:10px!important;padding:6px 7px!important;white-space:nowrap;}
   .history-calendar{grid-column:auto!important;grid-row:auto!important;}
   .cim{grid-column:1;grid-row:1;min-width:0;font-size:18px!important;white-space:nowrap;}
@@ -5024,7 +5021,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   .history-calendar-button{max-width:100%;padding:2px 0!important;gap:0!important;font-size:10px!important;}
   .history-calendar-button .calendar-mark,.history-calendar-button > span:last-child{display:none!important;}
   #clear-click-locations{grid-column:2;grid-row:2;justify-self:end;white-space:nowrap;padding:5px 7px;font-size:11px;}
-  .fejlec-adatok.riport-fejlec-adatok{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:10px;row-gap:10px;align-items:start;}
+  .fejlec-adatok.riport-fejlec-adatok{display:grid!important;grid-template-columns:40% 60%;column-gap:0;row-gap:10px;align-items:start;}
   .fejlec-bal,.fejlec-jobb{display:contents!important;}
   .fejlec-bal .adat:nth-child(1){grid-column:1;grid-row:1;}
   .fejlec-bal .adat:nth-child(2){grid-column:1;grid-row:2;}
@@ -5099,9 +5096,11 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
           </div>
         </div>
         <div id="history-load-status" role="status" aria-live="polite"></div>
-        <div class="nezet-valaszto" role="group" aria-label="Megjelenítés">
-          <button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás <span class="online-szam">""" + str(biz_online) + "/" + str(biz_osszes) + """</span></button>
-          <button class="nezet-gomb" data-nezet="garazs" type="button">Garázs <span class="online-szam">""" + str(garazs_online) + "/" + str(garazs_osszes) + """</span></button>
+        <div class="nezet-vezerlo-csoport">
+          <div class="nezet-valaszto" role="group" aria-label="Megjelenítés">
+            <button class="nezet-gomb" data-nezet="biztor" type="button">Végállomás <span class="online-szam">""" + str(biz_online) + "/" + str(biz_osszes) + """</span></button>
+            <button class="nezet-gomb" data-nezet="garazs" type="button">Garázs <span class="online-szam">""" + str(garazs_online) + "/" + str(garazs_osszes) + """</span></button>
+          </div>
           <div id="kijelolt-adat" class="kijelolt-adat" aria-live="polite"></div>
         </div>
       </div>
@@ -5179,10 +5178,10 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
         rs = str(sor.get("rendszám", "")).strip()
         rs_html = (
             f'<span class="rendszam-vezerlo">'
-            f'<button type="button" class="rendszam-napi-elozmeny" data-rendszam-elozmeny="{escape(rs)}" '
-            f'aria-label="{escape(rs)} aznapi lokációs előzményei" title="A rendszám aznapi összes lokációja">'
-            f'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg></button>'
-            f'<button type="button" class="rendszam-link" data-rendszam="{escape(rs)}" title="Jármű megjelenítése a térképen">{escape(rs)}</button>'
+            f'<button type="button" class="rendszam-napi-elozmeny" data-rendszam-elozmeny="{escape(rs)}" data-rendszam="{escape(rs)}" '
+            f'aria-label="{escape(rs)} utolsó pozíciója" title="Utolsó pozíció megjelenítése">'
+            f'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg></button>'
+            f'<button type="button" class="rendszam-link" data-rendszam="{escape(rs)}" title="A rendszám aznapi összes lokációja">{escape(rs)}</button>'
             f'</span>'
         ) if rs else ""
         html.append(f'<td class="rendszam sticky-bal bal-6">{rs_html}</td>')
@@ -5848,6 +5847,16 @@ function escapeHtml(value) {
 }
 
 
+function geozonaSzovegKoordinatabol(lat, lon) {
+    const zona = terkepZonak.find(function(z) {
+        return lat >= Number(z.lat_min) && lat <= Number(z.lat_max)
+            && lon >= Number(z.lon_min) && lon <= Number(z.lon_max);
+    });
+    if (zona) return String(zona.nev || "").trim();
+    return String(lat) + ", " + String(lon);
+}
+
+
 function jarmuIkon(statusz) {
 
     let osztaly = "gray";
@@ -6165,7 +6174,9 @@ function tortenetiMarkerLetrehozasa(cell) {
     const rendszam = cell.dataset.rendszam || "n.a";
     const viszonylat = cell.dataset.viszonylat || "";
     const forda = cell.dataset.forda || "";
-    const helyszin = cell.dataset.helyszin || "n.a";
+    // Történeti lokációnál is a tényleges koordinátából határozzuk meg a
+    // Geozóna feliratot, az értékelésben használt zónanevekkel egyezően.
+    const helyszin = geozonaSzovegKoordinatabol(koordinata[0], koordinata[1]);
     const jarmuAdatHtml =
         "<b><u>" + escapeHtml(rendszam) + "</u></b><br>"
         + "<b>Viszonylat:</b> " + escapeHtml(viszonylat) + "<br>"
@@ -6352,11 +6363,11 @@ function frissitKijeloltAdat(tipus, ertek) {
 }
 
 // Egy rendszám melletti apró előzménygomb az adott rendszám teljes napi GPS-történetét jeleníti meg.
-document.querySelectorAll(".rendszam-napi-elozmeny[data-rendszam-elozmeny]").forEach(function(btn) {
+document.querySelectorAll(".rendszam-link[data-rendszam]").forEach(function(btn) {
     btn.addEventListener("click", function(e) {
         e.preventDefault();
         e.stopPropagation();
-        const rendszam = String(this.dataset.rendszamElozmeny || "").trim().toUpperCase();
+        const rendszam = String(this.dataset.rendszam || "").trim().toUpperCase();
         if (!rendszam) return;
         frissitKijeloltAdat("rendszam", rendszam);
 
@@ -6609,10 +6620,12 @@ function fokuszJarmure(rendszam) {
     }, 700);
 }
 
-document.querySelectorAll(".rendszam-link").forEach(function(btn){
-    btn.addEventListener("click", function(){
+document.querySelectorAll(".rendszam-napi-elozmeny").forEach(function(btn){
+    btn.addEventListener("click", function(e){
+        e.preventDefault();
+        e.stopPropagation();
         window.scrollTo({top: 0, behavior: "smooth"});
-        fokuszJarmure(this.dataset.rendszam);
+        fokuszJarmure(this.dataset.rendszam || this.dataset.rendszamElozmeny);
     });
 });
 
