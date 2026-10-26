@@ -5021,7 +5021,7 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   .history-calendar-button{max-width:100%;padding:2px 0!important;gap:0!important;font-size:10px!important;}
   .history-calendar-button .calendar-mark,.history-calendar-button > span:last-child{display:none!important;}
   #clear-click-locations{grid-column:2;grid-row:2;justify-self:end;white-space:nowrap;padding:5px 7px;font-size:11px;}
-  .fejlec-adatok.riport-fejlec-adatok{display:grid!important;grid-template-columns:40% 60%;column-gap:0;row-gap:10px;align-items:start;}
+  .fejlec-adatok.riport-fejlec-adatok{display:grid!important;grid-template-columns:45% 55%;column-gap:0;row-gap:10px;align-items:start;}
   .fejlec-bal,.fejlec-jobb{display:contents!important;}
   .fejlec-bal .adat:nth-child(1){grid-column:1;grid-row:1;}
   .fejlec-bal .adat:nth-child(2){grid-column:1;grid-row:2;}
@@ -5032,6 +5032,51 @@ body.light-mode .all-view .fo-kozos-tabla tr[data-forras="biztor"]>td.tarolas-el
   #map-location-count,.fejlec-jobb .adat{justify-self:start!important;text-align:left!important;margin-left:0!important;width:100%;}
 }
 
+
+/* Kijelölt időpont/rendszám: meleg, aranybarna kiemelés, vonalak nélkül. */
+.fejlec-archivum .nezet-vezerlo-csoport{
+  display:flex!important;flex-direction:row!important;align-items:center!important;gap:10px!important;
+}
+.fejlec-archivum .nezet-vezerlo-csoport .kijelolt-adat:not(:empty),
+.fejlec-archivum .kijelolt-adat:not(:empty){
+  width:auto!important;margin:0!important;padding:0!important;border:0!important;
+  justify-content:flex-end;color:#c49a45!important;white-space:nowrap;
+}
+.kijelolt-adat .kijelolt-ertek{
+  color:#f3d58a!important;background:rgba(145,99,25,.20)!important;
+  border:0!important;border-top:0!important;border-bottom:0!important;
+  padding:3px 7px!important;border-radius:6px!important;
+}
+body.light-mode .fejlec-archivum .kijelolt-adat:not(:empty){color:#805b16!important}
+body.light-mode .kijelolt-adat .kijelolt-ertek{color:#68460d!important;background:rgba(194,142,44,.16)!important}
+
+/* Mobilon: dátum és nézetgombok egy sorban, kijelölt adat külön sorban jobbra. */
+@media(max-width:600px){
+  .fejlec-archivum{
+    display:grid!important;grid-template-columns:76px minmax(0,1fr)!important;
+    grid-template-rows:auto auto!important;align-items:center!important;
+    justify-content:stretch!important;gap:6px!important;
+  }
+  .fejlec-archivum .nezet-vezerlo-csoport{display:contents!important}
+  .fejlec-archivum .history-calendar{grid-column:1!important;grid-row:1!important}
+  .fejlec-archivum .nezet-valaszto{
+    grid-column:2!important;grid-row:1!important;justify-self:end!important;
+    width:max-content!important;max-width:100%!important;margin:0!important;
+  }
+  .fejlec-archivum .kijelolt-adat:not(:empty){
+    grid-column:1 / -1!important;grid-row:2!important;justify-self:end!important;
+    width:auto!important;max-width:100%!important;margin:0!important;padding:2px 0!important;
+    text-align:right!important;justify-content:flex-end!important;white-space:normal!important;
+    font-size:11px!important;line-height:1.4;
+  }
+  .fejlec-adatok.riport-fejlec-adatok{grid-template-columns:45% 55%!important;column-gap:0!important;row-gap:8px!important}
+  .fejlec-bal .adat:nth-child(1){grid-column:1!important;grid-row:1!important}
+  .fejlec-bal .adat:nth-child(2){grid-column:1!important;grid-row:2!important}
+  .fejlec-bal .adat:nth-child(3){grid-column:1!important;grid-row:3!important}
+  #map-location-count{grid-column:2!important;grid-row:1!important}
+  .fejlec-jobb .adat:nth-child(1){grid-column:2!important;grid-row:2!important;justify-self:start!important;text-align:left!important;width:auto!important}
+  .fejlec-jobb .adat:nth-child(2){grid-column:2!important;grid-row:3!important;justify-self:start!important;text-align:left!important;width:auto!important;margin:0!important;white-space:nowrap!important}
+}
 
 /* Végső fejléc-felülírás: a hold ikonja asztali nézetben is zöld sötét módban. */
 .theme-switch-toggle[aria-pressed="true"] .theme-icon { color: #16a765 !important; }
