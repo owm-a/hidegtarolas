@@ -1,0 +1,31 @@
+{
+  "datum": "2026-10-31",
+  "forda_rendszamok": {},
+  "pozicio_tortenet": [],
+  "hidegtarolas_riport": {
+    "datum": "2026-10-31",
+    "kesz": true,
+    "excel_kesz": false,
+    "keszult": "-",
+    "utolso_futas": "00:01:22",
+    "vizsgalt_fordak": 0,
+    "ertekelt_fordak": 0,
+    "forrás": "biztor",
+    "ertekeles_verzio": "geozona_felido_v1",
+    "dontesek": {},
+    "eredmenyek": []
+  },
+  "garazstarolas_riport": {
+    "datum": "2026-10-31",
+    "kesz": true,
+    "excel_kesz": false,
+    "keszult": "-",
+    "utolso_futas": "00:01:25",
+    "vizsgalt_fordak": 0,
+    "ertekelt_fordak": 0,
+    "forrás": "garazs",
+    "ertekeles_verzio": "geozona_felido_v1",
+    "dontesek": {},
+    "eredmenyek": []
+  }
+}
