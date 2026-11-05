@@ -2897,6 +2897,21 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         napi_kulcs
     ) or {}
 
+    # Ha az aznapi páros Excel-riport már sikeresen elkészült, a riportlogika
+    # erre a napra lezárult. A következő workflow-futások ne járják végig újra
+    # a teljes pozíciótörténetet és a fordákat; a mentett riportot használjuk.
+    paros_export_allapot = napi_adatok.get("napi_excel_export", {})
+    if (
+        isinstance(paros_export_allapot, dict)
+        and paros_export_allapot.get("datum") == MAI_NAP
+        and paros_export_allapot.get("kesz") is True
+    ):
+        print(
+            f"A napi riport ({forrás}) már elkészült {MAI_NAP} napra; "
+            "a riport újraszámítása kimarad."
+        )
+        return korabbi_riport
+
     # Az új értékelési szabályra történő első átálláskor a korábbi I/N
     # döntéseket újra kell számolni; a pótlásos státuszokat viszont megőrizzük.
     ertekeles_verzio = "geozona_felido_v1"
@@ -3374,6 +3389,15 @@ garazstarolas_riport = keszit_hidegtarolas_riport("garazs", GARAZS_RIPORT_XLSX, 
 
 def _mai_excel_export_ervenyes(fajl):
     """True, ha az Excel olvasható és tartalmaz legalább egy mai adatsort."""
+    paros_allapot = napi_adatok.get("napi_excel_export", {})
+    if (
+        isinstance(paros_allapot, dict)
+        and paros_allapot.get("datum") == MAI_NAP
+        and paros_allapot.get("kesz") is True
+    ):
+        # A már lezárt napi exportot nem kell minden workflow-futáskor
+        # ismét megnyitni és végigellenőrizni.
+        return True
     if not os.path.isfile(fajl) or os.path.getsize(fajl) == 0:
         return False
     try:
@@ -4482,8 +4506,8 @@ body.light-mode #geozona-terkep .leaflet-tile-pane{filter:none}
 .fo-kozos-tabla .viszonylat,.fo-kozos-tabla .forda,.fo-kozos-tabla .rendszam,.fo-kozos-tabla .kezdés,.fo-kozos-tabla .végzés,.fo-kozos-tabla .hely{width:1px;min-width:0;white-space:nowrap}
 .fo-kozos-tabla .hely{text-align:left}.fo-kozos-tabla .rendszam{text-align:right;font-weight:bold}
 /* Az időoszlopok fix 42 px-es oszlopok; a rendelkezésre álló helyet ők töltik ki. */
-.fo-kozos-tabla .idopont-fejlec,.fo-kozos-tabla .idopont-ertek,.fo-kozos-tabla .idopont-cella{width:42px;min-width:42px;max-width:42px;padding:1px;text-align:center}
-.fo-kozos-tabla .idopont-fejlec{font-size:0;color:transparent}.fo-kozos-tabla .idopont-ertek{font-size:11px;font-weight:400;background:var(--surface2);padding:4px 1px;text-align:center}.fo-kozos-tabla .idopont-oszlop-kattinthato{cursor:pointer;user-select:none}.fo-kozos-tabla .idopont-oszlop-kattinthato:hover,.fo-kozos-tabla .idopont-oszlop-kattinthato:focus{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface3)}.fo-kozos-tabla .idopont-oszlop-kattinthato.aktiv-idopont{outline:none;border-top:2px solid var(--accent)!important;border-bottom:2px solid var(--accent)!important;background:var(--surface3)}
+.fo-kozos-tabla .idopont-fejlec,.fo-kozos-tabla .idopont-ertek,.fo-kozos-tabla .idopont-lokacio-szam,.fo-kozos-tabla .idopont-cella{width:42px;min-width:42px;max-width:42px;padding:1px;text-align:center}
+.fo-kozos-tabla .idopont-fejlec{font-size:0;color:transparent}.fo-kozos-tabla .idopont-ertek{font-size:11px;font-weight:650;background:var(--surface2);padding:4px 1px;text-align:center}.fo-kozos-tabla .idopont-lokacio-szam{font-size:10px;font-weight:500;color:var(--muted);background:var(--surface2);padding:4px 1px;text-align:center}.fo-kozos-tabla .idopont-oszlop-kattinthato{cursor:pointer;user-select:none}.fo-kozos-tabla .idopont-oszlop-kattinthato:hover,.fo-kozos-tabla .idopont-oszlop-kattinthato:focus{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface3)}.fo-kozos-tabla .idopont-oszlop-kattinthato.aktiv-idopont{outline:none;border-top:2px solid var(--accent)!important;border-bottom:2px solid var(--accent)!important;background:var(--surface3)}
 /* A jobb szélső oszlop csak a saját tartalmának szélességét kapja. */
 .fo-kozos-tabla .sticky-jobb.storage{width:1px;min-width:0;max-width:max-content;white-space:nowrap}
 .fo-kozos-tabla .sticky-bal{position:sticky;z-index:30;background:var(--surface);background-clip:padding-box}
@@ -5231,7 +5255,12 @@ body.light-mode .kijelolt-adat .kijelolt-ertek{color:#68460d!important;backgroun
 """)
         
     for time_index, idopont in enumerate(idopontok):
-        html.append(f'<th class="idopont-fejlec" data-time-index="{time_index}"></th>')
+        html.append(
+            f'<th class="idopont-ertek idopont-oszlop-kattinthato" '
+            f'data-time-index="{time_index}" '
+            f'title="Kattints az időpont lokációinak térképes megjelenítéséhez" '
+            f'role="button" tabindex="0">{escape(idopont)}</th>'
+        )
     html.append('<th class="sticky-jobb storage">Valós tárolás <button class="rendez-gomb" type="button" data-sort-col="storage">↕</button></th></tr>')
     html.append('<tr class="szuro-sor">')
     html.append('<th class="sticky-bal bal-1"><input class="oszlop-kereso" data-col="0" placeholder="Keresés…" aria-label="Viszonylat keresése"></th>')
@@ -5240,7 +5269,9 @@ body.light-mode .kijelolt-adat .kijelolt-ertek{color:#68460d!important;backgroun
     html.append('<th class="sticky-bal bal-5"><input class="oszlop-kereso" data-col="4" placeholder="Keresés…" aria-label="Hely keresése"></th>')
     html.append('<th class="rendszam sticky-bal bal-6"><input class="oszlop-kereso" data-col="5" placeholder="Keresés…" aria-label="Rendszám keresése"></th>')
     for time_index, idopont in enumerate(idopontok):
-        html.append(f'<th class="idopont-ertek idopont-oszlop-kattinthato" data-time-index="{time_index}" title="Kattints az időpont lokációinak térképes megjelenítéséhez" role="button" tabindex="0">{escape(idopont)}</th>')
+        html.append(
+            f'<th class="idopont-lokacio-szam" data-time-index="{time_index}">0</th>'
+        )
     html.append('<th class="sticky-jobb storage"><input class="oszlop-kereso" data-col="storage" placeholder="Keresés…" aria-label="Valós tárolás keresése"></th></tr></thead><tbody id="fix-tbody-common">')
 
     osszes_sor = []
@@ -5331,6 +5362,11 @@ body.light-mode .kijelolt-adat .kijelolt-ertek{color:#68460d!important;backgroun
                     # akkor is, ha egy későbbi pozíció már saját geozónát jelez.
                     if (not potlas_kek_n and eredmeny_riport == "pótlás/cserekocsi"
                             and t >= k and eredmeny == "NEM"):
+                        # A pótlás első időpontját továbbra is csak egyetlen
+                        # történeti rekord jelöli, de amíg a forda pótlásként
+                        # van nyilvántartva, a későbbi N minták is kék P-ként
+                        # jelenjenek meg az online idővonalon.
+                        megj = "P"
                         osztaly = "potlas"
                 elif k - timedelta(minutes=15) <= t < k or v < t <= v + timedelta(minutes=15):
                     osztaly = "neutral"
@@ -5565,6 +5601,7 @@ body.light-mode .kijelolt-adat .kijelolt-ertek{color:#68460d!important;backgroun
     buttons.forEach(b=>b.classList.toggle('active', v==='mindketto' || b.dataset.nezet===v));
     fo.classList.remove('view-biztor','view-garazs','view-mindketto','view-none');
     fo.classList.add('view-'+v);fo.classList.toggle('all-view',v==='mindketto');
+    if (typeof frissitIdopontLokacioSzamokat === 'function') frissitIdopontLokacioSzamokat();
     requestAnimationFrame(()=>{sticky();layoutScroll();});
   }
   function applyFilters(){
@@ -5580,6 +5617,7 @@ body.light-mode .kijelolt-adat .kijelolt-ertek{color:#68460d!important;backgroun
       }
       r.dataset.filterMatch=ok?'1':'0';
     });
+    if (typeof frissitIdopontLokacioSzamokat === 'function') frissitIdopontLokacioSzamokat();
     requestAnimationFrame(()=>{
       sticky();
       layoutScroll();
@@ -6619,9 +6657,36 @@ function frissitLokacioSzam() {
     elem.innerHTML = '<b>Lokációk száma:</b> ' + latszoDarab;
 }
 
+// Minden időoszlop alatt az adott időpontban ténylegesen megjeleníthető
+// lokációk egzakt száma szerepel. A keresőszűrők és a rendezés nem módosítják
+// ezt az értéket; kizárólag az aktív forrásnézet (végállomás/garázs/összes) számít.
+function frissitIdopontLokacioSzamokat() {
+    const nezet = aktualisTerkepNezet();
+    const sorok = Array.from(document.querySelectorAll("#fix-tbody-common tr[data-forras]"))
+        .filter(function(tr) {
+            if (nezet === "none") return false;
+            return nezet === "mindketto" || String(tr.dataset.forras || "biztor") === nezet;
+        });
+
+    document.querySelectorAll(".idopont-lokacio-szam[data-time-index]").forEach(function(szamlalo) {
+        const timeIndex = String(szamlalo.dataset.timeIndex);
+        let darab = 0;
+        sorok.forEach(function(tr) {
+            const cell = tr.querySelector('.idopont-cella[data-time-index="' + timeIndex + '"][data-lat][data-lon]');
+            if (!cell) return;
+            const allapot = tortenetiLokacioAllapot(cell);
+            if (!allapot.megjelenit) return;
+            if (!["OK", "NEM", "PÓTLÁS"].includes(allapot.jarmuStatusz)) return;
+            darab += 1;
+        });
+        szamlalo.textContent = String(darab);
+    });
+}
+
 // A térképre kerülő vagy onnan eltávolított jelölők után automatikusan frissül a darabszám.
 map.on('layeradd layerremove', frissitLokacioSzam);
 frissitLokacioSzam();
+frissitIdopontLokacioSzamokat();
 
 function frissitTerkepNezet(view) {
     const lista = jarmuMarkerek["__lista__"] || [];
