@@ -96,7 +96,7 @@ def http_get(*args, **kwargs):
 # eltolva kerül felhasználásra.
 # A BKK-ból érkező valódi GPS timestamp-eket NEM módosítjuk.
 
-TESZT_MOD = True
+TESZT_MOD = False
 TESZT_IDO_ELTOLAS_ORA = -2
 
 
