@@ -1,4 +1,4 @@
-name: ArrivaBus hidegtárolás_2
+name: ArrivaBus hidegtárolás
 
 # Az automatikus indítást a cron-job.org végzi workflow_dispatch hívással.
 # A GitHub Actions saját schedule-je szándékosan nincs bekapcsolva.
