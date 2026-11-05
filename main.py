@@ -5183,14 +5183,50 @@ body.light-mode .kijelolt-adat .kijelolt-ertek{color:#68460d!important;backgroun
    az oldalt, ami megakadályozta, hogy a sticky elem a viewporthoz tapadjon.
    A clip levágja a vízszintes túlcsordulást, de nem hoz létre új scroll-containert. */
 @media (min-width: 901px) {
+  /* A vízszintes levágás ne hozzon létre külön görgetési konténert,
+     különben a sticky elemek nem a böngészőablakhoz igazodnak. */
   html, body {
     overflow-x: clip !important;
     overflow-y: visible !important;
   }
+
+  /* A táblázat külső burka se fogja meg a függőleges sticky fejlécet. */
+  #fo-tabla.tabla-egesz {
+    overflow: visible !important;
+  }
+
+  /* Idővonal: görgetéskor közvetlenül a böngészőablak felső széléhez tapad. */
   #fo-csuszkasav.idopont-csuszkasav {
     position: sticky !important;
-    top: 8px !important;
+    top: 0 !important;
     z-index: 1000 !important;
+  }
+
+  /* A táblázat oszlopfejléce az idővonal alatt maradjon rögzítve.
+     Az idővonal 38 px magas, ezért a fejléc 46 px-nél kezdődik. */
+  #fo-tabla .fo-kozos-tabla thead tr.fejlec-sor > th {
+    position: sticky !important;
+    top: 46px !important;
+    z-index: 110 !important;
+    background: var(--surface3) !important;
+  }
+
+  /* A keresősor közvetlenül az oszlopfejléc alatt maradjon. */
+  #fo-tabla .fo-kozos-tabla thead tr.szuro-sor > th {
+    position: sticky !important;
+    top: 77px !important;
+    z-index: 105 !important;
+    background: var(--surface2) !important;
+  }
+
+  /* A vízszintesen is rögzített szélső cellák legyenek a legfelső rétegben. */
+  #fo-tabla .fo-kozos-tabla thead tr.fejlec-sor > th.sticky-bal,
+  #fo-tabla .fo-kozos-tabla thead tr.fejlec-sor > th.sticky-jobb {
+    z-index: 130 !important;
+  }
+  #fo-tabla .fo-kozos-tabla thead tr.szuro-sor > th.sticky-bal,
+  #fo-tabla .fo-kozos-tabla thead tr.szuro-sor > th.sticky-jobb {
+    z-index: 125 !important;
   }
 }
 
