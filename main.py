@@ -6407,10 +6407,11 @@ function frissitTortenetiCsoportokat() {
         if (m.__szurke || !markerAktivNezetben(m)) { if (map.hasLayer(m)) map.removeLayer(m); }
         else if (!map.hasLayer(m)) m.addTo(map);
     });
-    if (tortenetiak.length < 2) return;
+    // 17-es zoomtól nincs csoportosítás: minden nem szürke pozíció külön PIN marad.
+    if (map.getZoom() >= 17 || tortenetiak.length < 2) return;
 
     // Földrajzi távolság szerinti, zoomfüggő csoportosítás:
-    // 15-ös zoomig 500 m, 16-os zoomtól 250 m.
+    // 15-ös zoomig 500 m, 16-os zoomnál 250 m; 17-től nincs klaszterezés.
     // A szomszédos pontok láncolatosan kapcsolódnak, rácshatár nem választja szét őket.
     const maxTavolsag = map.getZoom() <= 15 ? 500 : 250;
     const koord = tortenetiak.map(function(m) { return m.getLatLng(); });
