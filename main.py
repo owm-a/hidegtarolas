@@ -5992,6 +5992,8 @@ L.tileLayer(
 const terkepElemek = [];
 const jarmuMarkerek = {};
 const TERKEP_MAX_ZOOM = 19;
+// Táblázatból indított fókuszálásnál legfeljebb 16-os zoomot használunk.
+const TERKEP_TABLA_MAX_ZOOM = 16;
 
 
 function escapeHtml(value) {
@@ -6181,7 +6183,7 @@ function ugrasTerkephez(koordinata, marker, kesleltetes=220) {
     window.scrollTo({top: 0, behavior: "smooth"});
     setTimeout(function() {
         map.invalidateSize();
-        map.flyTo(koordinata, TERKEP_MAX_ZOOM, {duration: 0.7});
+        map.flyTo(koordinata, TERKEP_TABLA_MAX_ZOOM, {duration: 0.7});
         setTimeout(function() { if (marker) marker.openPopup(); }, 740);
     }, kesleltetes);
 }
@@ -6608,9 +6610,9 @@ document.querySelectorAll(".rendszam-link[data-rendszam]").forEach(function(btn)
             const bounds = L.featureGroup(pontok).getBounds();
             if (bounds.isValid()) {
                 if (bounds.getNorthEast().equals(bounds.getSouthWest())) {
-                    map.setView(bounds.getCenter(), TERKEP_MAX_ZOOM);
+                    map.setView(bounds.getCenter(), TERKEP_TABLA_MAX_ZOOM);
                 } else {
-                    map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_MAX_ZOOM});
+                    map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_TABLA_MAX_ZOOM});
                 }
             }
         }
@@ -6667,7 +6669,7 @@ document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEac
 
         if (markerek.length) {
             const bounds = L.featureGroup(markerek).getBounds();
-            if (bounds.isValid()) map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_MAX_ZOOM});
+            if (bounds.isValid()) map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_TABLA_MAX_ZOOM});
             // Egy időpont kiválasztásakor a jelölők mind ugyanúgy nyithatók meg, mint az aktuális járművek.
         }
         frissitTortenetiCsoportokat();
@@ -6775,7 +6777,7 @@ function frissitTerkepNezet(view) {
     latszo.forEach(function(marker){ marker.addTo(map); });
     if (latszo.length) {
         const bounds = L.featureGroup(latszo).getBounds();
-        if (bounds.isValid()) map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_MAX_ZOOM});
+        if (bounds.isValid()) map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_TABLA_MAX_ZOOM});
     }
     if (tortenetiOszlopAktiv) frissitTortenetiCsoportokat();
     frissitLokacioSzam();
@@ -6842,8 +6844,8 @@ function fokuszJarmure(rendszam) {
     frissitLokacioSzam();
 
     const pos = marker.getLatLng();
-    // A táblázatból kattintva a térkép a globális maximális zoomig nagyíthat.
-    map.flyTo(pos, TERKEP_MAX_ZOOM, {duration: 0.7});
+    // A táblázatból kattintva a térkép legfeljebb 16-os zoomig nagyít.
+    map.flyTo(pos, TERKEP_TABLA_MAX_ZOOM, {duration: 0.7});
     setTimeout(function(){
         if (!map.hasLayer(marker)) marker.addTo(map);
         if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
