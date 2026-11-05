@@ -1341,8 +1341,37 @@ body.light-mode .kijelolt-adat .kijelolt-ertek{color:#68460d!important;backgroun
     requestAnimationFrame(()=>{sticky();layoutScroll();});
   }
   let scrollFrame=0;
+  let idopontValasztoFrame=0;
+  let utoljaraKivalasztottIdopont=null;
   slider.addEventListener('input',()=>{
     fo.scrollLeft=Math.min(fo.scrollWidth-fo.clientWidth,Math.max(0,+slider.value||0));
+    // A csúszka mozgatásakor a látható idővonal-rész közepéhez legközelebbi
+    // időpontot választjuk ki. Csak új időindexre lépéskor frissítjük a térképet.
+    if(idopontValasztoFrame)return;
+    idopontValasztoFrame=requestAnimationFrame(()=>{
+      idopontValasztoFrame=0;
+      const fejlecek=Array.from(document.querySelectorAll('.idopont-oszlop-kattinthato[data-time-index]'));
+      if(!fejlecek.length)return;
+      const foRect=fo.getBoundingClientRect();
+      const elsoIdo=fejlecek[0];
+      const utolsoFejlec=fo.querySelector('thead tr:first-child')?.lastElementChild;
+      const bal=elsoIdo.getBoundingClientRect().left;
+      const jobb=utolsoFejlec ? utolsoFejlec.getBoundingClientRect().left : foRect.right;
+      const celX=(Math.max(foRect.left,bal)+Math.min(foRect.right,jobb))/2;
+      let legkozelebbi=null, legkisebb=Math.abs(Infinity);
+      fejlecek.forEach(h=>{
+        const r=h.getBoundingClientRect();
+        const tav=Math.abs((r.left+r.right)/2-celX);
+        if(tav<legkisebb){legkisebb=tav;legkozelebbi=h;}
+      });
+      const index=legkozelebbi && String(legkozelebbi.dataset.timeIndex);
+      if(index!==null && index!==undefined && index!==utoljaraKivalasztottIdopont){
+        utoljaraKivalasztottIdopont=index;
+        if(typeof legkozelebbi.__hidegtarolasIdopontValasztas==='function'){
+          legkozelebbi.__hidegtarolasIdopontValasztas();
+        }
+      }
+    });
   });
   fo.addEventListener('scroll',()=>{
     if(scrollFrame)return;
@@ -2282,7 +2311,7 @@ function jelolLegutolsoIdopont() {
 }
 
 document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEach(function(header) {
-    function mutatOszlopLokacioit() {
+    function mutatOszlopLokacioit(csuszkarol=false) {
         jelolAktivIdopont(header);
         frissitKijeloltAdat("idopont", String(header.textContent || "").trim());
         const timeIndex = String(header.dataset.timeIndex);
@@ -2315,14 +2344,17 @@ document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEac
             }
         });
 
-        if (markerek.length) {
+        if (markerek.length && !csuszkarol) {
             const bounds = L.featureGroup(markerek).getBounds();
             if (bounds.isValid()) map.fitBounds(bounds.pad(0.08), {maxZoom: TERKEP_TABLA_MAX_ZOOM});
-            // Egy időpont kiválasztásakor a jelölők mind ugyanúgy nyithatók meg, mint az aktuális járművek.
+            // Kézi oszlopkattintásnál a térkép az adott időpont pontjaira igazodik.
         }
+        // Csúszkás léptetésnél megtartjuk a térkép nézetét: csak a PIN-ek és
+        // a csoportosítás frissül, így nem indul folyamatos térképmozgatás.
         frissitTortenetiCsoportokat();
         frissitLokacioSzam();
     }
+    header.__hidegtarolasIdopontValasztas = function(){ mutatOszlopLokacioit(true); };
     header.addEventListener("click", mutatOszlopLokacioit);
     header.addEventListener("keydown", function(e) {
         if (e.key === "Enter" || e.key === " ") {
