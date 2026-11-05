@@ -7124,7 +7124,7 @@ document.addEventListener("click", function(event) {
 
 
 # ============================================================
-# EXPORT FUTTATÁSA
+# EXPORT FUTTATÁSA - komment
 # ============================================================
 
 html_export()
