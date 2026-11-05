@@ -2634,11 +2634,18 @@ def gps_geozona_vagy_koordinata(pozicio):
 
 def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
     """
-    GTFS-RT alapján felismeri a fordán kívüli tripet.
+    GTFS-RT alapján felismeri a pótlást a forda teljes kezdés–végzés
+    időszakában.
 
-    A függvény az aktuális pótlást azonosítja mindkét forrásban.
-    Ha a riport egyszer már rögzítette a pótlást, a státuszt a hívó kód
-    történeti jelölő alapján tartósan megőrzi.
+    Pótlásnak számít mindkét eset:
+    1. A forda korábban hozzárendelt járműve a kezdés után egy másik,
+       figyelt forda blockján jelenik meg.
+    2. A vizsgált forda saját blockján a GTFS-RT a korábban mentettől
+       eltérő rendszámú járművet mutat.
+
+    A garázsba visszatérés / "I" GPS-állapot nem törli és nem akadályozza
+    a felismerést. A már rögzített pótlást a hívó riportlogika a végzésig
+    tapadó státuszként őrzi meg.
     """
     rendszam = str(rendszam or "").strip().upper()
     if not rendszam or not isinstance(jarmuvek, pd.DataFrame) or jarmuvek.empty:
@@ -2660,67 +2667,18 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
     rovid_forda = 0 < teljes_idotartam < 15 * 60
     figyelési_kezdés_dt = kezdés_dt - timedelta(minutes=5) if rovid_forda else kezdés_dt
     figyelési_végzés_dt = végzés_dt + timedelta(minutes=15) if rovid_forda else végzés_dt
-    if not (figyelési_kezdés_dt <= most <= figyelési_végzés_dt):
+    if teljes_idotartam <= 0 or not (figyelési_kezdés_dt <= most <= figyelési_végzés_dt):
         return None
 
-    teljes_idotartam = (végzés_dt - kezdés_dt).total_seconds()
-    if teljes_idotartam <= 0:
-        return None
-
-    döntés_dt = kezdés_dt + timedelta(seconds=teljes_idotartam * 0.70)
-
-    # Mindkét táblázatnál az aktuális GPS-ellenőrzés mutatja, hogy a
-    # jármű visszaért-e a saját (Excelben megadott) geozónájába.
-    # Csak a forda kezdése utáni legfrissebb pozíciót vesszük figyelembe.
-    if isinstance(pozicio_tortenet, list):
-
-        sajat_rekordok = []
-        for rekord in pozicio_tortenet:
-            if str(rekord.get("viszonylat", "")).strip() != str(forda_sor.get("viszonylat", "")).strip():
-                continue
-            if str(rekord.get("forda", "")).strip() != str(forda_sor.get("forda", "")).strip():
-                continue
-            if str(rekord.get("forrás", "biztor")).strip() != str(forda_sor.get("forrás", "biztor")).strip():
-                continue
-            # A frissítve a lekérdezés ideje; a pótlás megszűnését csak
-            # a tényleges GPS-frissítés alapján állapítjuk meg.
-            idopont = str(rekord.get("pozicio_frissitve", "")).strip()
-            if not idopont or idopont in ("-", "None"):
-                continue
-            ido = None
-            for fmt in ("%H:%M:%S", "%H:%M"):
-                try:
-                    ido = datetime.strptime(idopont, fmt).time()
-                    break
-                except (ValueError, TypeError):
-                    continue
-            if ido is None:
-                continue
-            rekord_dt = datetime.combine(mai_datum, ido, tzinfo=budapest_tz)
-            if rekord_dt < figyelési_kezdés_dt:
-                rekord_dt += timedelta(days=1)
-            if (
-                figyelési_kezdés_dt <= rekord_dt <= most
-                and most - rekord_dt <= timedelta(minutes=10)
-            ):
-                sajat_rekordok.append((rekord_dt, rekord))
-
-        if sajat_rekordok:
-            _, legutobbi_pozicio = max(sajat_rekordok, key=lambda x: x[0])
-            if str(legutobbi_pozicio.get("ellenőrzés", "-")).strip().upper() == "OK":
-                return None
-
-    # A 70%-os pont után is meg kell tudnunk állapítani, hogy a jármű
-    # éppen pótláson van-e, mert a 70%-os döntésnél ez I-nek számít.
-
-    # A saját forda mai, tényleges tripjei.
+    # A vizsgált forda összes mai tripje és blockja.
     viszonylat = str(forda_sor.get("viszonylat", "")).strip()
     forda = str(forda_sor.get("forda", "")).strip()
-
     try:
-        sajat_forda_trips = trips[
+        mai_trips = trips[
             trips["service_id"].astype(str).isin(mai_service_ids)
-            & trips["block_id"].astype(str).str.contains(
+        ].copy()
+        sajat_forda_trips = mai_trips[
+            mai_trips["block_id"].astype(str).str.contains(
                 f"_{viszonylat}_{forda}_", na=False, regex=False
             )
         ]
@@ -2731,27 +2689,58 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
     if not sajat_trip_ids:
         return None
 
+    # A block_id alapján csak valóban másik, figyelt forda számít
+    # fordán kívüli feladatnak; egyéb, nem forda-trip önmagában nem.
+    masik_forda_mintak = []
+    figyelt = globals().get("figyelt_fordak")
+    if isinstance(figyelt, pd.DataFrame) and not figyelt.empty:
+        for _, masik in figyelt.iterrows():
+            masik_viszonylat = str(masik.get("viszonylat", "")).strip()
+            masik_forda = str(masik.get("forda", "")).strip()
+            if not masik_viszonylat or not masik_forda:
+                continue
+            if masik_viszonylat == viszonylat and masik_forda == forda:
+                continue
+            minta = f"_{masik_viszonylat}_{masik_forda}_"
+            if minta not in masik_forda_mintak:
+                masik_forda_mintak.append(minta)
+
+    trip_block = {
+        str(sor["trip_id"]): str(sor.get("block_id", "")).strip()
+        for _, sor in mai_trips.iterrows()
+    }
+
+    # 1. A korábban hozzárendelt jármű másik figyelt forda blockján fut.
     talalatok = jarmuvek[
         jarmuvek["rendszám"].astype(str).str.strip().str.upper() == rendszam
     ].copy()
-
-    if talalatok.empty:
-        return None
-
-    # Ha a GTFS-RT-ben az adott rendszám aktuális tripje ismert,
-    # és az nem tartozik a vizsgált forda mai tripjei közé,
-    # akkor a jármű fordán kívüli tripet teljesít.
     for _, rt in talalatok.iterrows():
         aktualis_trip_id = str(rt.get("trip_id", "")).strip()
-        if not aktualis_trip_id:
+        if not aktualis_trip_id or aktualis_trip_id in sajat_trip_ids:
             continue
-        if aktualis_trip_id not in sajat_trip_ids:
+        aktualis_block = trip_block.get(aktualis_trip_id, "")
+        if aktualis_block and any(minta in aktualis_block for minta in masik_forda_mintak):
             return {
                 "trip_id": aktualis_trip_id,
                 "jármű_id": str(rt.get("jármű_id", "")).strip(),
                 "route_id": str(rt.get("route_id", "")).strip(),
                 "direction_id": str(rt.get("direction_id", "")).strip(),
             }
+
+    # 2. A saját forda blockján másik rendszámú jármű jelent meg.
+    sajat_rt_talalatok = jarmuvek[
+        jarmuvek["trip_id"].astype(str).isin(sajat_trip_ids)
+    ].copy()
+    for _, rt in sajat_rt_talalatok.iterrows():
+        aktualis_rendszam = str(rt.get("rendszám", "")).strip().upper()
+        if not aktualis_rendszam or aktualis_rendszam == rendszam:
+            continue
+        return {
+            "trip_id": str(rt.get("trip_id", "")).strip(),
+            "jármű_id": str(rt.get("jármű_id", "")).strip(),
+            "route_id": str(rt.get("route_id", "")).strip(),
+            "direction_id": str(rt.get("direction_id", "")).strip(),
+        }
 
     return None
 
@@ -2765,7 +2754,7 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
       RENDBEN TÁROLT; minden más esetben ELTÉRÉS TÖRTÉNT.
     - Az I/N ellenőrzési mintákat továbbra is tároljuk, de a döntéshez nem
       használjuk fel őket.
-    - A pótlás/cserekocsi felismerésének elsőbbsége változatlan.
+    - A pótlás felismerése rendszám- és másik forda/block-változásra is kiterjed; elsőbbsége változatlan.
     - Nincs külön 10 perces GPS-frissességi feltétel a döntéshez.
     """
     kezdés = _ido_objektum(forda_sor.get("kezdés"))
@@ -2817,7 +2806,7 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
 
     mintak.sort(key=lambda item: item[0])
 
-    # A pótlás elsőbbséget élvez, és az eddigi felismerési logikáját nem módosítjuk.
+    # A pótlás elsőbbséget élvez; a rendszám- és másik forda/block-változás is kiváltja.
     if budapest_now < végzés_dt:
         forda_kulcs = forda_kulcs_adat(forda_sor)
         forda_adat = forda_rendszamok.get(forda_kulcs, {})
