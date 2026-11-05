@@ -5705,8 +5705,9 @@ body.light-mode .kijelolt-adat .kijelolt-ertek{color:#68460d!important;backgroun
         if(tav<legkisebb){legkisebb=tav;legkozelebbi=h;}
       });
       const index=legkozelebbi && String(legkozelebbi.dataset.timeIndex);
-      if(index!==null && index!==undefined && index!==utoljaraKivalasztottIdopont){
-        utoljaraKivalasztottIdopont=index;
+      const idopontMod=String(window.__hidegtarolasKijeloltRendszam || "__osszes__") + "|" + String(index);
+      if(index!==null && index!==undefined && idopontMod!==utoljaraKivalasztottIdopont){
+        utoljaraKivalasztottIdopont=idopontMod;
         if(typeof legkozelebbi.__hidegtarolasIdopontValasztas==='function'){
           legkozelebbi.__hidegtarolasIdopontValasztas();
         }
@@ -6342,6 +6343,7 @@ function tortenetiMarkerLetrehozasa(cell) {
     const jarmuStatusz = idoAllapot.jarmuStatusz;
     const marker = L.marker(koordinata, {icon: jarmuIkon(jarmuStatusz)});
     marker.__forras = String(cell.closest("tr")?.dataset.forras || "biztor").trim();
+    marker.__tortenetiIdopontPerc = tortenetiOraPerc(cell.dataset.idopont);
     marker.__tortenetiStatusz = jarmuStatusz;
     // A szürke PIN-ek mögötti adat és státusz megmarad, csak a térképen nem rajzoljuk ki.
     marker.__szurke = !["OK", "NEM", "PÓTLÁS"].includes(jarmuStatusz);
@@ -6581,6 +6583,49 @@ function frissitKijeloltAdat(tipus, ertek) {
     cel.innerHTML = "<span>" + cimke + "</span><span class=\"kijelolt-ertek\">" + escapeHtml(String(ertek)) + "</span>";
 }
 
+// Rendszám-előzmény módban kattintásra a teljes napi útvonal látszik,
+// csúszkázáskor pedig csak az adott időponthoz legközelebbi ismert PIN.
+window.__hidegtarolasKijeloltRendszam = null;
+window.__hidegtarolasKijeloltRendszamMarkerek = [];
+function mutatKijeloltRendszamIdopont(timeIndex) {
+    const rendszam = window.__hidegtarolasKijeloltRendszam;
+    const osszesMarker = window.__hidegtarolasKijeloltRendszamMarkerek || [];
+    if (!rendszam || !osszesMarker.length) return false;
+    const fejlec = document.querySelector('.idopont-ertek[data-time-index="' + timeIndex + '"]');
+    const celPerc = tortenetiOraPerc(fejlec && fejlec.textContent);
+    if (celPerc === null) return false;
+
+    let legkozelebbi = null;
+    let legkisebbKulonbseg = Infinity;
+    osszesMarker.forEach(function(marker) {
+        if (!marker || marker.__szurke || marker.__tortenetiIdopontPerc === null || marker.__tortenetiIdopontPerc === undefined) return;
+        let kulonbseg = Math.abs(marker.__tortenetiIdopontPerc - celPerc);
+        kulonbseg = Math.min(kulonbseg, 1440 - kulonbseg);
+        if (kulonbseg < legkisebbKulonbseg) {
+            legkisebbKulonbseg = kulonbseg;
+            legkozelebbi = marker;
+        }
+    });
+
+    osszesMarker.forEach(function(marker) { if (marker && map.hasLayer(marker)) map.removeLayer(marker); });
+    tortenetiCsoportMarkerek.forEach(function(marker) { if (marker && map.hasLayer(marker)) map.removeLayer(marker); });
+    tortenetiCsoportMarkerek.length = 0;
+    tortenetiLokacioMarkerek.length = 0;
+    if (legkozelebbi) {
+        tortenetiLokacioMarkerek.push(legkozelebbi);
+        if (markerAktivNezetben(legkozelebbi)) legkozelebbi.addTo(map);
+    }
+    tortenetiOszlopAktiv = true;
+    window.__hidegtarolasAktivIdopontIndex = String(timeIndex);
+    frissitKijeloltAdat("jarmu-idopont", {
+        rendszam: rendszam,
+        idopont: String(fejlec.textContent || "").trim()
+    });
+    frissitTortenetiCsoportokat();
+    frissitLokacioSzam();
+    return true;
+}
+
 // Egy rendszám melletti apró előzménygomb az adott rendszám teljes napi GPS-történetét jeleníti meg.
 document.querySelectorAll(".rendszam-link[data-rendszam]").forEach(function(btn) {
     btn.addEventListener("click", function(e) {
@@ -6588,6 +6633,8 @@ document.querySelectorAll(".rendszam-link[data-rendszam]").forEach(function(btn)
         e.stopPropagation();
         const rendszam = String(this.dataset.rendszam || "").trim().toUpperCase();
         if (!rendszam) return;
+        window.__hidegtarolasKijeloltRendszam = rendszam;
+        window.__hidegtarolasKijeloltRendszamMarkerek = [];
         frissitKijeloltAdat("rendszam", rendszam);
 
         // A rendszám napi előzménye önálló történeti nézet: az időoszlop kijelölését és a korábbi
@@ -6617,6 +6664,9 @@ document.querySelectorAll(".rendszam-link[data-rendszam]").forEach(function(btn)
                 const marker = tortenetiMarkerLetrehozasa(cell);
                 if (!marker) return;
                 if (!tortenetiLokacioMarkerek.includes(marker)) tortenetiLokacioMarkerek.push(marker);
+                if (!window.__hidegtarolasKijeloltRendszamMarkerek.includes(marker)) {
+                    window.__hidegtarolasKijeloltRendszamMarkerek.push(marker);
+                }
                 if (!marker.__szurke) {
                     if (!map.hasLayer(marker)) marker.addTo(map);
                     pontok.push(marker);
@@ -6634,6 +6684,7 @@ document.querySelectorAll(".rendszam-link[data-rendszam]").forEach(function(btn)
                 }
             }
         }
+        frissitTortenetiCsoportokat();
         frissitLokacioSzam();
         // A napi előzmény térképes nézete a teljes oldal tetejére vigyen vissza.
         window.scrollTo({top: 0, left: 0, behavior: "smooth"});
@@ -6695,8 +6746,16 @@ document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEac
         frissitTortenetiCsoportokat();
         frissitLokacioSzam();
     }
-    header.__hidegtarolasIdopontValasztas = function(){ mutatOszlopLokacioit(true); };
-    header.addEventListener("click", mutatOszlopLokacioit);
+    header.__hidegtarolasIdopontValasztas = function(){
+        if (window.__hidegtarolasKijeloltRendszam && mutatKijeloltRendszamIdopont(timeIndex)) return;
+        mutatOszlopLokacioit(true);
+    };
+    header.addEventListener("click", function(){
+        // Kézi időoszlop-kattintás visszavált a teljes táblázat időpontnézetére.
+        window.__hidegtarolasKijeloltRendszam = null;
+        window.__hidegtarolasKijeloltRendszamMarkerek = [];
+        mutatOszlopLokacioit();
+    });
     header.addEventListener("keydown", function(e) {
         if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
