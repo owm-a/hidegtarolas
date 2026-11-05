@@ -182,7 +182,7 @@ if os.path.exists(GTFS_DATE_FILE):
 
 
 # =========================================================
-# 3/d. ELSŐ FUTÁS / ÚJ NAP ELLENŐRZÉSE
+# 3/d. ELSŐ FUTÁS / ÚJ NAP ELLENŐRZÉSE he
 # =========================================================
 
 if (
