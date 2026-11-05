@@ -97,7 +97,7 @@ def http_get(*args, **kwargs):
 # A BKK-ból érkező valódi GPS timestamp-eket NEM módosítjuk.
 
 TESZT_MOD = True
-TESZT_IDO_ELTOLAS_ORA = -1
+TESZT_IDO_ELTOLAS_ORA = -2
 
 
 def budapesti_most():
