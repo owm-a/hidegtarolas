@@ -2008,7 +2008,7 @@ function frissitTortenetiCsoportokat() {
     // kerül egyetlen csoportba. Nagyításkor fokozatosan csökken a rácsméret,
     // de a csoportosítás a legnagyobb zoomszinteken is aktív marad.
     const zoom = map.getZoom();
-    const racsMeret = zoom > 17 ? 45 : zoom > 15 ? 70 : zoom > 12 ? 100 : 130;
+    const racsMeret = zoom > 15 ? 70 : zoom > 12 ? 80 : 90;
     const csoportok = new Map();
     tortenetiak.forEach(function(m) {
         const pont = map.latLngToLayerPoint(m.getLatLng());
