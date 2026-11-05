@@ -4304,14 +4304,34 @@ body:not(.light-mode) .ertekelt-fordak .ertek-szumma{background:#f9fafb;color:#1
 @media(max-width:600px){.mobil-scroll-nyil{position:absolute;right:8px;top:12px;bottom:12px;z-index:80;width:42px;display:flex;flex-direction:column;align-items:center;justify-content:space-around;padding:7px 0;box-sizing:border-box;border-radius:0 8px 8px 0;background:linear-gradient(90deg,rgba(59,130,246,.06),rgba(59,130,246,.22) 45%,rgba(37,99,235,.36));backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);color:#1677e8;font-size:25px;font-weight:800;line-height:1;pointer-events:auto;cursor:pointer;touch-action:manipulation;text-shadow:0 0 7px rgba(59,130,246,.35);opacity:0;transition:opacity .18s}.mobil-scroll-nyil span{display:block;flex:0 0 auto}.tabla-szekcio.van-jobbra .mobil-scroll-nyil{opacity:1}body.light-mode .mobil-scroll-nyil{background:linear-gradient(90deg,rgba(147,197,253,.08),rgba(96,165,250,.24) 45%,rgba(59,130,246,.35))}}
 .idopont-csuszkasav{
     width:90%;height:38px;margin:0 auto;display:flex;align-items:center;justify-content:center;
-    position:sticky;top:8px;z-index:500;
+    position:sticky;top:0;z-index:500;
     background:var(--surface2);border:1px solid var(--border);border-radius:8px;
     box-shadow:0 4px 14px rgba(0,0,0,.18);
     box-sizing:border-box;overflow:hidden;padding:0 12px;
 }
 .csuszka-info{color:var(--muted);font-size:12px;font-weight:650;white-space:nowrap;padding-left:8px}
 .csuszka-info strong{color:var(--text)}
-.idopont-csuszkasav input[type=range]{flex:1 1 auto;width:100%;min-width:0;margin:0;accent-color:var(--accent);cursor:pointer}
+.idopont-csuszkasav input[type=range]{
+    flex:1 1 auto;width:100%;min-width:0;margin:0;cursor:pointer;
+    -webkit-appearance:none;appearance:none;background:transparent;
+}
+.idopont-csuszkasav input[type=range]::-webkit-slider-runnable-track{
+    height:6px;border-radius:999px;background:rgba(145,99,25,.20);
+    box-shadow:inset 0 0 0 1px rgba(196,154,69,.45);
+}
+.idopont-csuszkasav input[type=range]::-moz-range-track{
+    height:6px;border-radius:999px;background:rgba(145,99,25,.20);
+    box-shadow:inset 0 0 0 1px rgba(196,154,69,.45);
+}
+.idopont-csuszkasav input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:16px;height:16px;
+    margin-top:-5px;border-radius:50%;background:#c49a45;
+    border:2px solid #f3d58a;box-shadow:0 1px 4px rgba(0,0,0,.28);
+}
+.idopont-csuszkasav input[type=range]::-moz-range-thumb{
+    width:12px;height:12px;border-radius:50%;background:#c49a45;
+    border:2px solid #f3d58a;box-shadow:0 1px 4px rgba(0,0,0,.28);
+}
 .tabla-egesz{display:grid;grid-template-columns:var(--left-width) minmax(0,1fr) var(--storage-width);width:100%;max-width:100%;min-width:0;overflow:hidden;background:var(--surface)}
 .fix-ablak{min-width:0;overflow:hidden;background:var(--surface)}
 .ido-ablak{min-width:0;overflow:hidden;background:var(--surface);border-left:1px solid var(--border);border-right:1px solid var(--border)}
@@ -5189,7 +5209,7 @@ body.light-mode .kijelolt-adat .kijelolt-ertek{color:#68460d!important;backgroun
   }
   #fo-csuszkasav.idopont-csuszkasav {
     position: sticky !important;
-    top: 8px !important;
+    top: 0 !important;
     z-index: 1000 !important;
   }
 }
