@@ -6,8 +6,8 @@
     "datum": "2026-11-05",
     "kesz": true,
     "excel_kesz": true,
-    "keszult": "23:11:47",
-    "utolso_futas": "23:11:47",
+    "keszult": "23:31:22",
+    "utolso_futas": "23:31:22",
     "vizsgalt_fordak": 21,
     "ertekelt_fordak": 21,
     "forrás": "biztor",
@@ -567,8 +567,8 @@
     "datum": "2026-11-05",
     "kesz": true,
     "excel_kesz": true,
-    "keszult": "23:11:49",
-    "utolso_futas": "23:11:49",
+    "keszult": "23:31:24",
+    "utolso_futas": "23:31:24",
     "vizsgalt_fordak": 105,
     "ertekelt_fordak": 105,
     "forrás": "garazs",
@@ -3311,7 +3311,7 @@
   "napi_excel_export": {
     "datum": "2026-11-05",
     "kesz": true,
-    "keszult": "23:13:30",
+    "keszult": "23:33:06",
     "fajlok": [
       "data/hidegtarolas_export.xlsx",
       "data/garazstarolas_export.xlsx"

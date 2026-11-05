@@ -126,6 +126,8 @@ body:not(.light-mode) .ertekelt-fordak .ertek-szumma{background:#f9fafb;color:#1
 .nezet-valaszto .kijelolt-adat:not(:empty){margin-left:8px;padding-left:10px;border-left:1px solid var(--border)}
 .kijelolt-adat .kijelolt-ertek{color:#2583ff;border-top:2px solid #2583ff;border-bottom:2px solid #2583ff;padding:2px 6px;border-radius:2px}
 .fo-kozos-tabla td.rendszam.kijelolt-rendszam{border-top:2px solid #2583ff!important;border-bottom:2px solid #2583ff!important;box-shadow:inset 0 1px 0 #2583ff,inset 0 -1px 0 #2583ff}
+.fo-kozos-tabla .rendszam-link.kijelolt-rendszam-link{background:#2583ff!important;color:#fff!important;border:1px solid #7db7ff!important;border-radius:5px;box-shadow:0 0 0 2px rgba(37,131,255,.24),0 2px 7px rgba(37,131,255,.28);font-weight:800;text-decoration:none}
+body.light-mode .fo-kozos-tabla .rendszam-link.kijelolt-rendszam-link{background:#1769c2!important;color:#fff!important}
 @media(max-width:600px){.nezet-fejlec-sor{align-items:stretch;gap:6px;margin-bottom:10px}.kijelolt-adat{padding:2px 0;font-size:12px;min-height:22px;white-space:normal;flex-wrap:wrap}.nezet-vezerlo-csoport{width:max-content;max-width:100%;min-width:0}.nezet-vezerlo-csoport .nezet-valaszto{width:max-content;max-width:100%;margin:0}.nezet-vezerlo-csoport .kijelolt-adat:not(:empty){width:100%;max-width:100%;margin:0;padding:5px 0 2px;border:0;border-top:1px solid var(--border)}.nezet-fejlec-sor .nezet-valaszto{margin:0}}
 .nezet-gomb{border:0;border-radius:7px;padding:8px 13px;background:transparent;color:var(--muted);font:inherit;font-size:13px;font-weight:650;cursor:pointer;transition:.16s}
 .nezet-gomb:hover{color:var(--text);background:var(--surface3)}
@@ -1099,7 +1101,7 @@ body.light-mode .kijelolt-adat .kijelolt-ertek{color:#68460d!important;backgroun
       <div class="adat" id="map-location-count"><b>Lokációk száma:</b> 0</div>
     </div>
     <div class="fejlec-jobb">
-      <div class="adat"><b>Riport készült:</b> 23:11</div>
+      <div class="adat"><b>Riport készült:</b> 23:31</div>
       <div class="adat"><b>Értékelt fordák:</b> <span class="ertekelt-fordak"><span class="ertek-v">21</span><span>+</span><span class="ertek-g">105</span><span>→</span><span class="ertek-szumma">126</span></span></div>
     </div>
   </div>
@@ -2218,6 +2220,10 @@ function frissitKijeloltAdat(tipus, ertek) {
     document.querySelectorAll(".fo-kozos-tabla td.rendszam.kijelolt-rendszam").forEach(function(td) {
         td.classList.remove("kijelolt-rendszam");
     });
+    document.querySelectorAll(".fo-kozos-tabla .rendszam-link.kijelolt-rendszam-link").forEach(function(link) {
+        link.classList.remove("kijelolt-rendszam-link");
+        link.setAttribute("aria-pressed", "false");
+    });
     if (kijeloltTortenetiAdat && tipus === "rendszam") {
         const keresett = String(ertek).trim().toUpperCase();
         document.querySelectorAll("#fix-tbody-common tr[data-forras]").forEach(function(tr) {
@@ -2225,6 +2231,8 @@ function frissitKijeloltAdat(tipus, ertek) {
             const td = link && link.closest("td.rendszam");
             if (td && String(link.dataset.rendszam || link.textContent).trim().toUpperCase() === keresett) {
                 td.classList.add("kijelolt-rendszam");
+                link.classList.add("kijelolt-rendszam-link");
+                link.setAttribute("aria-pressed", "true");
             }
         });
     }
@@ -2266,10 +2274,26 @@ function mutatKijeloltRendszamIdopont(timeIndex) {
         }
     });
 
-    osszesMarker.forEach(function(marker) { if (marker && map.hasLayer(marker)) map.removeLayer(marker); });
+    // Rendszám-saját idővonalon minden frissítés előtt eltávolítjuk az összes
+    // általános jármű- és tárolási jelölőt is. Így egy korábbi táblázatnézet
+    // vagy nézetváltás egyetlen PIN-je sem maradhat a kiválasztott jármű mellett.
+    (jarmuMarkerek["__lista__"] || []).forEach(function(marker) {
+        if (marker && map.hasLayer(marker)) map.removeLayer(marker);
+    });
+    tarolasMarkerek.forEach(function(marker) {
+        if (marker && map.hasLayer(marker)) map.removeLayer(marker);
+    });
+    tortenetiLokacioMarkerek.forEach(function(marker) {
+        if (marker && map.hasLayer(marker)) map.removeLayer(marker);
+    });
+    osszesMarker.forEach(function(marker) {
+        if (marker && map.hasLayer(marker)) map.removeLayer(marker);
+    });
     tortenetiCsoportMarkerek.forEach(function(marker) { if (marker && map.hasLayer(marker)) map.removeLayer(marker); });
     tortenetiCsoportMarkerek.length = 0;
     tortenetiLokacioMarkerek.length = 0;
+    // Akkor is a rendszám-saját nézetben maradunk, ha ehhez az időponthoz
+    // nincs használható GPS-adat: ilyenkor üres térkép látszik, nem az összes jármű.
     if (legkozelebbi) {
         tortenetiLokacioMarkerek.push(legkozelebbi);
         if (markerAktivNezetben(legkozelebbi)) legkozelebbi.addTo(map);
@@ -2292,6 +2316,28 @@ document.querySelectorAll(".rendszam-link[data-rendszam]").forEach(function(btn)
         e.stopPropagation();
         const rendszam = String(this.dataset.rendszam || "").trim().toUpperCase();
         if (!rendszam) return;
+
+        // Ugyanarra a kijelölt rendszámra kattintva kikapcsoljuk az egyedi előzmény-nézetet,
+        // és visszaállítjuk az alapértelmezett, összes járműves térképet.
+        if (window.__hidegtarolasKijeloltRendszam === rendszam) {
+            window.__hidegtarolasKijeloltRendszam = null;
+            window.__hidegtarolasKijeloltRendszamMarkerek = [];
+            frissitKijeloltAdat(null, null);
+            tortenetiOszlopAktiv = false;
+            tortenetiLokacioMarkerek.forEach(function(marker) {
+                if (marker && map.hasLayer(marker)) map.removeLayer(marker);
+            });
+            tortenetiLokacioMarkerek.length = 0;
+            tortenetiCsoportMarkerek.forEach(function(marker) {
+                if (marker && map.hasLayer(marker)) map.removeLayer(marker);
+            });
+            tortenetiCsoportMarkerek.length = 0;
+            jelolLegutolsoIdopont();
+            frissitTerkepNezet(aktualisTerkepNezet());
+            frissitLokacioSzam();
+            return;
+        }
+
         window.__hidegtarolasKijeloltRendszam = rendszam;
         window.__hidegtarolasKijeloltRendszamMarkerek = [];
         frissitKijeloltAdat("rendszam", rendszam);
@@ -2406,7 +2452,12 @@ document.querySelectorAll(".idopont-oszlop-kattinthato[data-time-index]").forEac
         frissitLokacioSzam();
     }
     header.__hidegtarolasIdopontValasztas = function(){
-        if (window.__hidegtarolasKijeloltRendszam && mutatKijeloltRendszamIdopont(timeIndex)) return;
+        // Kiválasztott rendszám esetén soha nem esünk vissza a teljes táblázat
+        // időpontnézetére. Ha nincs hozzá közeli GPS-pont, üres marad a térkép.
+        if (window.__hidegtarolasKijeloltRendszam) {
+            mutatKijeloltRendszamIdopont(timeIndex);
+            return;
+        }
         mutatOszlopLokacioit(true);
     };
     header.addEventListener("click", function(){
