@@ -6387,7 +6387,7 @@ function frissitTortenetiCsoportokat() {
     // 17-es zoomtól nincs csoportosítás: minden jármű saját PIN-ként látszik.
     // 15-ös zoomig 500 m, 16-os zoomnál 250 m a csoportosítási távolság.
     // A szomszédos pontok láncolatosan kapcsolódnak, rácshatár nem választja szét őket.
-    if (map.getZoom() >= 17) return;
+    if (!tortenetiak.length || map.getZoom() >= 17) return;
     const maxTavolsag = map.getZoom() <= 15 ? 500 : 250;
     const koord = tortenetiak.map(function(m) { return m.getLatLng(); });
     const szelesseg = koord.reduce(function(osszeg, ll) { return osszeg + ll.lat; }, 0) / koord.length;
@@ -6898,6 +6898,24 @@ function frissitGarazsCsuszkat() {
 }
 window.addEventListener("resize", frissitGarazsCsuszkat);
 window.addEventListener("load", frissitGarazsCsuszkat);
+
+// Minden táblázatkattintás után frissítjük a történeti PIN-ek csoportosítását.
+// Capture fázisban figyelünk, mert egyes gombok stopPropagation()-t használnak;
+// a tényleges frissítést 0 ms-ra halasztjuk, hogy a kattintás saját kezelője
+// előbb befejezze a markerlista és a térképnézet módosítását.
+document.addEventListener("click", function(event) {
+    const cel = event.target && event.target.closest
+        ? event.target.closest(".fo-kozos-tabla")
+        : null;
+    if (!cel) return;
+
+    setTimeout(function() {
+        if (tortenetiOszlopAktiv) {
+            frissitTortenetiCsoportokat();
+        }
+        frissitLokacioSzam();
+    }, 0);
+}, true);
 
 </script>
 
