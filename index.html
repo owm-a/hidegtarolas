@@ -2034,13 +2034,13 @@ function frissitTortenetiCsoportokat() {
     // és a klaszterek darabszámába sem számítanak bele.
     const lathatoTorteneti = osszesTorteneti.filter(function(m) { return !m.__szurke; });
     const tortenetiak = lathatoTorteneti.filter(markerAktivNezetben);
+    // 17-es zoom alatt minden látható történeti pont csoportjelölőként jelenik meg,
+    // az egypontos csoport is (így távolabbról nem látszik konkrét jármű-PIN).
     // Az aktuális nézetbe nem tartozó vagy szürke pontokat se egyedileg, se klaszterben ne mutassuk.
     osszesTorteneti.forEach(function(m) {
         if (m.__szurke || !markerAktivNezetben(m)) { if (map.hasLayer(m)) map.removeLayer(m); }
         else if (!map.hasLayer(m)) m.addTo(map);
     });
-    if (tortenetiak.length < 2) return;
-
     // 17-es zoomtól nincs csoportosítás: minden jármű saját PIN-ként látszik.
     // 15-ös zoomig 500 m, 16-os zoomnál 250 m a csoportosítási távolság.
     // A szomszédos pontok láncolatosan kapcsolódnak, rácshatár nem választja szét őket.
@@ -2088,7 +2088,7 @@ function frissitTortenetiCsoportokat() {
 
     const klaszterezettPontok = new Set();
     csoportok.forEach(function(csoport) {
-        if (csoport.pontok.length < 2) return;
+        // Az egypontos csoport is darabszámos jelölőt kap, nem konkrét jármű-PIN-t.
         csoport.pontok.forEach(function(m) { klaszterezettPontok.add(m); });
         const latlngs = csoport.pontok.map(function(m) { return m.getLatLng(); });
         const kozep = L.latLng(
@@ -2124,8 +2124,9 @@ function frissitTortenetiCsoportokat() {
             }).join(", ")
         });
         osszevono.on("click", function() {
-            if (map.getZoom() < TERKEP_MAX_ZOOM) {
-                map.setView(kozep, Math.min(map.getZoom() + 2, TERKEP_MAX_ZOOM));
+            if (map.getZoom() < 17) {
+                // A csoport egy kattintásra eljut a PIN-eket külön megjelenítő zoomszintre.
+                map.flyTo(kozep, 17, {duration: 0.7});
             } else {
                 // Azonos koordináták maximális zoomnál sem fedik el a tartalmat:
                 // a csoport popupja felsorolja a hozzá tartozó járműveket/státuszokat.
