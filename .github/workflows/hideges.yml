@@ -1,17 +1,12 @@
-name: ArrivaBus hidegtárolás
+name: ArrivaBus hidegtárolás_2
 
 # Az automatikus indítást a cron-job.org végzi workflow_dispatch hívással.
 # A GitHub Actions saját schedule-je szándékosan nincs bekapcsolva.
 on:
   workflow_dispatch:
 
-# A bot commitjeit a GITHUB_TOKEN készíti, ezért azok önmagukban
-# nem indítanak új workflow-t. A Pages telepítést ezért ez a workflow
-# végzi el közvetlenül, a Python-program és a git push után.
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
   group: hidegtarolas-main
@@ -20,9 +15,6 @@ concurrency:
 jobs:
   teszt:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Kód letöltése
@@ -70,14 +62,3 @@ jobs:
             git commit -m "Napi adatok, HTML, archívum és hidegtárolási Excel-exportok frissítése"
             git push
           fi
-
-      # A publikálás ugyanebben a workflow-ban történik, így biztosan
-      # csak a Python-program által frissített fájlok után indul el.
-      - name: GitHub Pages csomag elkészítése
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-
-      - name: GitHub Pages telepítése
-        id: deployment
-        uses: actions/deploy-pages@v4
