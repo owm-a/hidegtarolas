@@ -5592,10 +5592,19 @@ body.light-mode .kijelolt-adat .kijelolt-ertek{color:#68460d!important;backgroun
     }
     szekcio.classList.toggle("van-jobbra",mobil && max>4 && fo.scrollLeft < max-4);
   }
+  function idopontFejlecek(){
+    return Array.from(document.querySelectorAll('.idopont-oszlop-kattinthato[data-time-index]'));
+  }
+  function utolsoIdopontIndex(){
+    const fejlecek=idopontFejlecek();
+    return fejlecek.reduce((max,h)=>Math.max(max,Number(h.dataset.timeIndex)||0),0);
+  }
   function layoutScroll(){
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
     frissitMobilNyilat();
-    slider.max=String(max);
+    // A csúszka a teljes időpontsort járja be, nem a vízszintes görgetés
+    // pixelértékét. Így kevés időpontnál is az elsőtől az utolsóig húzható.
+    slider.max=String(utolsoIdopontIndex());
     if (fo.scrollLeft > max) fo.scrollLeft=max;
   }
   // Mobilon a jobb oldali nyílra koppintva ugorjunk az idővonal legvégére.
@@ -5610,15 +5619,16 @@ body.light-mode .kijelolt-adat .kijelolt-ertek{color:#68460d!important;backgroun
   function layout(){
     sticky();
     const max=Math.max(0,fo.scrollWidth-fo.clientWidth);
-    slider.max=String(max);
+    const utolsoIndex=utolsoIdopontIndex();
+    slider.max=String(utolsoIndex);
     const mobil=window.matchMedia('(max-width:600px)').matches;
     if(mobil){
       /* Mobilon az időoszlopok jobb széle ne kényszerítse a táblát
          minden újratördeléskor a jobb oldalra. */
-      slider.value=String(Math.min(fo.scrollLeft,max));
+      slider.value=String(utolsoIndex);
       if(fo.scrollLeft>max) fo.scrollLeft=max;
     }else{
-      slider.value=String(max);
+      slider.value=String(utolsoIndex);
       fo.scrollLeft=max;
     }
   }
@@ -5686,40 +5696,41 @@ body.light-mode .kijelolt-adat .kijelolt-ertek{color:#68460d!important;backgroun
   let idopontValasztoFrame=0;
   let utoljaraKivalasztottIdopont=null;
   slider.addEventListener('input',()=>{
-    fo.scrollLeft=Math.min(fo.scrollWidth-fo.clientWidth,Math.max(0,+slider.value||0));
-    // A csúszka mozgatásakor a látható idővonal-rész közepéhez legközelebbi
-    // időpontot választjuk ki. Csak új időindexre lépéskor frissítjük a térképet.
-    if(idopontValasztoFrame)return;
-    idopontValasztoFrame=requestAnimationFrame(()=>{
-      idopontValasztoFrame=0;
-      const fejlecek=Array.from(document.querySelectorAll('.idopont-oszlop-kattinthato[data-time-index]'));
-      if(!fejlecek.length)return;
-      const foRect=fo.getBoundingClientRect();
-      const elsoIdo=fejlecek[0];
-      const utolsoFejlec=fo.querySelector('thead tr:first-child')?.lastElementChild;
-      const bal=elsoIdo.getBoundingClientRect().left;
-      const jobb=utolsoFejlec ? utolsoFejlec.getBoundingClientRect().left : foRect.right;
-      const celX=(Math.max(foRect.left,bal)+Math.min(foRect.right,jobb))/2;
-      let legkozelebbi=null, legkisebb=Math.abs(Infinity);
-      fejlecek.forEach(h=>{
-        const r=h.getBoundingClientRect();
-        const tav=Math.abs((r.left+r.right)/2-celX);
-        if(tav<legkisebb){legkisebb=tav;legkozelebbi=h;}
-      });
-      const index=legkozelebbi && String(legkozelebbi.dataset.timeIndex);
-      const idopontMod=String(window.__hidegtarolasKijeloltRendszam || "__osszes__") + "|" + String(index);
-      if(index!==null && index!==undefined && idopontMod!==utoljaraKivalasztottIdopont){
-        utoljaraKivalasztottIdopont=idopontMod;
-        if(typeof legkozelebbi.__hidegtarolasIdopontValasztas==='function'){
-          legkozelebbi.__hidegtarolasIdopontValasztas();
-        }
+    const index=String(Math.round(Number(slider.value)||0));
+    const fejlec=idopontFejlecek().find(h=>String(h.dataset.timeIndex)===index);
+    if(!fejlec)return;
+    // A kiválasztott időoszlopot lehetőség szerint a táblázat közepére
+    // görgetjük, de ha az összes oszlop elfér, akkor is kiválasztható.
+    const foRect=fo.getBoundingClientRect();
+    const fejlecRect=fejlec.getBoundingClientRect();
+    const celScroll=fo.scrollLeft+(fejlecRect.left+fejlecRect.width/2-(foRect.left+fo.clientWidth/2));
+    const maxScroll=Math.max(0,fo.scrollWidth-fo.clientWidth);
+    fo.scrollLeft=Math.max(0,Math.min(maxScroll,celScroll));
+    const idopontMod=String(window.__hidegtarolasKijeloltRendszam || "__osszes__") + "|" + index;
+    if(idopontMod!==utoljaraKivalasztottIdopont){
+      utoljaraKivalasztottIdopont=idopontMod;
+      if(typeof fejlec.__hidegtarolasIdopontValasztas==='function'){
+        fejlec.__hidegtarolasIdopontValasztas();
       }
-    });
+    }
   });
   fo.addEventListener('scroll',()=>{
     if(scrollFrame)return;
     scrollFrame=requestAnimationFrame(()=>{
-      slider.value=String(Math.round(fo.scrollLeft));
+      // Kézi táblázatgörgetéskor a csúszka a látható időoszlopok
+      // közepéhez legközelebbi időpontot mutatja.
+      const fejlecek=idopontFejlecek();
+      if(fejlecek.length){
+        const foRect=fo.getBoundingClientRect();
+        const celX=foRect.left+fo.clientWidth/2;
+        let legkozelebbi=null,legkisebb=Infinity;
+        fejlecek.forEach(h=>{
+          const r=h.getBoundingClientRect();
+          const tav=Math.abs((r.left+r.right)/2-celX);
+          if(tav<legkisebb){legkisebb=tav;legkozelebbi=h;}
+        });
+        if(legkozelebbi) slider.value=String(legkozelebbi.dataset.timeIndex);
+      }
       frissitMobilNyilat();
       scrollFrame=0;
     });
