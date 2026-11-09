@@ -123,7 +123,7 @@ print("Modulok betöltve.")
 #   1. ellenőrizzük a GTFS cache-t
 #   2. ha előző napi GTFS van benne, töröljük
 #   3. letöltjük az aktuális GTFS-t
-#   4. elmentjük a cache-be
+#   4. elmentjük a cache-be - ja
 #
 # A nap további futásai ugyanazt a GTFS-t használják.
 #
