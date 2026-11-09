@@ -5695,7 +5695,36 @@ body.light-mode .kijelolt-adat .kijelolt-ertek{color:#68460d!important;backgroun
   let scrollFrame=0;
   let idopontValasztoFrame=0;
   let utoljaraKivalasztottIdopont=null;
+  // Amíg a felhasználó az idővonal csúszkáját húzza, a táblázat
+  // programozott görgetése ne írja vissza a csúszka értékét a látható
+  // oszlopok közepe alapján. Így a kijelölés a legelső időpontig elér.
+  let idovonalCsuszkaHuzas = false;
+  let idovonalCsuszkaFeloldasFrame = 0;
+  function csuszkaHuzasFeloldasa(){
+    if(idovonalCsuszkaFeloldasFrame) cancelAnimationFrame(idovonalCsuszkaFeloldasFrame);
+    idovonalCsuszkaFeloldasFrame = requestAnimationFrame(()=>{
+      idovonalCsuszkaFeloldasFrame = requestAnimationFrame(()=>{
+        idovonalCsuszkaHuzas = false;
+        idovonalCsuszkaFeloldasFrame = 0;
+      });
+    });
+  }
+  slider.addEventListener('pointerdown',()=>{
+    idovonalCsuszkaHuzas = true;
+    if(idovonalCsuszkaFeloldasFrame) cancelAnimationFrame(idovonalCsuszkaFeloldasFrame);
+    idovonalCsuszkaFeloldasFrame = 0;
+  });
+  slider.addEventListener('pointerup',csuszkaHuzasFeloldasa);
+  slider.addEventListener('pointercancel',csuszkaHuzasFeloldasa);
+  slider.addEventListener('touchstart',()=>{
+    idovonalCsuszkaHuzas = true;
+    if(idovonalCsuszkaFeloldasFrame) cancelAnimationFrame(idovonalCsuszkaFeloldasFrame);
+    idovonalCsuszkaFeloldasFrame = 0;
+  },{passive:true});
+  slider.addEventListener('touchend',csuszkaHuzasFeloldasa,{passive:true});
+  slider.addEventListener('keyup',csuszkaHuzasFeloldasa);
   slider.addEventListener('input',()=>{
+    idovonalCsuszkaHuzas = true;
     const index=String(Math.round(Number(slider.value)||0));
     const fejlec=idopontFejlecek().find(h=>String(h.dataset.timeIndex)===index);
     if(!fejlec)return;
@@ -5717,19 +5746,23 @@ body.light-mode .kijelolt-adat .kijelolt-ertek{color:#68460d!important;backgroun
   fo.addEventListener('scroll',()=>{
     if(scrollFrame)return;
     scrollFrame=requestAnimationFrame(()=>{
-      // Kézi táblázatgörgetéskor a csúszka a látható időoszlopok
-      // közepéhez legközelebbi időpontot mutatja.
-      const fejlecek=idopontFejlecek();
-      if(fejlecek.length){
-        const foRect=fo.getBoundingClientRect();
-        const celX=foRect.left+fo.clientWidth/2;
-        let legkozelebbi=null,legkisebb=Infinity;
-        fejlecek.forEach(h=>{
-          const r=h.getBoundingClientRect();
-          const tav=Math.abs((r.left+r.right)/2-celX);
-          if(tav<legkisebb){legkisebb=tav;legkozelebbi=h;}
-        });
-        if(legkozelebbi) slider.value=String(legkozelebbi.dataset.timeIndex);
+      // Kézi táblázatgörgetéskor a csúszka továbbra is a látható
+      // időoszlopok közepéhez legközelebbi időpontot mutatja. A csúszka
+      // saját húzásakor viszont nem írjuk felül az értékét: a bal szélen
+      // is elérheti az első időpontot, nem ugrik vissza középre.
+      if(!idovonalCsuszkaHuzas){
+        const fejlecek=idopontFejlecek();
+        if(fejlecek.length){
+          const foRect=fo.getBoundingClientRect();
+          const celX=foRect.left+fo.clientWidth/2;
+          let legkozelebbi=null,legkisebb=Infinity;
+          fejlecek.forEach(h=>{
+            const r=h.getBoundingClientRect();
+            const tav=Math.abs((r.left+r.right)/2-celX);
+            if(tav<legkisebb){legkisebb=tav;legkozelebbi=h;}
+          });
+          if(legkozelebbi) slider.value=String(legkozelebbi.dataset.timeIndex);
+        }
       }
       frissitMobilNyilat();
       scrollFrame=0;
