@@ -5,11 +5,8 @@ name: ArrivaBus hidegtárolás_2
 on:
   workflow_dispatch:
 
-# A Python-futtatás, a mentés és a Pages-publikálás egyetlen, soros folyamat.
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
   group: hidegtarolas-main
@@ -18,9 +15,6 @@ concurrency:
 jobs:
   teszt:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Kód letöltése
@@ -68,17 +62,3 @@ jobs:
             git commit -m "Napi adatok, HTML, archívum és hidegtárolási Excel-exportok frissítése"
             git push
           fi
-
-      # A Pages konfigurációja és publikálása csak a Python-futtatás
-      # és az adatok repositoryba mentése után indul el.
-      - name: GitHub Pages konfigurálása
-        uses: actions/configure-pages@v5
-
-      - name: GitHub Pages csomag elkészítése
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-
-      - name: GitHub Pages telepítése
-        id: deployment
-        uses: actions/deploy-pages@v4
