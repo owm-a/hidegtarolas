@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Kód letöltése
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Python beállítása
         uses: actions/setup-python@v6
@@ -60,5 +62,7 @@ jobs:
             echo "Nincs új mentendő adat."
           else
             git commit -m "Napi adatok, HTML, archívum és hidegtárolási Excel-exportok frissítése"
-            git push
+            git fetch origin main
+            git rebase origin/main
+            git push origin main
           fi
