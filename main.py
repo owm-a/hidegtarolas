@@ -2199,49 +2199,318 @@ poziciok = napi_adatok.get(
 )
 
 print(
-    "Korábban kiszámított pozícióeredmények betöltése:",
+    "Vizsgált pozíciórekordok:",
     len(poziciok)
 )
 
-# Az OK/NEM eredmény már az új pozíciórekord létrehozásakor
-# kiszámításra kerül, és végleges. A korábbi rekordokat ezért
-# nem értékeljük újra: a napi JSON-ban eltárolt eredményt használjuk.
-_ellenorzes_start = _time.perf_counter()
 ellenorzesek = []
-_hianyzo_eredmeny = 0
 
-for rekord in poziciok:
-    if not isinstance(rekord, dict):
-        continue
-
-    tarolt_eredmeny = rekord.get("ellenőrzés")
-    if tarolt_eredmeny is None or str(tarolt_eredmeny).strip() == "":
-        tarolt_eredmeny = "-"
-        _hianyzo_eredmeny += 1
-
-    ellenorzesek.append({
-        "viszonylat": str(rekord.get("viszonylat", "")).strip(),
-        "forda": str(rekord.get("forda", "")).strip(),
-        "hely": str(rekord.get("hely", "")).strip(),
-        "rendszám": str(rekord.get("rendszám", "")).strip(),
-        "időpont": str(rekord.get("frissítve", "")).strip(),
-        "ellenőrzés": str(tarolt_eredmeny).strip().upper()
-    })
-
-_ellenorzes_vege = _time.perf_counter()
+# Diagnosztikai időmérés – az ellenőrzés működését nem módosítja.
+_ellenorzes_start = _time.perf_counter()
+_ellenorzes_utolso_jelzes = _ellenorzes_start
+_ellenorzes_db = len(poziciok)
 print(
-    f"[IDŐMÉRÉS] Eltárolt OK/NEM eredmények beolvasása: "
-    f"{len(ellenorzesek)} rekord, "
-    f"{(_ellenorzes_vege - _ellenorzes_start):.2f} mp.",
+    f"[IDŐMÉRÉS] OK/NEM ellenőrzés indul: {_ellenorzes_db} rekord.",
     flush=True
 )
 
-if _hianyzo_eredmeny:
-    print(
-        f"FIGYELEM: {_hianyzo_eredmeny} régi rekordnál nem volt "
-        "eltárolt ellenőrzési eredmény; ezek '-' értéket kaptak.",
-        flush=True
+
+# ============================================================
+# POZÍCIÓREKORDOK EGYENKÉNTI ELLENŐRZÉSE
+# ============================================================
+
+for rekord_sorszam, rekord in enumerate(poziciok, start=1):
+
+    # 1000 rekordonta jelzés, hogy látható legyen a ciklus előrehaladása.
+    if rekord_sorszam % 1000 == 0 or rekord_sorszam == _ellenorzes_db:
+        _most = _time.perf_counter()
+        print(
+            f"[IDŐMÉRÉS] OK/NEM: {rekord_sorszam}/{_ellenorzes_db} rekord "
+            f"({(_most - _ellenorzes_start):.2f} mp összesen, "
+            f"{(_most - _ellenorzes_utolso_jelzes):.2f} mp az előző jelzés óta).",
+            flush=True
+        )
+        _ellenorzes_utolso_jelzes = _most
+
+    viszonylat = str(
+        rekord.get("viszonylat", "")
+    ).strip()
+
+    forda = str(
+        rekord.get("forda", "")
+    ).strip()
+
+    hely = str(
+        rekord.get("hely", "")
+    ).strip()
+
+    rendszam = str(
+        rekord.get("rendszám", "")
+    ).strip()
+
+    idopont = str(
+        rekord.get("frissítve", "")
+    ).strip()
+
+
+    # --------------------------------------------------------
+    # FORDA ADATOK KERESÉSE
+    # --------------------------------------------------------
+
+    forda_adat = forda_rendszamok.get(
+        f"garazs|{viszonylat}|{forda}"
+        if str(rekord.get("forrás", "biztor")).strip() == "garazs"
+        else f"{viszonylat}|{forda}"
     )
+
+
+    # Ha nincs fordaadat, nincs értékelhető eredmény
+
+    if forda_adat is None:
+
+        ellenorzesek.append({
+
+            "viszonylat": viszonylat,
+
+            "forda": forda,
+
+            "hely": hely,
+
+            "rendszám": rendszam,
+
+            "időpont": idopont,
+
+            "ellenőrzés": "-"
+
+        })
+
+        continue
+
+
+    kezdés = str(
+        forda_adat.get(
+            "kezdés",
+            ""
+        )
+    ).strip()
+
+    végzés = str(
+        forda_adat.get(
+            "végzés",
+            ""
+        )
+    ).strip()
+
+
+    # --------------------------------------------------------
+    # AKTUÁLIS-E A FORDA AZ ADOTT IDŐPONTBAN?
+    # --------------------------------------------------------
+
+    if not forda_aktiv_e(
+        kezdés,
+        végzés,
+        idopont
+    ):
+
+        ellenorzesek.append({
+
+            "viszonylat": viszonylat,
+
+            "forda": forda,
+
+            "hely": hely,
+
+            "rendszám": rendszam,
+
+            "időpont": idopont,
+
+            "ellenőrzés": "-"
+
+        })
+
+        continue
+
+
+    # --------------------------------------------------------
+    # HELYSZÍN AZONOSÍTÁSA
+    # --------------------------------------------------------
+
+    helyszin_kulcs = str(
+        rekord.get(
+            "helyszín",
+            ""
+        )
+    ).strip()
+
+
+    if not helyszin_kulcs:
+
+        ellenorzesek.append({
+
+            "viszonylat": viszonylat,
+
+            "forda": forda,
+
+            "hely": hely,
+
+            "rendszám": rendszam,
+
+            "időpont": idopont,
+
+            "ellenőrzés": "-"
+
+        })
+
+        continue
+
+
+    if helyszin_kulcs not in HELYSZINEK:
+
+        ellenorzesek.append({
+
+            "viszonylat": viszonylat,
+
+            "forda": forda,
+
+            "hely": hely,
+
+            "rendszám": rendszam,
+
+            "időpont": idopont,
+
+            "ellenőrzés": "-"
+
+        })
+
+        continue
+
+
+    helyszin = HELYSZINEK[
+        helyszin_kulcs
+    ]
+
+
+    # --------------------------------------------------------
+    # GPS POZÍCIÓ KINYERÉSE
+    # --------------------------------------------------------
+
+    pozicio_szoveg = str(
+        rekord.get(
+            "pozíció",
+            ""
+        )
+    ).strip()
+
+
+    if not pozicio_szoveg:
+
+        ellenorzesek.append({
+
+            "viszonylat": viszonylat,
+
+            "forda": forda,
+
+            "hely": hely,
+
+            "rendszám": rendszam,
+
+            "időpont": idopont,
+
+            "ellenőrzés": "-"
+
+        })
+
+        continue
+
+
+    try:
+
+        latitude_szoveg, longitude_szoveg = (
+            pozicio_szoveg.split(",", 1)
+        )
+
+        latitude = float(
+            latitude_szoveg.strip()
+        )
+
+        longitude = float(
+            longitude_szoveg.strip()
+        )
+
+    except (ValueError, TypeError):
+
+        ellenorzesek.append({
+
+            "viszonylat": viszonylat,
+
+            "forda": forda,
+
+            "hely": hely,
+
+            "rendszám": rendszam,
+
+            "időpont": idopont,
+
+            "ellenőrzés": "-"
+
+        })
+
+        continue
+
+
+    # --------------------------------------------------------
+    # GPS ELLENŐRZÉS
+    # --------------------------------------------------------
+
+    lat_benne = (
+        helyszin["lat_min"]
+        <= latitude
+        <= helyszin["lat_max"]
+    )
+
+    lon_benne = (
+        helyszin["lon_min"]
+        <= longitude
+        <= helyszin["lon_max"]
+    )
+
+
+    if lat_benne and lon_benne:
+
+        eredmeny = "OK"
+
+    else:
+
+        eredmeny = "NEM"
+
+
+    # --------------------------------------------------------
+    # EREDMÉNY
+    # --------------------------------------------------------
+
+    ellenorzesek.append({
+
+        "viszonylat": viszonylat,
+
+        "forda": forda,
+
+        "hely": hely,
+
+        "rendszám": rendszam,
+
+        "időpont": idopont,
+
+        "ellenőrzés": eredmeny
+
+    })
+
+
+_ellenorzes_vege = _time.perf_counter()
+print(
+    f"[IDŐMÉRÉS] OK/NEM ciklus kész: {len(ellenorzesek)} eredmény, "
+    f"{(_ellenorzes_vege - _ellenorzes_start):.2f} mp.",
+    flush=True
+)
 
 
 # ============================================================
@@ -2331,42 +2600,70 @@ else:
 
 
 # ============================================================
-# ÖSSZESÍTÉS
+# ÖSSZESÍTÉS – RÉSZLETES IDŐMÉRÉS
 # ============================================================
 
-print()
+_osszesites_start = _time.perf_counter()
+print("[IDŐMÉRÉS] Összesítés kezdete.", flush=True)
 
+# Alapadatok: ez önmagában nem végez nagyobb számítást.
+_meta_start = _time.perf_counter()
+_ellenorzes_oszlop_tipus = helyszin_ellenorzes["ellenőrzés"].dtype
+_ellenorzes_sorok_szama = len(helyszin_ellenorzes)
 print(
-    "OK:",
-    (
-        helyszin_ellenorzes[
-            helyszin_ellenorzes[
-                "ellenőrzés"
-            ] == "OK"
-        ].shape[0]
-    )
+    f"[IDŐMÉRÉS] Összesítő alapadatok: {_ellenorzes_sorok_szama} sor, "
+    f"'ellenőrzés' dtype={_ellenorzes_oszlop_tipus}, "
+    f"{(_time.perf_counter() - _meta_start):.4f} mp.",
+    flush=True
 )
 
-print(
-    "NEM:",
-    (
-        helyszin_ellenorzes[
-            helyszin_ellenorzes[
-                "ellenőrzés"
-            ] == "NEM"
-        ].shape[0]
-    )
+# A három eredeti pandas-szűrést külön mérjük, változtatás nélkül.
+_ok_start = _time.perf_counter()
+_ok_db = (
+    helyszin_ellenorzes[
+        helyszin_ellenorzes["ellenőrzés"] == "OK"
+    ].shape[0]
 )
+_ok_vege = _time.perf_counter()
+print(
+    f"[IDŐMÉRÉS] OK szűrés/számlálás: {_ok_db} db, "
+    f"{(_ok_vege - _ok_start):.4f} mp.",
+    flush=True
+)
+print("OK:", _ok_db, flush=True)
+
+_nem_start = _time.perf_counter()
+_nem_db = (
+    helyszin_ellenorzes[
+        helyszin_ellenorzes["ellenőrzés"] == "NEM"
+    ].shape[0]
+)
+_nem_vege = _time.perf_counter()
+print(
+    f"[IDŐMÉRÉS] NEM szűrés/számlálás: {_nem_db} db, "
+    f"{(_nem_vege - _nem_start):.4f} mp.",
+    flush=True
+)
+print("NEM:", _nem_db, flush=True)
+
+_kotojel_start = _time.perf_counter()
+_kotojel_db = (
+    helyszin_ellenorzes[
+        helyszin_ellenorzes["ellenőrzés"] == "-"
+    ].shape[0]
+)
+_kotojel_vege = _time.perf_counter()
+print(
+    f"[IDŐMÉRÉS] '-' szűrés/számlálás: {_kotojel_db} db, "
+    f"{(_kotojel_vege - _kotojel_start):.4f} mp.",
+    flush=True
+)
+print("-:", _kotojel_db, flush=True)
 
 print(
-    "-:",
-    (
-        helyszin_ellenorzes[
-            helyszin_ellenorzes[
-                "ellenőrzés"
-            ] == "-"
-        ].shape[0]
-    )
+    f"[IDŐMÉRÉS] Teljes összesítés: "
+    f"{(_time.perf_counter() - _osszesites_start):.4f} mp.",
+    flush=True
 )
 
 
