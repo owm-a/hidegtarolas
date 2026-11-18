@@ -3069,6 +3069,12 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
 
     _forda_ciklus_start = _time.perf_counter()
     _forda_ciklus_db = 0
+    _torteneti_potlas_ossz = 0.0
+    _aktualis_potlas_ossz = 0.0
+    _hetven_dontes_ossz = 0.0
+    _jelolo_kereses_ossz = 0.0
+    _hetven_dontes_db = 0
+    _hetven_dontes_max = 0.0
     for _, forda_sor in figyelt_forras.iterrows():
         _forda_ciklus_db += 1
         viszonylat = str(forda_sor["viszonylat"]).strip()
@@ -3087,6 +3093,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         # pótlás/cserekocsi volt, a későbbi geozóna-alapú döntés nem írhatja felül.
         # A régi döntés mellett a történeti idővonal-jelölőket is ellenőrizzük,
         # mert egy korábbi futás már tévesen I/N-re cserélhette a riportstátuszt.
+        _torteneti_potlas_start = _time.perf_counter()
         torteneti_potlas = any(
             str(rekord.get("viszonylat", "")).strip() == viszonylat
             and str(rekord.get("forda", "")).strip() == forda
@@ -3097,6 +3104,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             )
             for rekord in pozicio_tortenet
         )
+        _torteneti_potlas_ossz += _time.perf_counter() - _torteneti_potlas_start
 
         if korabbi_potlas or torteneti_potlas:
             if korabbi_potlas and isinstance(korabbi_dontes, dict):
@@ -3133,12 +3141,14 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         # Ha a forda korábban már I/N döntést kapott, akkor is ellenőrizzük,
         # hogy most pótlásban van-e. A pótlás minden más státusznál erősebb.
         if korabbi_vegleges:
+            _aktualis_potlas_start = _time.perf_counter()
             aktualis_potlas = _gtfs_rt_potlasban_van(
                 forda_sor,
                 str(forda_rendszamok.get(kulcs, {}).get("rendszám", "")).strip(),
                 most,
                 pozicio_tortenet=pozicio_tortenet
             )
+            _aktualis_potlas_ossz += _time.perf_counter() - _aktualis_potlas_start
             if aktualis_potlas is not None:
                 dontesek[kulcs] = {
                     "viszonylat": viszonylat,
@@ -3159,11 +3169,16 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         # Kizárólag valódi, végleges döntést őrzünk meg. A korábbi verzióból
         # bent maradt n.a./NINCS ADAT/üres vagy más ideiglenes rekord nem
         # akadályozhatja a történeti minták visszamenőleges újraértékelését.
+        _hetven_dontes_start = _time.perf_counter()
         dontes = hidegtarolas_70_dontes(
             forda_sor,
             pozicio_tortenet,
             most=most
         )
+        _hetven_dontes_ido = _time.perf_counter() - _hetven_dontes_start
+        _hetven_dontes_ossz += _hetven_dontes_ido
+        _hetven_dontes_db += 1
+        _hetven_dontes_max = max(_hetven_dontes_max, _hetven_dontes_ido)
 
         if dontes is not None:
             # A pótlás miatti kék N történeti megjelenítését rögzítjük az adott
@@ -3173,6 +3188,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
                 # Elsőként a mostani perc mintáját keressük. Ha ebben a futásban
                 # nem érkezett új pozíciórekord, akkor a legutóbbi, legfeljebb
                 # 10 perces mintát jelöljük; régi mintát nem színezünk át.
+                _jelolo_start = _time.perf_counter()
                 jelolheto = []
                 for rekord in pozicio_tortenet:
                     if str(rekord.get("viszonylat", "")).strip() != viszonylat:
@@ -3201,6 +3217,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
                 if jelolheto:
                     _, legfrissebb_minta = max(jelolheto, key=lambda item: item[0])
                     legfrissebb_minta["pótlás_kék_N"] = True
+                _jelolo_kereses_ossz += _time.perf_counter() - _jelolo_start
 
             dontesek[kulcs] = {
                 "viszonylat": viszonylat,
@@ -3229,7 +3246,17 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         f"{_time.perf_counter() - _forda_ciklus_start:.4f} mp.",
         flush=True
     )
+    print(
+        f"[IDŐMÉRÉS] ({forrás}) részletek: történeti pótláskeresés "
+        f"{_torteneti_potlas_ossz:.3f} mp; korábbi végleges döntések aktuális "
+        f"pótlásvizsgálata {_aktualis_potlas_ossz:.3f} mp; "
+        f"70%-os/félidős döntés {_hetven_dontes_ossz:.3f} mp "
+        f"({_hetven_dontes_db} hívás, max. {_hetven_dontes_max:.3f} mp); "
+        f"pótlás-idővonal jelölése {_jelolo_kereses_ossz:.3f} mp.",
+        flush=True
+    )
 
+    _eredmenyek_osszeallitas_start = _time.perf_counter()
     eredmenyek = []
 
     for _, forda_sor in figyelt_forras.iterrows():
@@ -3253,22 +3280,47 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             "pótlás_viszonylata": dontes.get("pótlás_viszonylata", ""),
             "pótlás_fordája": dontes.get("pótlás_fordája", "")
         })
+    print(
+        f"[IDŐMÉRÉS] ({forrás}) eredmények listájának összeállítása: "
+        f"{len(eredmenyek)} sor, "
+        f"{_time.perf_counter() - _eredmenyek_osszeallitas_start:.4f} mp.",
+        flush=True
+    )
 
     # Csak a jelenlegi forrás figyelt fordái számítanak a készültségbe;
     # régi, már nem létező kulcsok nem tehetik tévesen teljessé a riportot.
     # A pótlás külön, elfogadott státusz: értékeltnek számít, de nem I/N döntés.
     vegleges_eredmenyek = {"RENDBEN TÁROLT", "ELTÉRÉS TÖRTÉNT", "pótlás/cserekocsi"}
+    _keszultseg_start = _time.perf_counter()
     aktualis_kulcsok = {
         forda_kulcs_adat(forda_sor)
         for _, forda_sor in figyelt_forras.iterrows()
     }
+    print(
+        f"[IDŐMÉRÉS] ({forrás}) aktuális kulcsok képzése: "
+        f"{len(aktualis_kulcsok)} db, "
+        f"{_time.perf_counter() - _keszultseg_start:.4f} mp.",
+        flush=True
+    )
+    _minden_dontott_start = _time.perf_counter()
     minden_döntött = all(
         str(dontesek.get(kulcs, {}).get("eredmény", "")).strip() in vegleges_eredmenyek
         for kulcs in aktualis_kulcsok
     )
+    print(
+        f"[IDŐMÉRÉS] ({forrás}) minden_döntött vizsgálat: "
+        f"{_time.perf_counter() - _minden_dontott_start:.4f} mp.",
+        flush=True
+    )
+    _ertekelt_start = _time.perf_counter()
     ertekelt_fordak = sum(
         1 for sor in eredmenyek
         if str(sor.get("eredmény", "")).strip() in vegleges_eredmenyek
+    )
+    print(
+        f"[IDŐMÉRÉS] ({forrás}) értékelt fordák számlálása: "
+        f"{_time.perf_counter() - _ertekelt_start:.4f} mp.",
+        flush=True
     )
 
     # Az Excel-export legkorábban 16:30-kor indulhat.
@@ -3288,25 +3340,50 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
     # A JSON-ban jelzett kész állapot önmagában nem elég: ellenőrizzük, hogy
     # a tényleges XLSX-fájl létezik-e, olvasható-e és tartalmaz-e aznapi adatsort.
     export_fajl_adatokkal = False
+    _xlsx_ellenorzes_start = _time.perf_counter()
     if os.path.isfile(export_fajl):
         try:
+            _xlsx_megnyitas_start = _time.perf_counter()
             ellenorzo_wb = openpyxl.load_workbook(export_fajl, read_only=True, data_only=True)
+            print(
+                f"[IDŐMÉRÉS] ({forrás}) XLSX read_only megnyitása: "
+                f"{_time.perf_counter() - _xlsx_megnyitas_start:.3f} mp.",
+                flush=True
+            )
             if "Riport" in ellenorzo_wb.sheetnames:
                 ellenorzo_ws = ellenorzo_wb["Riport"]
                 # Gyűjtőfájlnál a mai nap sora nem feltétlenül a 2. sorban van:
                 # korábbi napok adatai is maradnak a fejléc alatt.
+                _xlsx_sorvizsgalat_start = _time.perf_counter()
                 van_mai_adat = any(
                     str(ellenorzo_ws.cell(sor_index, 1).value).strip()[:10] == MAI_NAP
                     for sor_index in range(2, ellenorzo_ws.max_row + 1)
+                )
+                print(
+                    f"[IDŐMÉRÉS] ({forrás}) XLSX sorvizsgálat: "
+                    f"{ellenorzo_ws.max_row:,} sor, "
+                    f"{_time.perf_counter() - _xlsx_sorvizsgalat_start:.3f} mp.",
+                    flush=True
                 )
                 export_fajl_adatokkal = (
                     ellenorzo_ws.max_row > 1
                     and ellenorzo_ws.max_column >= 7
                     and van_mai_adat
                 )
+            _xlsx_bezaras_start = _time.perf_counter()
             ellenorzo_wb.close()
+            print(
+                f"[IDŐMÉRÉS] ({forrás}) XLSX ellenőrző fájl bezárása: "
+                f"{_time.perf_counter() - _xlsx_bezaras_start:.3f} mp.",
+                flush=True
+            )
         except Exception as e:
             print(f"FIGYELEM: az exportfájl ellenőrzése nem sikerült ({export_fajl}): {e}")
+    print(
+        f"[IDŐMÉRÉS] ({forrás}) teljes XLSX-ellenőrzés: "
+        f"{_time.perf_counter() - _xlsx_ellenorzes_start:.3f} mp.",
+        flush=True
+    )
 
     excel_mar_mentve = (
         korabbi_riport.get("datum") == MAI_NAP
@@ -3494,7 +3571,13 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
 
     napi_adatok[napi_kulcs] = riportok
 
+    _json_mentes_start = _time.perf_counter()
     atomikus_json_mentes(NAPI_ADATOK_FAJL, napi_adatok)
+    print(
+        f"[IDŐMÉRÉS] ({forrás}) napi JSON mentése: "
+        f"{_time.perf_counter() - _json_mentes_start:.3f} mp.",
+        flush=True
+    )
 
     print()
     print("=== HIDEGTÁROLÁSI RIPORT ===")
