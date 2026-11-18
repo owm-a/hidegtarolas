@@ -61,6 +61,7 @@ import re
 import pandas as pd
 import zipfile
 import io
+import time as _time
 
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -2204,12 +2205,32 @@ print(
 
 ellenorzesek = []
 
+# Diagnosztikai időmérés – az ellenőrzés működését nem módosítja.
+_ellenorzes_start = _time.perf_counter()
+_ellenorzes_utolso_jelzes = _ellenorzes_start
+_ellenorzes_db = len(poziciok)
+print(
+    f"[IDŐMÉRÉS] OK/NEM ellenőrzés indul: {_ellenorzes_db} rekord.",
+    flush=True
+)
+
 
 # ============================================================
 # POZÍCIÓREKORDOK EGYENKÉNTI ELLENŐRZÉSE
 # ============================================================
 
-for rekord in poziciok:
+for rekord_sorszam, rekord in enumerate(poziciok, start=1):
+
+    # 1000 rekordonta jelzés, hogy látható legyen a ciklus előrehaladása.
+    if rekord_sorszam % 1000 == 0 or rekord_sorszam == _ellenorzes_db:
+        _most = _time.perf_counter()
+        print(
+            f"[IDŐMÉRÉS] OK/NEM: {rekord_sorszam}/{_ellenorzes_db} rekord "
+            f"({(_most - _ellenorzes_start):.2f} mp összesen, "
+            f"{(_most - _ellenorzes_utolso_jelzes):.2f} mp az előző jelzés óta).",
+            flush=True
+        )
+        _ellenorzes_utolso_jelzes = _most
 
     viszonylat = str(
         rekord.get("viszonylat", "")
@@ -2484,10 +2505,19 @@ for rekord in poziciok:
     })
 
 
+_ellenorzes_vege = _time.perf_counter()
+print(
+    f"[IDŐMÉRÉS] OK/NEM ciklus kész: {len(ellenorzesek)} eredmény, "
+    f"{(_ellenorzes_vege - _ellenorzes_start):.2f} mp.",
+    flush=True
+)
+
+
 # ============================================================
 # DATAFRAME
 # ============================================================
 
+_dataframe_start = _time.perf_counter()
 helyszin_ellenorzes = pd.DataFrame(
     ellenorzesek,
     columns=[
@@ -2499,12 +2529,19 @@ helyszin_ellenorzes = pd.DataFrame(
         "ellenőrzés"
     ]
 )
+_dataframe_vege = _time.perf_counter()
+print(
+    f"[IDŐMÉRÉS] DataFrame elkészült: "
+    f"{(_dataframe_vege - _dataframe_start):.2f} mp.",
+    flush=True
+)
 
 
 # ============================================================
 # RENDEZÉS
 # ============================================================
 
+_rendezes_start = _time.perf_counter()
 if len(helyszin_ellenorzes) > 0:
 
     helyszin_ellenorzes = (
@@ -2518,6 +2555,12 @@ if len(helyszin_ellenorzes) > 0:
         )
         .reset_index(drop=True)
     )
+_rendezes_vege = _time.perf_counter()
+print(
+    f"[IDŐMÉRÉS] Rendezés kész: "
+    f"{(_rendezes_vege - _rendezes_start):.2f} mp.",
+    flush=True
+)
 
 
 # ============================================================
@@ -2528,10 +2571,25 @@ print()
 
 if len(helyszin_ellenorzes) > 0:
 
+    _szovegge_alakitas_start = _time.perf_counter()
+    _ellenorzes_kiirando = helyszin_ellenorzes.to_string(
+        index=False
+    )
+    _szovegge_alakitas_vege = _time.perf_counter()
     print(
-        helyszin_ellenorzes.to_string(
-            index=False
-        )
+        f"[IDŐMÉRÉS] Táblázat szöveggé alakítása: "
+        f"{(_szovegge_alakitas_vege - _szovegge_alakitas_start):.2f} mp "
+        f"({_ellenorzes_kiirando.count(chr(10)) + 1} sor).",
+        flush=True
+    )
+
+    _kiiras_start = _time.perf_counter()
+    print(_ellenorzes_kiirando, flush=True)
+    _kiiras_vege = _time.perf_counter()
+    print(
+        f"[IDŐMÉRÉS] Táblázat kiírása: "
+        f"{(_kiiras_vege - _kiiras_start):.2f} mp.",
+        flush=True
     )
 
 else:
