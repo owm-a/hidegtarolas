@@ -14,6 +14,8 @@
 # =========================================================
 
 import os
+import time as _perf_time
+from collections import defaultdict
 from copy import copy
 
 API_KEY = os.environ.get("BKK_API_KEY")
@@ -61,7 +63,6 @@ import re
 import pandas as pd
 import zipfile
 import io
-import time as _time
 
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -2205,32 +2206,12 @@ print(
 
 ellenorzesek = []
 
-# Diagnosztikai időmérés – az ellenőrzés működését nem módosítja.
-_ellenorzes_start = _time.perf_counter()
-_ellenorzes_utolso_jelzes = _ellenorzes_start
-_ellenorzes_db = len(poziciok)
-print(
-    f"[IDŐMÉRÉS] OK/NEM ellenőrzés indul: {_ellenorzes_db} rekord.",
-    flush=True
-)
-
 
 # ============================================================
 # POZÍCIÓREKORDOK EGYENKÉNTI ELLENŐRZÉSE
 # ============================================================
 
-for rekord_sorszam, rekord in enumerate(poziciok, start=1):
-
-    # 1000 rekordonta jelzés, hogy látható legyen a ciklus előrehaladása.
-    if rekord_sorszam % 1000 == 0 or rekord_sorszam == _ellenorzes_db:
-        _most = _time.perf_counter()
-        print(
-            f"[IDŐMÉRÉS] OK/NEM: {rekord_sorszam}/{_ellenorzes_db} rekord "
-            f"({(_most - _ellenorzes_start):.2f} mp összesen, "
-            f"{(_most - _ellenorzes_utolso_jelzes):.2f} mp az előző jelzés óta).",
-            flush=True
-        )
-        _ellenorzes_utolso_jelzes = _most
+for rekord in poziciok:
 
     viszonylat = str(
         rekord.get("viszonylat", "")
@@ -2505,19 +2486,10 @@ for rekord_sorszam, rekord in enumerate(poziciok, start=1):
     })
 
 
-_ellenorzes_vege = _time.perf_counter()
-print(
-    f"[IDŐMÉRÉS] OK/NEM ciklus kész: {len(ellenorzesek)} eredmény, "
-    f"{(_ellenorzes_vege - _ellenorzes_start):.2f} mp.",
-    flush=True
-)
-
-
 # ============================================================
 # DATAFRAME
 # ============================================================
 
-_dataframe_start = _time.perf_counter()
 helyszin_ellenorzes = pd.DataFrame(
     ellenorzesek,
     columns=[
@@ -2529,19 +2501,12 @@ helyszin_ellenorzes = pd.DataFrame(
         "ellenőrzés"
     ]
 )
-_dataframe_vege = _time.perf_counter()
-print(
-    f"[IDŐMÉRÉS] DataFrame elkészült: "
-    f"{(_dataframe_vege - _dataframe_start):.2f} mp.",
-    flush=True
-)
 
 
 # ============================================================
 # RENDEZÉS
 # ============================================================
 
-_rendezes_start = _time.perf_counter()
 if len(helyszin_ellenorzes) > 0:
 
     helyszin_ellenorzes = (
@@ -2555,12 +2520,6 @@ if len(helyszin_ellenorzes) > 0:
         )
         .reset_index(drop=True)
     )
-_rendezes_vege = _time.perf_counter()
-print(
-    f"[IDŐMÉRÉS] Rendezés kész: "
-    f"{(_rendezes_vege - _rendezes_start):.2f} mp.",
-    flush=True
-)
 
 
 # ============================================================
@@ -2571,25 +2530,10 @@ print()
 
 if len(helyszin_ellenorzes) > 0:
 
-    _szovegge_alakitas_start = _time.perf_counter()
-    _ellenorzes_kiirando = helyszin_ellenorzes.to_string(
-        index=False
-    )
-    _szovegge_alakitas_vege = _time.perf_counter()
     print(
-        f"[IDŐMÉRÉS] Táblázat szöveggé alakítása: "
-        f"{(_szovegge_alakitas_vege - _szovegge_alakitas_start):.2f} mp "
-        f"({_ellenorzes_kiirando.count(chr(10)) + 1} sor).",
-        flush=True
-    )
-
-    _kiiras_start = _time.perf_counter()
-    print(_ellenorzes_kiirando, flush=True)
-    _kiiras_vege = _time.perf_counter()
-    print(
-        f"[IDŐMÉRÉS] Táblázat kiírása: "
-        f"{(_kiiras_vege - _kiiras_start):.2f} mp.",
-        flush=True
+        helyszin_ellenorzes.to_string(
+            index=False
+        )
     )
 
 else:
@@ -2600,70 +2544,42 @@ else:
 
 
 # ============================================================
-# ÖSSZESÍTÉS – RÉSZLETES IDŐMÉRÉS
+# ÖSSZESÍTÉS
 # ============================================================
 
-_osszesites_start = _time.perf_counter()
-print("[IDŐMÉRÉS] Összesítés kezdete.", flush=True)
-
-# Alapadatok: ez önmagában nem végez nagyobb számítást.
-_meta_start = _time.perf_counter()
-_ellenorzes_oszlop_tipus = helyszin_ellenorzes["ellenőrzés"].dtype
-_ellenorzes_sorok_szama = len(helyszin_ellenorzes)
-print(
-    f"[IDŐMÉRÉS] Összesítő alapadatok: {_ellenorzes_sorok_szama} sor, "
-    f"'ellenőrzés' dtype={_ellenorzes_oszlop_tipus}, "
-    f"{(_time.perf_counter() - _meta_start):.4f} mp.",
-    flush=True
-)
-
-# A három eredeti pandas-szűrést külön mérjük, változtatás nélkül.
-_ok_start = _time.perf_counter()
-_ok_db = (
-    helyszin_ellenorzes[
-        helyszin_ellenorzes["ellenőrzés"] == "OK"
-    ].shape[0]
-)
-_ok_vege = _time.perf_counter()
-print(
-    f"[IDŐMÉRÉS] OK szűrés/számlálás: {_ok_db} db, "
-    f"{(_ok_vege - _ok_start):.4f} mp.",
-    flush=True
-)
-print("OK:", _ok_db, flush=True)
-
-_nem_start = _time.perf_counter()
-_nem_db = (
-    helyszin_ellenorzes[
-        helyszin_ellenorzes["ellenőrzés"] == "NEM"
-    ].shape[0]
-)
-_nem_vege = _time.perf_counter()
-print(
-    f"[IDŐMÉRÉS] NEM szűrés/számlálás: {_nem_db} db, "
-    f"{(_nem_vege - _nem_start):.4f} mp.",
-    flush=True
-)
-print("NEM:", _nem_db, flush=True)
-
-_kotojel_start = _time.perf_counter()
-_kotojel_db = (
-    helyszin_ellenorzes[
-        helyszin_ellenorzes["ellenőrzés"] == "-"
-    ].shape[0]
-)
-_kotojel_vege = _time.perf_counter()
-print(
-    f"[IDŐMÉRÉS] '-' szűrés/számlálás: {_kotojel_db} db, "
-    f"{(_kotojel_vege - _kotojel_start):.4f} mp.",
-    flush=True
-)
-print("-:", _kotojel_db, flush=True)
+print()
 
 print(
-    f"[IDŐMÉRÉS] Teljes összesítés: "
-    f"{(_time.perf_counter() - _osszesites_start):.4f} mp.",
-    flush=True
+    "OK:",
+    (
+        helyszin_ellenorzes[
+            helyszin_ellenorzes[
+                "ellenőrzés"
+            ] == "OK"
+        ].shape[0]
+    )
+)
+
+print(
+    "NEM:",
+    (
+        helyszin_ellenorzes[
+            helyszin_ellenorzes[
+                "ellenőrzés"
+            ] == "NEM"
+        ].shape[0]
+    )
+)
+
+print(
+    "-:",
+    (
+        helyszin_ellenorzes[
+            helyszin_ellenorzes[
+                "ellenőrzés"
+            ] == "-"
+        ].shape[0]
+    )
 )
 
 
@@ -2718,20 +2634,75 @@ def gps_geozona_vagy_koordinata(pozicio):
     return f"{latitude}, {longitude}"
 
 
+_POTLAS_GYORSITOTAR = None
+
+
+def _potlas_gyorsitotar_epitese():
+    """A pótlásvizsgálathoz szükséges GTFS- és RT-indexeket egyszer készíti el."""
+    global _POTLAS_GYORSITOTAR
+
+    mai_trips = trips[
+        trips["service_id"].astype(str).isin(mai_service_ids)
+    ].copy()
+
+    trip_block = {
+        str(sor["trip_id"]): str(sor.get("block_id", "")).strip()
+        for _, sor in mai_trips.iterrows()
+    }
+
+    figyelt = globals().get("figyelt_fordak")
+    forda_trip_ids = {}
+    masik_forda_mintak = []
+
+    if isinstance(figyelt, pd.DataFrame) and not figyelt.empty:
+        for _, masik in figyelt.iterrows():
+            masik_viszonylat = str(masik.get("viszonylat", "")).strip()
+            masik_forda = str(masik.get("forda", "")).strip()
+            if not masik_viszonylat or not masik_forda:
+                continue
+
+            minta = f"_{masik_viszonylat}_{masik_forda}_"
+            if minta not in masik_forda_mintak:
+                masik_forda_mintak.append(minta)
+
+            kulcs = (masik_viszonylat, masik_forda)
+            if kulcs not in forda_trip_ids:
+                mask = mai_trips["block_id"].astype(str).str.contains(
+                    minta, na=False, regex=False
+                )
+                forda_trip_ids[kulcs] = set(
+                    mai_trips.loc[mask, "trip_id"].astype(str)
+                )
+
+    rt_by_plate = defaultdict(list)
+    rt_by_trip = defaultdict(list)
+    rt_records = []
+    if isinstance(jarmuvek, pd.DataFrame) and not jarmuvek.empty:
+        for rekord in jarmuvek.to_dict("records"):
+            rt_records.append(rekord)
+            rendszam = str(rekord.get("rendszám", "")).strip().upper()
+            trip_id = str(rekord.get("trip_id", "")).strip()
+            if rendszam:
+                rt_by_plate[rendszam].append(rekord)
+            if trip_id:
+                rt_by_trip[trip_id].append(rekord)
+
+    _POTLAS_GYORSITOTAR = {
+        "trip_block": trip_block,
+        "forda_trip_ids": forda_trip_ids,
+        "masik_forda_mintak": masik_forda_mintak,
+        "rt_by_plate": dict(rt_by_plate),
+        "rt_by_trip": dict(rt_by_trip),
+        "rt_records": rt_records,
+    }
+    return _POTLAS_GYORSITOTAR
+
+
 def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
     """
     GTFS-RT alapján felismeri a pótlást a forda teljes kezdés–végzés
-    időszakában.
-
-    Pótlásnak számít mindkét eset:
-    1. A forda korábban hozzárendelt járműve a kezdés után egy másik,
-       figyelt forda blockján jelenik meg.
-    2. A vizsgált forda saját blockján a GTFS-RT a korábban mentettől
-       eltérő rendszámú járművet mutat.
-
-    A garázsba visszatérés / "I" GPS-állapot nem törli és nem akadályozza
-    a felismerést. A már rögzített pótlást a hívó riportlogika a végzésig
-    tapadó státuszként őrzi meg.
+    időszakában. A korábbi döntési szabályokat megtartja, de az ismételt
+    pandas-szűrések helyett egyszer felépített indexeket használ.
     """
     rendszam = str(rendszam or "").strip().upper()
     if not rendszam or not isinstance(jarmuvek, pd.DataFrame) or jarmuvek.empty:
@@ -2756,51 +2727,26 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
     if teljes_idotartam <= 0 or not (figyelési_kezdés_dt <= most <= figyelési_végzés_dt):
         return None
 
-    # A vizsgált forda összes mai tripje és blockja.
+    if _POTLAS_GYORSITOTAR is None:
+        _cache_start = _perf_time.perf_counter()
+        cache = _potlas_gyorsitotar_epitese()
+        print(f"[IDŐMÉRÉS] Pótlásvizsgálati GTFS/RT indexek felépítése: {_perf_time.perf_counter() - _cache_start:.4f} mp.")
+    else:
+        cache = _POTLAS_GYORSITOTAR
     viszonylat = str(forda_sor.get("viszonylat", "")).strip()
     forda = str(forda_sor.get("forda", "")).strip()
-    try:
-        mai_trips = trips[
-            trips["service_id"].astype(str).isin(mai_service_ids)
-        ].copy()
-        sajat_forda_trips = mai_trips[
-            mai_trips["block_id"].astype(str).str.contains(
-                f"_{viszonylat}_{forda}_", na=False, regex=False
-            )
-        ]
-    except Exception:
-        return None
-
-    sajat_trip_ids = set(sajat_forda_trips["trip_id"].astype(str))
+    sajat_trip_ids = cache["forda_trip_ids"].get((viszonylat, forda), set())
     if not sajat_trip_ids:
         return None
 
-    # A block_id alapján csak valóban másik, figyelt forda számít
-    # fordán kívüli feladatnak; egyéb, nem forda-trip önmagában nem.
-    masik_forda_mintak = []
-    figyelt = globals().get("figyelt_fordak")
-    if isinstance(figyelt, pd.DataFrame) and not figyelt.empty:
-        for _, masik in figyelt.iterrows():
-            masik_viszonylat = str(masik.get("viszonylat", "")).strip()
-            masik_forda = str(masik.get("forda", "")).strip()
-            if not masik_viszonylat or not masik_forda:
-                continue
-            if masik_viszonylat == viszonylat and masik_forda == forda:
-                continue
-            minta = f"_{masik_viszonylat}_{masik_forda}_"
-            if minta not in masik_forda_mintak:
-                masik_forda_mintak.append(minta)
-
-    trip_block = {
-        str(sor["trip_id"]): str(sor.get("block_id", "")).strip()
-        for _, sor in mai_trips.iterrows()
-    }
+    trip_block = cache["trip_block"]
+    masik_forda_mintak = [
+        minta for minta in cache["masik_forda_mintak"]
+        if minta != f"_{viszonylat}_{forda}_"
+    ]
 
     # 1. A korábban hozzárendelt jármű másik figyelt forda blockján fut.
-    talalatok = jarmuvek[
-        jarmuvek["rendszám"].astype(str).str.strip().str.upper() == rendszam
-    ].copy()
-    for _, rt in talalatok.iterrows():
+    for rt in cache["rt_by_plate"].get(rendszam, []):
         aktualis_trip_id = str(rt.get("trip_id", "")).strip()
         if not aktualis_trip_id or aktualis_trip_id in sajat_trip_ids:
             continue
@@ -2814,10 +2760,9 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
             }
 
     # 2. A saját forda blockján másik rendszámú jármű jelent meg.
-    sajat_rt_talalatok = jarmuvek[
-        jarmuvek["trip_id"].astype(str).isin(sajat_trip_ids)
-    ].copy()
-    for _, rt in sajat_rt_talalatok.iterrows():
+    for rt in cache["rt_records"]:
+        if str(rt.get("trip_id", "")).strip() not in sajat_trip_ids:
+            continue
         aktualis_rendszam = str(rt.get("rendszám", "")).strip().upper()
         if not aktualis_rendszam or aktualis_rendszam == rendszam:
             continue
@@ -2831,7 +2776,7 @@ def _gtfs_rt_potlasban_van(forda_sor, rendszam, most, pozicio_tortenet=None):
     return None
 
 
-def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
+def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None, pozicio_elokeszitett=False):
     """A forda félidejében geozóna alapján véglegesíti a Valós tárolás értékét.
 
     - A döntés időpontja a menetrendi kezdés és végzés közötti időtartam fele.
@@ -2862,36 +2807,6 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
         return None
     felido_dt = kezdés_dt + timedelta(seconds=teljes_idotartam * 0.5)
 
-    # A forda saját pozíciórekordjait gyűjtjük össze a menetrendi intervallumban.
-    # Az I/N mezőket szándékosan nem használjuk az értékeléshez.
-    mintak = []
-    for rekord in pozicio_tortenet if isinstance(pozicio_tortenet, list) else []:
-        if str(rekord.get("viszonylat", "")).strip() != str(forda_sor.get("viszonylat", "")).strip():
-            continue
-        if str(rekord.get("forda", "")).strip() != str(forda_sor.get("forda", "")).strip():
-            continue
-        if str(rekord.get("forrás", "biztor")).strip() != str(forda_sor.get("forrás", "biztor")).strip():
-            continue
-
-        idopont = str(rekord.get("frissítve", "")).strip()
-        ido = None
-        for fmt in ("%H:%M:%S", "%H:%M"):
-            try:
-                ido = datetime.strptime(idopont[:8] if fmt == "%H:%M:%S" else idopont[:5], fmt).time()
-                break
-            except (ValueError, TypeError):
-                continue
-        if ido is None:
-            continue
-
-        minta_dt = datetime.combine(mai_datum, ido, tzinfo=budapest_tz)
-        if minta_dt < kezdés_dt and végzés_dt.date() > kezdés_dt.date():
-            minta_dt += timedelta(days=1)
-        if kezdés_dt <= minta_dt <= végzés_dt:
-            mintak.append((minta_dt, rekord))
-
-    mintak.sort(key=lambda item: item[0])
-
     # A pótlás elsőbbséget élvez; a rendszám- és másik forda/block-változás is kiváltja.
     if budapest_now < végzés_dt:
         forda_kulcs = forda_kulcs_adat(forda_sor)
@@ -2913,8 +2828,40 @@ def hidegtarolas_70_dontes(forda_sor, pozicio_tortenet, most=None):
             }
 
     # A normál Valós tárolás értékelés csak a forda félidejében történik.
+    # A félidő előtt nincs szükség GPS-történet feldolgozására.
     if budapest_now < felido_dt:
         return None
+
+    # A döntéshez kizárólag a félidőig rögzített, ehhez a fordához tartozó
+    # rekordokat dolgozzuk fel. A félidő utáni minták nem befolyásolhatják az I/N-t.
+    mintak = []
+    for rekord in pozicio_tortenet if isinstance(pozicio_tortenet, list) else []:
+        if not pozicio_elokeszitett:
+            if str(rekord.get("viszonylat", "")).strip() != str(forda_sor.get("viszonylat", "")).strip():
+                continue
+            if str(rekord.get("forda", "")).strip() != str(forda_sor.get("forda", "")).strip():
+                continue
+            if str(rekord.get("forrás", "biztor")).strip() != str(forda_sor.get("forrás", "biztor")).strip():
+                continue
+
+        idopont = str(rekord.get("frissítve", "")).strip()
+        ido = None
+        for fmt in ("%H:%M:%S", "%H:%M"):
+            try:
+                ido = datetime.strptime(idopont[:8] if fmt == "%H:%M:%S" else idopont[:5], fmt).time()
+                break
+            except (ValueError, TypeError):
+                continue
+        if ido is None:
+            continue
+
+        minta_dt = datetime.combine(mai_datum, ido, tzinfo=budapest_tz)
+        if minta_dt < kezdés_dt and végzés_dt.date() > kezdés_dt.date():
+            minta_dt += timedelta(days=1)
+        if kezdés_dt <= minta_dt <= felido_dt:
+            mintak.append((minta_dt, rekord))
+
+    mintak.sort(key=lambda item: item[0])
 
     # A döntés pillanatáig rögzített legutóbbi mintát használjuk, hogy későbbi
     # pozíció ne változtassa meg visszamenőleg a félidőben fennálló állapotot.
@@ -2966,29 +2913,14 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
     A még félidő előtti, nem eldöntött sorok is bekerülnek az exportba.
     """
 
-    _riport_teljes_start = _time.perf_counter()
-    print(
-        f"[IDŐMÉRÉS] Riportfüggvény indul ({forrás}).",
-        flush=True
-    )
-
-    _most_start = _time.perf_counter()
+    _riport_start = _perf_time.perf_counter()
+    _meres = defaultdict(float)
+    _meres_db = defaultdict(int)
     most = budapesti_most()
-    print(
-        f"[IDŐMÉRÉS] ({forrás}) budapesti_most(): "
-        f"{_time.perf_counter() - _most_start:.4f} mp.",
-        flush=True
-    )
 
-    _korabbi_riport_start = _time.perf_counter()
     korabbi_riport = napi_adatok.get(
         napi_kulcs
     ) or {}
-    print(
-        f"[IDŐMÉRÉS] ({forrás}) korábbi riport beolvasása: "
-        f"{_time.perf_counter() - _korabbi_riport_start:.4f} mp.",
-        flush=True
-    )
 
     # Ha az aznapi páros Excel-riport már sikeresen elkészült, a riportlogika
     # erre a napra lezárult. A következő workflow-futások ne járják végig újra
@@ -3026,29 +2958,27 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         if hely and hely not in ("Nincs adat", "-"):
             dontes["tárolás helye"] = gps_geozona_vagy_koordinata(hely)
 
-    _pozicio_tortenet_start = _time.perf_counter()
     pozicio_tortenet = napi_adatok.get(
         "pozicio_tortenet",
         []
     )
-    print(
-        f"[IDŐMÉRÉS] ({forrás}) pozíciótörténet lekérése: "
-        f"{_time.perf_counter() - _pozicio_tortenet_start:.4f} mp; "
-        f"rekordok száma: {len(pozicio_tortenet):,}.",
-        flush=True
-    )
 
-    _figyelt_start = _time.perf_counter()
     figyelt_forras = figyelt_fordak_garazs if forrás == "garazs" else figyelt_fordak_biztor
-    print(
-        f"[IDŐMÉRÉS] ({forrás}) figyelt fordák kiválasztása: "
-        f"{_time.perf_counter() - _figyelt_start:.4f} mp; "
-        f"fordák száma: {len(figyelt_forras)}.",
-        flush=True
-    )
+
+    # A teljes pozíciótörténetet csak egyszer csoportosítjuk forrás/viszonylat/forda szerint.
+    # Az egyes fordák feldolgozása ezután már csak a saját rekordjaikat járja be.
+    _t = _perf_time.perf_counter()
+    poziciok_fordankent = defaultdict(list)
+    for rekord in pozicio_tortenet if isinstance(pozicio_tortenet, list) else []:
+        rekord_kulcs = (
+            str(rekord.get("forrás", "biztor")).strip(),
+            str(rekord.get("viszonylat", "")).strip(),
+            str(rekord.get("forda", "")).strip()
+        )
+        poziciok_fordankent[rekord_kulcs].append(rekord)
+    _meres["pozíciótörténet indexelése"] += _perf_time.perf_counter() - _t
 
     uj_dontes = 0
-    _gps_szamlalas_start = _time.perf_counter()
     gps_rekordok_forras_szerint = sum(
         1 for rekord in pozicio_tortenet
         if str(rekord.get("forrás", "biztor")).strip() == forrás
@@ -3056,30 +2986,18 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         and str(rekord.get("pozíció", "")).strip() not in ("", "None")
     )
     print(
-        f"[IDŐMÉRÉS] ({forrás}) GPS-rekordok számlálása: "
-        f"{_time.perf_counter() - _gps_szamlalas_start:.4f} mp; "
-        f"találat: {gps_rekordok_forras_szerint:,}.",
-        flush=True
-    )
-    print(
         f"Félidős geozóna-ellenőrzés ({forrás}): {len(figyelt_forras)} forda, "
         f"{gps_rekordok_forras_szerint} GPS-rekord időbélyeggel és koordinátával, "
         f"{len(dontesek)} korábban mentett döntés."
     )
 
-    _forda_ciklus_start = _time.perf_counter()
-    _forda_ciklus_db = 0
-    _torteneti_potlas_ossz = 0.0
-    _aktualis_potlas_ossz = 0.0
-    _hetven_dontes_ossz = 0.0
-    _jelolo_kereses_ossz = 0.0
-    _hetven_dontes_db = 0
-    _hetven_dontes_max = 0.0
+    _t = _perf_time.perf_counter()
     for _, forda_sor in figyelt_forras.iterrows():
-        _forda_ciklus_db += 1
+        _forda_start = _perf_time.perf_counter()
         viszonylat = str(forda_sor["viszonylat"]).strip()
         forda = str(forda_sor["forda"]).strip()
         kulcs = forda_kulcs_adat(forda_sor)
+        forda_rekordok = poziciok_fordankent.get((forrás, viszonylat, forda), [])
 
         korabbi_dontes = dontesek.get(kulcs, {})
         korabbi_eredmeny = (
@@ -3093,18 +3011,13 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         # pótlás/cserekocsi volt, a későbbi geozóna-alapú döntés nem írhatja felül.
         # A régi döntés mellett a történeti idővonal-jelölőket is ellenőrizzük,
         # mert egy korábbi futás már tévesen I/N-re cserélhette a riportstátuszt.
-        _torteneti_potlas_start = _time.perf_counter()
+        _t = _perf_time.perf_counter()
         torteneti_potlas = any(
-            str(rekord.get("viszonylat", "")).strip() == viszonylat
-            and str(rekord.get("forda", "")).strip() == forda
-            and str(rekord.get("forrás", "biztor")).strip() == forrás
-            and (
-                bool(rekord.get("pótlás_kék_N"))
-                or str(rekord.get("döntés", "")).strip() == "pótlás/cserekocsi"
-            )
-            for rekord in pozicio_tortenet
+            bool(rekord.get("pótlás_kék_N"))
+            or str(rekord.get("döntés", "")).strip() == "pótlás/cserekocsi"
+            for rekord in forda_rekordok
         )
-        _torteneti_potlas_ossz += _time.perf_counter() - _torteneti_potlas_start
+        _meres["történeti pótlásvizsgálat"] += _perf_time.perf_counter() - _t
 
         if korabbi_potlas or torteneti_potlas:
             if korabbi_potlas and isinstance(korabbi_dontes, dict):
@@ -3113,12 +3026,9 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
                 korabbi_dontes["tárolás helye"] = "---"
             if not korabbi_potlas:
                 potlas_rekordok = [
-                    rekord for rekord in pozicio_tortenet
-                    if str(rekord.get("viszonylat", "")).strip() == viszonylat
-                    and str(rekord.get("forda", "")).strip() == forda
-                    and str(rekord.get("forrás", "biztor")).strip() == forrás
-                    and (bool(rekord.get("pótlás_kék_N"))
-                         or str(rekord.get("döntés", "")).strip() == "pótlás/cserekocsi")
+                    rekord for rekord in forda_rekordok
+                    if bool(rekord.get("pótlás_kék_N"))
+                    or str(rekord.get("döntés", "")).strip() == "pótlás/cserekocsi"
                 ]
                 potlas_ido = str(potlas_rekordok[-1].get("frissítve", "")) if potlas_rekordok else most.strftime("%H:%M:%S")
                 dontesek[kulcs] = {
@@ -3141,14 +3051,15 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         # Ha a forda korábban már I/N döntést kapott, akkor is ellenőrizzük,
         # hogy most pótlásban van-e. A pótlás minden más státusznál erősebb.
         if korabbi_vegleges:
-            _aktualis_potlas_start = _time.perf_counter()
+            _t = _perf_time.perf_counter()
             aktualis_potlas = _gtfs_rt_potlasban_van(
                 forda_sor,
                 str(forda_rendszamok.get(kulcs, {}).get("rendszám", "")).strip(),
                 most,
                 pozicio_tortenet=pozicio_tortenet
             )
-            _aktualis_potlas_ossz += _time.perf_counter() - _aktualis_potlas_start
+            _meres["aktuális pótlásvizsgálat"] += _perf_time.perf_counter() - _t
+            _meres_db["aktuális pótlásvizsgálat"] += 1
             if aktualis_potlas is not None:
                 dontesek[kulcs] = {
                     "viszonylat": viszonylat,
@@ -3169,16 +3080,15 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         # Kizárólag valódi, végleges döntést őrzünk meg. A korábbi verzióból
         # bent maradt n.a./NINCS ADAT/üres vagy más ideiglenes rekord nem
         # akadályozhatja a történeti minták visszamenőleges újraértékelését.
-        _hetven_dontes_start = _time.perf_counter()
+        _t = _perf_time.perf_counter()
         dontes = hidegtarolas_70_dontes(
             forda_sor,
-            pozicio_tortenet,
-            most=most
+            forda_rekordok,
+            most=most,
+            pozicio_elokeszitett=True
         )
-        _hetven_dontes_ido = _time.perf_counter() - _hetven_dontes_start
-        _hetven_dontes_ossz += _hetven_dontes_ido
-        _hetven_dontes_db += 1
-        _hetven_dontes_max = max(_hetven_dontes_max, _hetven_dontes_ido)
+        _meres["félidős döntés"] += _perf_time.perf_counter() - _t
+        _meres_db["félidős döntés"] += 1
 
         if dontes is not None:
             # A pótlás miatti kék N történeti megjelenítését rögzítjük az adott
@@ -3188,15 +3098,9 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
                 # Elsőként a mostani perc mintáját keressük. Ha ebben a futásban
                 # nem érkezett új pozíciórekord, akkor a legutóbbi, legfeljebb
                 # 10 perces mintát jelöljük; régi mintát nem színezünk át.
-                _jelolo_start = _time.perf_counter()
+                _t = _perf_time.perf_counter()
                 jelolheto = []
-                for rekord in pozicio_tortenet:
-                    if str(rekord.get("viszonylat", "")).strip() != viszonylat:
-                        continue
-                    if str(rekord.get("forda", "")).strip() != forda:
-                        continue
-                    if str(rekord.get("forrás", "biztor")).strip() != forrás:
-                        continue
+                for rekord in forda_rekordok:
                     rekord_frissitve = str(rekord.get("frissítve", "")).strip()
                     if not rekord_frissitve:
                         continue
@@ -3217,7 +3121,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
                 if jelolheto:
                     _, legfrissebb_minta = max(jelolheto, key=lambda item: item[0])
                     legfrissebb_minta["pótlás_kék_N"] = True
-                _jelolo_kereses_ossz += _time.perf_counter() - _jelolo_start
+                _meres["pótlás idővonaljelölő keresése"] += _perf_time.perf_counter() - _t
 
             dontesek[kulcs] = {
                 "viszonylat": viszonylat,
@@ -3240,23 +3144,10 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             # Így az ilyen bejegyzés nem marad bent és a következő futást sem blokkolja.
             dontesek.pop(kulcs, None)
 
-    print(
-        f"[IDŐMÉRÉS] ({forrás}) első forda-feldolgozó ciklus: "
-        f"{_forda_ciklus_db} forda, "
-        f"{_time.perf_counter() - _forda_ciklus_start:.4f} mp.",
-        flush=True
-    )
-    print(
-        f"[IDŐMÉRÉS] ({forrás}) részletek: történeti pótláskeresés "
-        f"{_torteneti_potlas_ossz:.3f} mp; korábbi végleges döntések aktuális "
-        f"pótlásvizsgálata {_aktualis_potlas_ossz:.3f} mp; "
-        f"70%-os/félidős döntés {_hetven_dontes_ossz:.3f} mp "
-        f"({_hetven_dontes_db} hívás, max. {_hetven_dontes_max:.3f} mp); "
-        f"pótlás-idővonal jelölése {_jelolo_kereses_ossz:.3f} mp.",
-        flush=True
-    )
+        _meres["fordánkénti ciklus teljes ideje"] += _perf_time.perf_counter() - _forda_start
 
-    _eredmenyek_osszeallitas_start = _time.perf_counter()
+    _meres["első forda-feldolgozó ciklus"] += _perf_time.perf_counter() - _t
+    _t = _perf_time.perf_counter()
     eredmenyek = []
 
     for _, forda_sor in figyelt_forras.iterrows():
@@ -3280,47 +3171,24 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             "pótlás_viszonylata": dontes.get("pótlás_viszonylata", ""),
             "pótlás_fordája": dontes.get("pótlás_fordája", "")
         })
-    print(
-        f"[IDŐMÉRÉS] ({forrás}) eredmények listájának összeállítása: "
-        f"{len(eredmenyek)} sor, "
-        f"{_time.perf_counter() - _eredmenyek_osszeallitas_start:.4f} mp.",
-        flush=True
-    )
+
+    _meres["eredménylista összeállítása"] += _perf_time.perf_counter() - _t
 
     # Csak a jelenlegi forrás figyelt fordái számítanak a készültségbe;
     # régi, már nem létező kulcsok nem tehetik tévesen teljessé a riportot.
     # A pótlás külön, elfogadott státusz: értékeltnek számít, de nem I/N döntés.
     vegleges_eredmenyek = {"RENDBEN TÁROLT", "ELTÉRÉS TÖRTÉNT", "pótlás/cserekocsi"}
-    _keszultseg_start = _time.perf_counter()
     aktualis_kulcsok = {
         forda_kulcs_adat(forda_sor)
         for _, forda_sor in figyelt_forras.iterrows()
     }
-    print(
-        f"[IDŐMÉRÉS] ({forrás}) aktuális kulcsok képzése: "
-        f"{len(aktualis_kulcsok)} db, "
-        f"{_time.perf_counter() - _keszultseg_start:.4f} mp.",
-        flush=True
-    )
-    _minden_dontott_start = _time.perf_counter()
     minden_döntött = all(
         str(dontesek.get(kulcs, {}).get("eredmény", "")).strip() in vegleges_eredmenyek
         for kulcs in aktualis_kulcsok
     )
-    print(
-        f"[IDŐMÉRÉS] ({forrás}) minden_döntött vizsgálat: "
-        f"{_time.perf_counter() - _minden_dontott_start:.4f} mp.",
-        flush=True
-    )
-    _ertekelt_start = _time.perf_counter()
     ertekelt_fordak = sum(
         1 for sor in eredmenyek
         if str(sor.get("eredmény", "")).strip() in vegleges_eredmenyek
-    )
-    print(
-        f"[IDŐMÉRÉS] ({forrás}) értékelt fordák számlálása: "
-        f"{_time.perf_counter() - _ertekelt_start:.4f} mp.",
-        flush=True
     )
 
     # Az Excel-export legkorábban 16:30-kor indulhat.
@@ -3337,61 +3205,19 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         except (ValueError, TypeError):
             continue
 
-    # A JSON-ban jelzett kész állapot önmagában nem elég: ellenőrizzük, hogy
-    # a tényleges XLSX-fájl létezik-e, olvasható-e és tartalmaz-e aznapi adatsort.
-    export_fajl_adatokkal = False
-    _xlsx_ellenorzes_start = _time.perf_counter()
-    if os.path.isfile(export_fajl):
-        try:
-            _xlsx_megnyitas_start = _time.perf_counter()
-            ellenorzo_wb = openpyxl.load_workbook(export_fajl, read_only=True, data_only=True)
-            print(
-                f"[IDŐMÉRÉS] ({forrás}) XLSX read_only megnyitása: "
-                f"{_time.perf_counter() - _xlsx_megnyitas_start:.3f} mp.",
-                flush=True
-            )
-            if "Riport" in ellenorzo_wb.sheetnames:
-                ellenorzo_ws = ellenorzo_wb["Riport"]
-                # Gyűjtőfájlnál a mai nap sora nem feltétlenül a 2. sorban van:
-                # korábbi napok adatai is maradnak a fejléc alatt.
-                _xlsx_sorvizsgalat_start = _time.perf_counter()
-                van_mai_adat = any(
-                    str(ellenorzo_ws.cell(sor_index, 1).value).strip()[:10] == MAI_NAP
-                    for sor_index in range(2, ellenorzo_ws.max_row + 1)
-                )
-                print(
-                    f"[IDŐMÉRÉS] ({forrás}) XLSX sorvizsgálat: "
-                    f"{ellenorzo_ws.max_row:,} sor, "
-                    f"{_time.perf_counter() - _xlsx_sorvizsgalat_start:.3f} mp.",
-                    flush=True
-                )
-                export_fajl_adatokkal = (
-                    ellenorzo_ws.max_row > 1
-                    and ellenorzo_ws.max_column >= 7
-                    and van_mai_adat
-                )
-            _xlsx_bezaras_start = _time.perf_counter()
-            ellenorzo_wb.close()
-            print(
-                f"[IDŐMÉRÉS] ({forrás}) XLSX ellenőrző fájl bezárása: "
-                f"{_time.perf_counter() - _xlsx_bezaras_start:.3f} mp.",
-                flush=True
-            )
-        except Exception as e:
-            print(f"FIGYELEM: az exportfájl ellenőrzése nem sikerült ({export_fajl}): {e}")
-    print(
-        f"[IDŐMÉRÉS] ({forrás}) teljes XLSX-ellenőrzés: "
-        f"{_time.perf_counter() - _xlsx_ellenorzes_start:.3f} mp.",
-        flush=True
-    )
-
+    # Az export állapotát a napi JSON rögzíti. A gyűjtő-XLSX-et nem nyitjuk
+    # meg minden ötperces futáskor: csak a kész jelzőt és a fájl létezését nézzük.
+    # A tartalmi ellenőrzés kizárólag a napi páros export lezárásakor fut le.
+    _t = _perf_time.perf_counter()
     excel_mar_mentve = (
         korabbi_riport.get("datum") == MAI_NAP
         and korabbi_riport.get("excel_kesz") is True
         and korabbi_keszult_ido is not None
         and korabbi_keszult_ido >= time(16, 30)
-        and export_fajl_adatokkal
+        and os.path.isfile(export_fajl)
+        and os.path.getsize(export_fajl) > 0
     )
+    _meres["XLSX kész állapot gyors ellenőrzése"] += _perf_time.perf_counter() - _t
 
     # Ha a két Excel-pár aznap már sikeresen elkészült, az exportot akkor sem
     # írjuk újra, ha a workflow napközben további alkalommal lefut.
@@ -3401,12 +3227,13 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         and paros_export_allapot.get("datum") == MAI_NAP
         and paros_export_allapot.get("kesz") is True
     )
-    if paros_export_mar_kesz:
+    if paros_export_mar_kesz and os.path.isfile(export_fajl) and os.path.getsize(export_fajl) > 0:
         excel_mar_mentve = True
 
     riport_idopont = korabbi_riport.get("keszult", "-")
 
     if riport_indithato and not excel_mar_mentve:
+        _export_start = _perf_time.perf_counter()
         os.makedirs("data", exist_ok=True)
 
         export_wb = None
@@ -3554,6 +3381,7 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         riport_idopont = most.strftime("%H:%M:%S")
         excel_mar_mentve = True
         print(f"Excel export elkészült: {export_fajl}; adatsorok: {len(eredmenyek)}; véglegesen értékelt fordák: {ertekelt_fordak}")
+        _meres["XLSX export elkészítése"] += _perf_time.perf_counter() - _export_start
 
     riportok = {
         "datum": MAI_NAP,
@@ -3571,25 +3399,27 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
 
     napi_adatok[napi_kulcs] = riportok
 
-    _json_mentes_start = _time.perf_counter()
+    _t = _perf_time.perf_counter()
     atomikus_json_mentes(NAPI_ADATOK_FAJL, napi_adatok)
-    print(
-        f"[IDŐMÉRÉS] ({forrás}) napi JSON mentése: "
-        f"{_time.perf_counter() - _json_mentes_start:.3f} mp.",
-        flush=True
-    )
+    _meres["napi JSON mentése"] += _perf_time.perf_counter() - _t
 
     print()
+    print(f"[IDŐMÉRÉS] ({forrás}) pozíciótörténet indexelése: {_meres['pozíciótörténet indexelése']:.4f} mp.")
+    print(f"[IDŐMÉRÉS] ({forrás}) történeti pótlásvizsgálat: {_meres['történeti pótlásvizsgálat']:.4f} mp.")
+    print(f"[IDŐMÉRÉS] ({forrás}) aktuális pótlásvizsgálat: {_meres['aktuális pótlásvizsgálat']:.4f} mp. ({_meres_db['aktuális pótlásvizsgálat']} hívás)")
+    print(f"[IDŐMÉRÉS] ({forrás}) félidős döntés: {_meres['félidős döntés']:.4f} mp. ({_meres_db['félidős döntés']} hívás)")
+    print(f"[IDŐMÉRÉS] ({forrás}) pótlás idővonaljelölő keresése: {_meres['pótlás idővonaljelölő keresése']:.4f} mp.")
+    print(f"[IDŐMÉRÉS] ({forrás}) első forda-feldolgozó ciklus: {_meres['első forda-feldolgozó ciklus']:.4f} mp.")
+    print(f"[IDŐMÉRÉS] ({forrás}) eredménylista összeállítása: {_meres['eredménylista összeállítása']:.4f} mp.")
+    print(f"[IDŐMÉRÉS] ({forrás}) XLSX kész állapot gyors ellenőrzése: {_meres['XLSX kész állapot gyors ellenőrzése']:.4f} mp.")
+    print(f"[IDŐMÉRÉS] ({forrás}) XLSX export elkészítése: {_meres['XLSX export elkészítése']:.4f} mp.")
+    print(f"[IDŐMÉRÉS] ({forrás}) napi JSON mentése: {_meres['napi JSON mentése']:.4f} mp.")
+    print(f"[IDŐMÉRÉS] ({forrás}) teljes riportfüggvény: {_perf_time.perf_counter() - _riport_start:.4f} mp.")
+
     print("=== HIDEGTÁROLÁSI RIPORT ===")
     print("Új félidős döntések:", uj_dontes)
     print("Meghozott döntések:", ertekelt_fordak, "/", len(figyelt_forras), "végleges értékelés")
     print("Excel:", "mentve" if excel_mar_mentve else "16:30-ra vár")
-
-    print(
-        f"[IDŐMÉRÉS] Riportfüggvény teljes futása ({forrás}): "
-        f"{_time.perf_counter() - _riport_teljes_start:.4f} mp.",
-        flush=True
-    )
 
     return riportok
 
@@ -3621,11 +3451,13 @@ def _mai_excel_export_ervenyes(fajl):
             ws = wb["Riport"]
             if ws.max_row < 2 or ws.max_column < 7:
                 return False
-            return any(
-                str(ws.cell(r, 1).value or "").strip()[:10] == MAI_NAP
-                and any(ws.cell(r, c).value is not None for c in range(1, 8))
-                for r in range(2, ws.max_row + 1)
-            )
+            # Read-only munkalapon iter_rows(values_only=True) egyetlen
+            # folyamatos bejárás; nem kérjük le ugyanazt a cellát többször.
+            for sor in ws.iter_rows(min_row=2, max_col=7, values_only=True):
+                datum = str(sor[0] or "").strip()[:10]
+                if datum == MAI_NAP and any(ertek is not None for ertek in sor):
+                    return True
+            return False
         finally:
             wb.close()
     except Exception as e:
@@ -3636,6 +3468,7 @@ def _mai_excel_export_ervenyes(fajl):
 # Közös kész jelölő csak akkor kerül mentésre, ha MINDKÉT Excel sikeresen
 # elmentődött és mindkettőben található mai adatsor. A JSON és az Excel-fájlok
 # ugyanabban a Git-commitban kerülnek vissza a repóba.
+_paros_export_ellenorzes_start = _perf_time.perf_counter()
 if (
     budapesti_most().time() >= time(16, 30)
     and hidegtarolas_riport.get("datum") == MAI_NAP
@@ -3661,11 +3494,13 @@ if (
         print("A napi páros Excel-export sikeresen elkészült; erre a napra lezárva.")
     else:
         print("A napi páros Excel-export már korábban elkészült; nincs újragenerálás.")
+    print(f"[IDŐMÉRÉS] Páros Excel-export ellenőrzése: {_perf_time.perf_counter() - _paros_export_ellenorzes_start:.4f} mp.")
 else:
     if budapesti_most().time() < time(16, 30):
         print("A napi Excel-export 16:30 után készülhet el.")
     else:
         print("A napi páros Excel-export még nem zárható le: legalább az egyik Excel hiányzik vagy érvénytelen.")
+    print(f"[IDŐMÉRÉS] Páros Excel-export ellenőrzése: {_perf_time.perf_counter() - _paros_export_ellenorzes_start:.4f} mp.")
 
 
 # ============================================================
