@@ -2966,11 +2966,29 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
     A még félidő előtti, nem eldöntött sorok is bekerülnek az exportba.
     """
 
-    most = budapesti_most()
+    _riport_teljes_start = _time.perf_counter()
+    print(
+        f"[IDŐMÉRÉS] Riportfüggvény indul ({forrás}).",
+        flush=True
+    )
 
+    _most_start = _time.perf_counter()
+    most = budapesti_most()
+    print(
+        f"[IDŐMÉRÉS] ({forrás}) budapesti_most(): "
+        f"{_time.perf_counter() - _most_start:.4f} mp.",
+        flush=True
+    )
+
+    _korabbi_riport_start = _time.perf_counter()
     korabbi_riport = napi_adatok.get(
         napi_kulcs
     ) or {}
+    print(
+        f"[IDŐMÉRÉS] ({forrás}) korábbi riport beolvasása: "
+        f"{_time.perf_counter() - _korabbi_riport_start:.4f} mp.",
+        flush=True
+    )
 
     # Ha az aznapi páros Excel-riport már sikeresen elkészült, a riportlogika
     # erre a napra lezárult. A következő workflow-futások ne járják végig újra
@@ -3008,14 +3026,29 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         if hely and hely not in ("Nincs adat", "-"):
             dontes["tárolás helye"] = gps_geozona_vagy_koordinata(hely)
 
+    _pozicio_tortenet_start = _time.perf_counter()
     pozicio_tortenet = napi_adatok.get(
         "pozicio_tortenet",
         []
     )
+    print(
+        f"[IDŐMÉRÉS] ({forrás}) pozíciótörténet lekérése: "
+        f"{_time.perf_counter() - _pozicio_tortenet_start:.4f} mp; "
+        f"rekordok száma: {len(pozicio_tortenet):,}.",
+        flush=True
+    )
 
+    _figyelt_start = _time.perf_counter()
     figyelt_forras = figyelt_fordak_garazs if forrás == "garazs" else figyelt_fordak_biztor
+    print(
+        f"[IDŐMÉRÉS] ({forrás}) figyelt fordák kiválasztása: "
+        f"{_time.perf_counter() - _figyelt_start:.4f} mp; "
+        f"fordák száma: {len(figyelt_forras)}.",
+        flush=True
+    )
 
     uj_dontes = 0
+    _gps_szamlalas_start = _time.perf_counter()
     gps_rekordok_forras_szerint = sum(
         1 for rekord in pozicio_tortenet
         if str(rekord.get("forrás", "biztor")).strip() == forrás
@@ -3023,12 +3056,21 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
         and str(rekord.get("pozíció", "")).strip() not in ("", "None")
     )
     print(
+        f"[IDŐMÉRÉS] ({forrás}) GPS-rekordok számlálása: "
+        f"{_time.perf_counter() - _gps_szamlalas_start:.4f} mp; "
+        f"találat: {gps_rekordok_forras_szerint:,}.",
+        flush=True
+    )
+    print(
         f"Félidős geozóna-ellenőrzés ({forrás}): {len(figyelt_forras)} forda, "
         f"{gps_rekordok_forras_szerint} GPS-rekord időbélyeggel és koordinátával, "
         f"{len(dontesek)} korábban mentett döntés."
     )
 
+    _forda_ciklus_start = _time.perf_counter()
+    _forda_ciklus_db = 0
     for _, forda_sor in figyelt_forras.iterrows():
+        _forda_ciklus_db += 1
         viszonylat = str(forda_sor["viszonylat"]).strip()
         forda = str(forda_sor["forda"]).strip()
         kulcs = forda_kulcs_adat(forda_sor)
@@ -3180,6 +3222,13 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
             # ha a teljes történeti újraértékelés még nem adott döntést.
             # Így az ilyen bejegyzés nem marad bent és a következő futást sem blokkolja.
             dontesek.pop(kulcs, None)
+
+    print(
+        f"[IDŐMÉRÉS] ({forrás}) első forda-feldolgozó ciklus: "
+        f"{_forda_ciklus_db} forda, "
+        f"{_time.perf_counter() - _forda_ciklus_start:.4f} mp.",
+        flush=True
+    )
 
     eredmenyek = []
 
@@ -3452,6 +3501,12 @@ def keszit_hidegtarolas_riport(forrás="biztor", export_fajl=RIport_XLSX, napi_k
     print("Új félidős döntések:", uj_dontes)
     print("Meghozott döntések:", ertekelt_fordak, "/", len(figyelt_forras), "végleges értékelés")
     print("Excel:", "mentve" if excel_mar_mentve else "16:30-ra vár")
+
+    print(
+        f"[IDŐMÉRÉS] Riportfüggvény teljes futása ({forrás}): "
+        f"{_time.perf_counter() - _riport_teljes_start:.4f} mp.",
+        flush=True
+    )
 
     return riportok
 
